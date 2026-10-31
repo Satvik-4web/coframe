@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { Proposal, HumanIdentity, ArtifactSection } from '../../types';
 import { ProposalCard } from './ProposalCard';
+import { NovaPrdCard } from './NovaPrdCard';
+import { NovaPrdDocumentModal } from './NovaPrdDocumentModal';
+import { PixelImplementationCard } from './PixelImplementationCard';
+import { PixelImplementationModal } from './PixelImplementationModal';
 import { RedirectModal } from './RedirectModal';
 import { ConflictCompareModal } from './ConflictCompareModal';
 import { CreateHumanProposalModal } from './CreateHumanProposalModal';
@@ -9,6 +13,7 @@ import {
   rejectProposal,
   reconcileProposal,
   publishApprovedProposal,
+  confirmProposalRequirements,
 } from '../../lib/api';
 import {
   GitPullRequest,
@@ -45,11 +50,13 @@ export const ProposalList: React.FC<ProposalListProps> = ({
   const [redirectingProposal, setRedirectingProposal] = useState<Proposal | null>(null);
   const [conflictedProposal, setConflictedProposal] = useState<Proposal | null>(null);
   const [showCreateHumanModal, setShowCreateHumanModal] = useState(false);
+  const [selectedNovaProposal, setSelectedNovaProposal] = useState<Proposal | null>(null);
+  const [selectedPixelProposal, setSelectedPixelProposal] = useState<Proposal | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   // Helper check for human proposals
   const isHumanProposal = (p: Proposal) => {
-    const authorClean = (p.created_by || p.agent_id || '').toLowerCase();
+    const authorClean = (p.created_by || p.agent_id || p.author || '').toLowerCase();
     return (
       p.author_type === 'human' ||
       p.proposal_type === 'human_contribution' ||
@@ -61,12 +68,12 @@ export const ProposalList: React.FC<ProposalListProps> = ({
 
   const isNovaProposal = (p: Proposal) => {
     const authorClean = (p.created_by || p.agent_id || '').toLowerCase();
-    return authorClean === 'nova';
+    return authorClean === 'nova' || p.proposal_type === 'prd_requirement' || p.proposal_type === 'requirements';
   };
 
   const isPixelProposal = (p: Proposal) => {
     const authorClean = (p.created_by || p.agent_id || '').toLowerCase();
-    return authorClean === 'pixel';
+    return authorClean === 'pixel' || p.proposal_type === 'prototype_modification' || p.proposal_type === 'implementation';
   };
 
   // Two-dimensional filter composition (Section 4)
@@ -139,6 +146,16 @@ export const ProposalList: React.FC<ProposalListProps> = ({
       onRefresh();
     } catch (err: any) {
       setActionError(err.message || 'Failed to publish to GitHub');
+    }
+  };
+
+  const handleConfirmRequirements = async (proposalId: string) => {
+    setActionError(null);
+    try {
+      await confirmProposalRequirements('demo-ledgerflow', proposalId, identity || 'alex', `Requirements confirmed by ${identity || 'alex'}`);
+      onRefresh();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to confirm requirements');
     }
   };
 
@@ -334,19 +351,47 @@ export const ProposalList: React.FC<ProposalListProps> = ({
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredProposals.map((prop) => (
-            <ProposalCard
-              key={prop.proposal_id}
-              proposal={prop}
-              identity={identity}
-              onApprove={handleApprove}
-              onReject={handleReject}
-              onRedirect={(p) => setRedirectingProposal(p)}
-              onReconcile={handleReconcile}
-              onCompareConflict={(p) => setConflictedProposal(p)}
-              onPublishToGitHub={handlePublishToGitHub}
-            />
-          ))}
+          {filteredProposals.map((prop) => {
+            if (isNovaProposal(prop)) {
+              return (
+                <NovaPrdCard
+                  key={prop.proposal_id}
+                  proposal={prop}
+                  identity={identity}
+                  onOpenPrd={(p) => setSelectedNovaProposal(p)}
+                  onConfirmRequirements={handleConfirmRequirements}
+                  onReject={handleReject}
+                />
+              );
+            }
+            if (isPixelProposal(prop)) {
+              return (
+                <PixelImplementationCard
+                  key={prop.proposal_id}
+                  proposal={prop}
+                  identity={identity}
+                  onOpenImplementation={(p) => setSelectedPixelProposal(p)}
+                  onApprove={handleApprove}
+                  onReject={handleReject}
+                  onRedirect={(p) => setRedirectingProposal(p)}
+                  onCompareConflict={(p) => setConflictedProposal(p)}
+                />
+              );
+            }
+            return (
+              <ProposalCard
+                key={prop.proposal_id}
+                proposal={prop}
+                identity={identity}
+                onApprove={handleApprove}
+                onReject={handleReject}
+                onRedirect={(p) => setRedirectingProposal(p)}
+                onReconcile={handleReconcile}
+                onCompareConflict={(p) => setConflictedProposal(p)}
+                onPublishToGitHub={handlePublishToGitHub}
+              />
+            );
+          })}
         </div>
       )}
 
@@ -385,6 +430,43 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           onSuccess={onRefresh}
         />
       )}
+    
+      {/* NOVA PRD Document Reader Modal */}
+      {selectedNovaProposal && (
+        <NovaPrdDocumentModal
+          proposal={selectedNovaProposal}
+          identity={identity}
+          isOpen={true}
+          onClose={() => setSelectedNovaProposal(null)}
+          onConfirmRequirements={(id) => {
+            handleConfirmRequirements(id);
+            setSelectedNovaProposal(null);
+          }}
+        />
+      )}
+
+      {/* PIXEL Implementation Engineering Modal */}
+      {selectedPixelProposal && (
+        <PixelImplementationModal
+          proposal={selectedPixelProposal}
+          identity={identity}
+          isOpen={true}
+          onClose={() => setSelectedPixelProposal(null)}
+          onApprove={(id) => {
+            handleApprove(id);
+            setSelectedPixelProposal(null);
+          }}
+          onReject={(id) => {
+            handleReject(id);
+            setSelectedPixelProposal(null);
+          }}
+          onRedirect={(p) => {
+            setSelectedPixelProposal(null);
+            setRedirectingProposal(p);
+          }}
+        />
+      )}
+
     </div>
   );
 };

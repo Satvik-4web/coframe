@@ -4,16 +4,16 @@ import logging
 from typing import Dict, Any, List
 from sqlalchemy.orm import Session
 
-from backend.app.context.pack_builder import create_and_persist_agent_run, build_context_pack
+from backend.app.context.pack_builder import create_and_persist_agent_run
 from backend.app.proposals.stamping import stamp_and_persist_proposal
-from backend.app.agents.provider import call_llm_json
+from backend.app.agents.provider import call_llm_json, get_effective_model
+from backend.app.agents.tools import get_agent_tools
 from backend.app.agents.prompts.nova_prompt import NOVA_SYSTEM_PROMPT
 from backend.app.agents.prompts.reconcile_prompt import RECONCILE_SYSTEM_PROMPT
 from backend.app.agents.fallback import (
     FALLBACK_NOVA_PROPOSAL_A,
     FALLBACK_NOVA_PROPOSAL_B,
     FALLBACK_RECONCILED_PROPOSAL_A,
-    FALLBACK_HIGH_IMPACT_APPROVAL_POLICY,
     FALLBACK_REDIRECTED_NOVA_PROPOSAL,
 )
 from backend.app.db.models import ProposalModel, AgentRunModel, utcnow_str
@@ -44,6 +44,8 @@ async def run_nova_initial(db: Session, project_id: str) -> List[ProposalModel]:
 
     pack = run.context_pack
     created_proposals = []
+    nova_model = get_effective_model("nova")
+    nova_tools = get_agent_tools("nova")
 
     # Proposal A — Audience Positioning
     user_prompt_a = (
@@ -58,7 +60,10 @@ async def run_nova_initial(db: Session, project_id: str) -> List[ProposalModel]:
         res_a = await call_llm_json(
             system_prompt=NOVA_SYSTEM_PROMPT,
             user_prompt=user_prompt_a,
-            timeout=8.0,
+            timeout=12.0,
+            model=nova_model,
+            agent_id="nova",
+            tools=nova_tools,
         )
         raw_a, source_a, sim_a = res_a
         prune_meta_a = getattr(res_a, "prune_metadata", None)
@@ -76,6 +81,7 @@ async def run_nova_initial(db: Session, project_id: str) -> List[ProposalModel]:
         source=source_a,
         is_simulated=sim_a,
         prune_metadata=prune_meta_a,
+        prd_data=raw_a.get("prd_data") if isinstance(raw_a, dict) else None,
     )
     created_proposals.append(prop_a)
 
@@ -92,7 +98,10 @@ async def run_nova_initial(db: Session, project_id: str) -> List[ProposalModel]:
         res_b = await call_llm_json(
             system_prompt=NOVA_SYSTEM_PROMPT,
             user_prompt=user_prompt_b,
-            timeout=8.0,
+            timeout=12.0,
+            model=nova_model,
+            agent_id="nova",
+            tools=nova_tools,
         )
         raw_b, source_b, sim_b = res_b
         prune_meta_b = getattr(res_b, "prune_metadata", None)
@@ -110,6 +119,7 @@ async def run_nova_initial(db: Session, project_id: str) -> List[ProposalModel]:
         source=source_b,
         is_simulated=sim_b,
         prune_metadata=prune_meta_b,
+        prd_data=raw_b.get("prd_data") if isinstance(raw_b, dict) else None,
     )
     created_proposals.append(prop_b)
 
@@ -160,11 +170,15 @@ async def reconcile_nova_proposal(
         res = await call_llm_json(
             system_prompt=RECONCILE_SYSTEM_PROMPT,
             user_prompt=user_prompt,
-            timeout=8.0,
+            timeout=12.0,
+            model=get_effective_model("nova"),
+            agent_id="nova",
+            tools=get_agent_tools("nova"),
         )
         raw_output, source, is_simulated = res
         prune_meta = getattr(res, "prune_metadata", None)
-    except Exception:
+    except Exception as e:
+        logger.info(f"NOVA Reconcile using deterministic fallback: {e}")
         raw_output = FALLBACK_RECONCILED_PROPOSAL_A
         source = "cached_fallback"
         is_simulated = True
@@ -178,6 +192,7 @@ async def reconcile_nova_proposal(
         is_simulated=is_simulated,
         supersedes_proposal_id=original_proposal_id,
         prune_metadata=prune_meta,
+        prd_data=raw_output.get("prd_data") if isinstance(raw_output, dict) else None,
     )
 
     # Mark original proposal superseded
@@ -245,11 +260,15 @@ async def redirect_nova_proposal(
         res = await call_llm_json(
             system_prompt=NOVA_SYSTEM_PROMPT,
             user_prompt=user_prompt,
-            timeout=8.0,
+            timeout=12.0,
+            model=get_effective_model("nova"),
+            agent_id="nova",
+            tools=get_agent_tools("nova"),
         )
         raw_output, source, is_simulated = res
         prune_meta = getattr(res, "prune_metadata", None)
-    except Exception:
+    except Exception as e:
+        logger.info(f"NOVA Redirect using deterministic fallback: {e}")
         raw_output = FALLBACK_REDIRECTED_NOVA_PROPOSAL
         source = "cached_fallback"
         is_simulated = True
@@ -263,6 +282,7 @@ async def redirect_nova_proposal(
         is_simulated=is_simulated,
         supersedes_proposal_id=original_proposal_id,
         prune_metadata=prune_meta,
+        prd_data=raw_output.get("prd_data") if isinstance(raw_output, dict) else None,
     )
 
     # Mark original proposal as superseded

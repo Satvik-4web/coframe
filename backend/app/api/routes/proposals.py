@@ -10,6 +10,7 @@ from backend.app.schemas.proposals import (
     ProposalRedirectRequest,
     ProposalReconcileRequest,
     HumanProposalCreateRequest,
+    ConfirmRequirementsRequest,
 )
 from backend.app.proposals.apply import apply_proposal_atomically, ApplyValidationError
 from backend.app.proposals.serialization import serialize_proposal_for_api
@@ -182,12 +183,120 @@ async def approve_proposal(
         "decided_by": body.decided_by,
     })
 
+    try:
+        from backend.app.agents.chat_service import create_system_chat_notification
+        create_system_chat_notification(
+            db=db,
+            project_id=project_id,
+            conversation_id="conv_team_ledgerflow",
+            content=f"Human Decision: {body.decided_by.capitalize()} approved implementation '{approved_prop.summary}'. Canvas updated to v{approved_prop.base_artifact_version + 1}.",
+            related_proposal_id=approved_prop.id,
+        )
+    except Exception:
+        pass
+
     return {
         "status": "success",
         "message": f"Proposal {proposal_id} approved and applied.",
         "proposal_id": approved_prop.id,
         "artifact_version": approved_prop.base_artifact_version + 1,
     }
+
+
+
+@router.post("/projects/{project_id}/proposals/{proposal_id}/confirm_requirements")
+async def confirm_proposal_requirements(
+    project_id: str,
+    proposal_id: str,
+    body: ConfirmRequirementsRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Confirms NOVA's Product Requirements Document (PRD) proposal.
+    Transitions proposal from READY FOR REVIEW -> CONFIRMED.
+    Updates requirement state without modifying the canonical prototype sections.
+    """
+    if body.confirmed_by.lower() not in ("alex", "maya"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid decider identity '{body.confirmed_by}'. Only 'alex' or 'maya' may confirm requirements.",
+        )
+
+    p = (
+        db.query(ProposalModel)
+        .filter(ProposalModel.id == proposal_id, ProposalModel.project_id == project_id)
+        .first()
+    )
+    if not p:
+        raise HTTPException(status_code=404, detail="Proposal not found")
+
+    if p.status != "pending_review":
+        raise HTTPException(status_code=400, detail=f"Proposal is already {p.status}.")
+
+    project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    p.status = "approved"
+    p.updated_at = utcnow_str()
+
+    if p.prd_data and isinstance(p.prd_data, dict):
+        p.prd_data["status"] = "confirmed"
+        p.prd_data["confirmed_by"] = body.confirmed_by.lower()
+        p.prd_data["confirmed_at"] = utcnow_str()
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(p, "prd_data")
+
+    decision = DecisionModel(
+        id=f"dec_{uuid.uuid4().hex[:10]}",
+        proposal_id=p.id,
+        decision="confirmed",
+        decided_by=body.confirmed_by,
+        note=body.note or f"Confirmed requirements for '{p.summary}'",
+        created_at=utcnow_str(),
+    )
+    db.add(decision)
+
+    project.context_version += 1
+    project.updated_at = utcnow_str()
+
+    db.commit()
+    db.refresh(p)
+
+    log_event(
+        db=db,
+        project_id=project_id,
+        actor_type="human",
+        actor_id=body.confirmed_by,
+        event_type="PROPOSAL_REQUIREMENTS_CONFIRMED",
+        context_version=project.context_version,
+        artifact_version=project.artifact_version,
+        payload={
+            "proposal_id": p.id,
+            "confirmed_by": body.confirmed_by,
+            "summary": p.summary,
+        },
+    )
+
+    await ws_manager.broadcast(project_id, {
+        "type": "PROPOSAL_APPROVED",
+        "proposal_id": p.id,
+        "decided_by": body.confirmed_by,
+    })
+
+    try:
+        from backend.app.agents.chat_service import create_system_chat_notification
+        create_system_chat_notification(
+            db=db,
+            project_id=project_id,
+            conversation_id="conv_team_ledgerflow",
+            content=f"Human Decision: {body.confirmed_by.capitalize()} confirmed PRD requirements for '{p.summary}'. Requirements are now authoritative for implementation.",
+            related_proposal_id=p.id,
+        )
+    except Exception:
+        pass
+
+    return serialize_proposal_for_api(p)
 
 
 @router.post("/projects/{project_id}/proposals/{proposal_id}/reject")

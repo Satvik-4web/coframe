@@ -14,7 +14,8 @@ from backend.app.db.models import (
     ProposalModel,
     utcnow_str,
 )
-from backend.app.agents.provider import call_llm_json
+from backend.app.agents.provider import call_llm_json, get_effective_model
+from backend.app.agents.tools import get_agent_tools
 from backend.app.context.pack_builder import create_and_persist_agent_run
 from backend.app.proposals.stamping import stamp_and_persist_proposal
 from backend.app.websocket.manager import ws_manager
@@ -191,7 +192,10 @@ Provide a strategic analysis, clarifying questions, and next development steps."
         res = await call_llm_json(
             system_prompt=NOVA_CHAT_SYSTEM_PROMPT,
             user_prompt=user_prompt,
-            timeout=10.0,
+            timeout=12.0,
+            model=get_effective_model("nova"),
+            agent_id="nova",
+            tools=get_agent_tools("nova"),
         )
         raw_output, source, is_simulated = res
     except Exception as e:
@@ -241,6 +245,7 @@ Provide a strategic analysis, clarifying questions, and next development steps."
                 created_by="nova",
                 author_type="agent",
                 proposal_type="prd_requirement",
+                prd_data=raw_output.get("prd_data") if isinstance(raw_output, dict) else None,
             )
             related_proposal_id = prop.id
             message_text += f"\n\n**Actionable Proposal Created:** I've submitted a formal requirements proposal for review. Link: `#{prop.id[-6:]}`."
@@ -305,7 +310,10 @@ Explain the engineering approach and provide structured component updates if app
         res = await call_llm_json(
             system_prompt=PIXEL_CHAT_SYSTEM_PROMPT,
             user_prompt=user_prompt,
-            timeout=10.0,
+            timeout=12.0,
+            model=get_effective_model("pixel"),
+            agent_id="pixel",
+            tools=get_agent_tools("pixel"),
         )
         raw_output, source, is_simulated = res
     except Exception as e:
@@ -347,6 +355,7 @@ Explain the engineering approach and provide structured component updates if app
                 created_by="pixel",
                 author_type="agent",
                 proposal_type="prototype_modification",
+                implementation_data=raw_output.get("implementation_data") if isinstance(raw_output, dict) else None,
             )
             related_proposal_id = prop.id
             message_text += f"\n\n**Implementation Proposal Submitted:** I've prepared the component modifications and submitted proposal `#{prop.id[-6:]}` for review. It requires human sign-off before applying to the canvas."
@@ -385,6 +394,164 @@ Explain the engineering approach and provide structured component updates if app
     return agent_msg
 
 
+def _classify_team_intent(message: str) -> str:
+    """Deterministic intent classifier for team messages. No LLM required.
+
+    Returns:
+        'product_led'        - NOVA leads, PIXEL listens
+        'implementation_led' - PIXEL leads, NOVA tracks
+        'both_parallel'      - milestone/planning -> both respond
+        'greeting_or_general'- greeting or unknown -> both respond
+    """
+    m = message.lower()
+
+    product_kws = {
+        "ui", "ux", "design", "better", "improve", "redesign",
+        "user experience", "usability", "workflow", "product", "feature",
+        "suggest", "idea", "strategy", "requirement", "prd",
+        "audience", "market",
+    }
+    impl_kws = {
+        "code", "implement", "build", "component", "button",
+        "frontend", "fix the bug", "change the color", "update the text",
+        "add a field",
+    }
+    both_kws = {
+        "milestone", "deadline", "sprint", "status", "progress",
+        "roadmap", "plan", "update",
+    }
+    greeting_kws = {
+        "hi", "hey", "hello", "good morning", "good afternoon",
+        "what do you", "how are",
+    }
+
+    has_product = any(kw in m for kw in product_kws)
+    has_impl = any(kw in m for kw in impl_kws)
+    has_both = any(kw in m for kw in both_kws)
+    has_greeting = any(kw in m for kw in greeting_kws)
+
+    if has_product and not has_impl:
+        return "product_led"
+    elif has_impl and not has_product:
+        return "implementation_led"
+    elif has_product and has_impl:
+        # product always wins when both present (e.g. "improve the dashboard code")
+        return "product_led"
+    elif has_both:
+        return "both_parallel"
+    elif has_greeting:
+        return "greeting_or_general"
+    else:
+        return "greeting_or_general"  # safe default: both respond
+
+
+async def _handle_pixel_listening_mode(
+    db: Session,
+    project_id: str,
+    conversation_id: str,
+    user_id: str,
+    user_message: str,
+) -> Optional[ChatMessageModel]:
+    """PIXEL's response when NOVA is leading on a product/UX topic."""
+    now_str = utcnow_str()
+    listen_text = (
+        "### Engineering Readiness \u00b7 PIXEL\n\n"
+        "I've received the product improvement request and I'm waiting for "
+        "**NOVA's requirements analysis** before preparing implementation details.\n\n"
+        "**My current stance:**\n"
+        "- I've reviewed the existing LedgerFlow prototype sections (hero, dashboard, product_brief, approval_queue)\n"
+        "- I'm ready to map NOVA's product guidance onto concrete component changes\n"
+        "- I will prepare a scoped implementation proposal once requirements are confirmed\n\n"
+        "**What I'll do when NOVA completes the PRD:**\n"
+        "1. Map confirmed functional requirements to specific React components\n"
+        "2. Prepare before/after component diffs\n"
+        "3. Submit a structured implementation proposal for Alex's review\n\n"
+        "Waiting for NOVA's product direction before acting."
+    )
+
+    agent_msg = ChatMessageModel(
+        id=f"msg_pixel_{uuid.uuid4().hex[:8]}",
+        conversation_id=conversation_id,
+        sender_id="pixel",
+        sender_type="agent",
+        recipient_id=user_id,
+        recipient_type="human",
+        message_content=listen_text,
+        message_type="agent_message",
+        status="delivered",
+        msg_metadata={
+            "agent_role": "AI Software Engineer",
+            "source": "orchestration",
+            "is_simulated": False,
+            "orchestration_mode": "listening",
+            "waiting_for": "nova_requirements",
+        },
+        created_at=now_str,
+    )
+    db.add(agent_msg)
+    db.commit()
+    db.refresh(agent_msg)
+
+    await ws_manager.broadcast(project_id, {
+        "type": "CHAT_MESSAGE_CREATED",
+        "conversation_id": conversation_id,
+        "message": serialize_chat_message(agent_msg),
+    })
+    return agent_msg
+
+
+async def _handle_nova_requirements_tracking(
+    db: Session,
+    project_id: str,
+    conversation_id: str,
+    user_id: str,
+    user_message: str,
+) -> Optional[ChatMessageModel]:
+    """NOVA's brief response when PIXEL is leading on an implementation task."""
+    now_str = utcnow_str()
+    track_text = (
+        "### Requirements Alignment \u00b7 NOVA\n\n"
+        "I'm tracking this implementation request against our confirmed product requirements.\n\n"
+        "**Requirements Check:**\n"
+        "- This change should align with our current audience targeting (small business \u2192 enterprise)\n"
+        "- Any UI modifications must maintain WCAG AA contrast compliance\n"
+        "- Component changes touching approval flows require Alex's sign-off per our governance policy\n\n"
+        "**My Advisory Role:**\n"
+        "Once PIXEL submits the implementation proposal, I will conduct a requirements-alignment review "
+        "and flag any divergence from the confirmed PRD before Alex makes the approval decision.\n\n"
+        "Let me know if you'd like me to generate a formal requirement first."
+    )
+
+    agent_msg = ChatMessageModel(
+        id=f"msg_nova_{uuid.uuid4().hex[:8]}",
+        conversation_id=conversation_id,
+        sender_id="nova",
+        sender_type="agent",
+        recipient_id=user_id,
+        recipient_type="human",
+        message_content=track_text,
+        message_type="agent_message",
+        status="delivered",
+        msg_metadata={
+            "agent_role": "AI Product Strategist",
+            "source": "orchestration",
+            "is_simulated": False,
+            "orchestration_mode": "requirements_tracking",
+        },
+        created_at=now_str,
+    )
+    db.add(agent_msg)
+    db.commit()
+    db.refresh(agent_msg)
+
+    await ws_manager.broadcast(project_id, {
+        "type": "CHAT_MESSAGE_CREATED",
+        "conversation_id": conversation_id,
+        "message": serialize_chat_message(agent_msg),
+    })
+    return agent_msg
+
+
 async def handle_team_chat(
     db: Session,
     project_id: str,
@@ -392,24 +559,42 @@ async def handle_team_chat(
     user_id: str,
     user_message: str,
 ) -> List[ChatMessageModel]:
-    """Orchestrates responses when messages are sent to the Entire Team."""
-    msg_lower = user_message.lower()
+    """Role-aware team orchestration.
+    NOVA owns product strategy. PIXEL owns engineering.
+    For product/UX messages: NOVA leads, PIXEL acknowledges readiness.
+    For implementation messages: PIXEL leads, NOVA tracks requirements.
+    For general team messages: both respond in parallel.
+    """
+    intent = _classify_team_intent(user_message)
     responses: List[ChatMessageModel] = []
 
-    # If code/ui/dashboard/implementation: PIXEL responds
-    is_implementation = any(w in msg_lower for w in ["pixel", "code", "dashboard", "hero", "ui", "component", "button", "build", "frontend"])
-    # If strategy/idea/requirements/prd/audience/milestone: NOVA responds
-    is_product = any(w in msg_lower for w in ["nova", "idea", "requirement", "prd", "audience", "market", "milestone", "strategy", "define"])
+    if intent == "product_led":
+        # NOVA leads with full product analysis
+        nova_resp = await handle_nova_chat(db, project_id, conversation_id, user_id, user_message)
+        if nova_resp:
+            responses.append(nova_resp)
+        # PIXEL acknowledges and waits for confirmed requirements
+        pixel_ack = await _handle_pixel_listening_mode(db, project_id, conversation_id, user_id, user_message)
+        if pixel_ack:
+            responses.append(pixel_ack)
 
-    if is_product or not is_implementation:
-        resp_nova = await handle_nova_chat(db, project_id, conversation_id, user_id, user_message)
-        if resp_nova:
-            responses.append(resp_nova)
+    elif intent == "implementation_led":
+        # PIXEL leads with engineering analysis
+        pixel_resp = await handle_pixel_chat(db, project_id, conversation_id, user_id, user_message)
+        if pixel_resp:
+            responses.append(pixel_resp)
+        # NOVA tracks requirements alignment
+        nova_track = await _handle_nova_requirements_tracking(db, project_id, conversation_id, user_id, user_message)
+        if nova_track:
+            responses.append(nova_track)
 
-    if is_implementation or "milestone" in msg_lower or "team" in msg_lower:
-        resp_pixel = await handle_pixel_chat(db, project_id, conversation_id, user_id, user_message)
-        if resp_pixel:
-            responses.append(resp_pixel)
+    else:  # both_parallel or greeting_or_general
+        nova_resp = await handle_nova_chat(db, project_id, conversation_id, user_id, user_message)
+        if nova_resp:
+            responses.append(nova_resp)
+        pixel_resp = await handle_pixel_chat(db, project_id, conversation_id, user_id, user_message)
+        if pixel_resp:
+            responses.append(pixel_resp)
 
     return responses
 
@@ -417,17 +602,37 @@ async def handle_team_chat(
 def create_system_chat_notification(
     db: Session,
     project_id: str,
-    notification_text: str,
+    notification_text: Optional[str] = None,
     related_proposal_id: Optional[str] = None,
     related_task_id: Optional[str] = None,
+    conversation_id: Optional[str] = None,
+    content: Optional[str] = None,
 ) -> Optional[ChatMessageModel]:
     """Appends an event-native system notification to the team conversation."""
-    conversation = db.query(ConversationModel).filter(
-        ConversationModel.project_id == project_id,
-        ConversationModel.conversation_type == "team_shared",
-    ).first()
+    actual_text = notification_text or content or ""
+    conversation = None
+    if conversation_id:
+        conversation = db.query(ConversationModel).filter(
+            ConversationModel.id == conversation_id,
+            ConversationModel.project_id == project_id,
+        ).first()
+
     if not conversation:
-        return None
+        conversation = db.query(ConversationModel).filter(
+            ConversationModel.project_id == project_id,
+            ConversationModel.conversation_type == "team_shared",
+        ).first()
+
+    if not conversation:
+        conversation = ConversationModel(
+            id=conversation_id or "conv_team_ledgerflow",
+            project_id=project_id,
+            title="LedgerFlow · Shared Team Conversation",
+            conversation_type="team_shared",
+            created_by="system",
+        )
+        db.add(conversation)
+        db.commit()
 
     msg = ChatMessageModel(
         id=f"msg_sys_{uuid.uuid4().hex[:8]}",
@@ -436,7 +641,7 @@ def create_system_chat_notification(
         sender_type="system",
         recipient_id="team",
         recipient_type="team",
-        message_content=notification_text,
+        message_content=actual_text,
         message_type="system_notification",
         status="delivered",
         related_proposal_id=related_proposal_id,
@@ -520,6 +725,33 @@ Tracking visibility is critical for financial controllers. For the LedgerFlow da
 
 I have submitted this requirement alignment to keep PIXEL's component work synchronized.""",
             "proposal_intent": False,
+        }
+    elif any(w in m_lower for w in ["ui", "ux", "better", "improve", "redesign", "user experience", "design", "usability"]):
+        return {
+            "message": """### UX & Product Improvement Analysis · NOVA
+
+I've reviewed the LedgerFlow product for improvement opportunities. Here's my analysis:
+
+**Current Product State:**
+- The hero section communicates our core value proposition
+- The dashboard surfaces key spend metrics
+- The approval queue implements our governance policy
+- The product brief anchors our market positioning
+
+**Top UX Improvement Opportunities:**
+1. **Hero Messaging**: Sharpen the headline to resonate with our target segment (finance directors at 50-500 person companies)
+2. **Approval Workflow Clarity**: The escalation path (\$500 threshold → Alex) needs a clearer visual indicator
+3. **Dashboard Hierarchy**: Monthly spend should be the dominant metric with secondary breakdowns visible on interaction
+4. **Empty State Handling**: No expense submissions should show a clear action prompt rather than an empty table
+
+**My Recommendation:**
+I'll prepare a structured UX Improvement Brief. Once confirmed, PIXEL can map these to specific component changes.
+
+Shall I generate a formal improvement PRD for review?""",
+            "proposal_intent": True,
+            "proposal_summary": "UX & Product Experience Improvement Brief",
+            "affected_requirements": ["REQ_AUDIENCE", "REQ_BRAND"],
+            "target_sections": ["product_brief"],
         }
     else:
         return {

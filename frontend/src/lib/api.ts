@@ -749,3 +749,22 @@ export async function markConversationRead(
   if (!res.ok) throw new Error('Failed to mark conversation read');
   return res.json();
 }
+
+
+export async function confirmProposalRequirements(
+  projectId: string = 'demo-ledgerflow',
+  proposalId: string,
+  confirmedBy: string = 'alex',
+  note?: string
+): Promise<Proposal> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/proposals/${proposalId}/confirm_requirements`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ confirmed_by: confirmedBy, note }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to confirm requirements');
+  }
+  return res.json();
+}

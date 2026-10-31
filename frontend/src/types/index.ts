@@ -76,6 +76,8 @@ export interface Proposal {
   source: 'live_llm' | 'cached_fallback' | 'human_entry' | string;
   is_simulated: boolean;
   prune_metadata?: PruneMetadata | null;
+  prd_data?: PRDData | null;
+  implementation_data?: ImplementationData | null;
   created_at: string;
   updated_at: string;
 }
@@ -355,9 +357,11 @@ export interface PRD {
 
 export interface ImplementationTask {
   id: string;
-  task: string;
-  section: string;
-  status: string;
+  task?: string;
+  title?: string;
+  section?: string;
+  status: 'completed' | 'in_progress' | 'planned' | string;
+  dependencies?: string[];
 }
 
 export interface ImplementationPlan {
@@ -528,4 +532,132 @@ export interface Conversation {
   message_count: number;
   last_message?: ChatMessage | null;
   participants: ConversationParticipant[];
+}
+
+
+export interface PRDFunctionalRequirement {
+  id: string;
+  title: string;
+  description: string;
+  priority: 'High' | 'Medium' | 'Low' | string;
+}
+
+export interface PRDNonFunctionalRequirement {
+  id: string;
+  title: string;
+  description: string;
+  category: 'Performance' | 'Security' | 'Reliability' | 'Accessibility' | string;
+}
+
+export interface PRDUserStory {
+  role: string;
+  action: string;
+  benefit: string;
+  text?: string;
+}
+
+export interface PRDAcceptanceCriteriaItem {
+  id: string;
+  req_id?: string;
+  criterion: string;
+  measurable?: boolean;
+}
+
+export interface PRDData {
+  title: string;
+  version?: number;
+  executive_summary: {
+    what_proposed: string;
+    problem_solved: string;
+    expected_outcome: string;
+  };
+  problem_statement: {
+    current_problem: string;
+    pain_points: string[];
+    why_needed: string;
+  };
+  target_users: {
+    primary_users: string;
+    goals_and_needs: string[];
+  };
+  proposed_solution: {
+    summary: string;
+    user_interaction_flow: string[];
+  };
+  functional_requirements: PRDFunctionalRequirement[];
+  non_functional_requirements: PRDNonFunctionalRequirement[];
+  user_stories: PRDUserStory[];
+  acceptance_criteria: PRDAcceptanceCriteriaItem[];
+  constraints: string[];
+  assumptions: string[];
+  dependencies: string[];
+  risks: string[];
+  open_questions: string[];
+  revision_number: number;
+  status: 'draft' | 'ready_for_review' | 'confirmed' | string;
+  confirmed_by?: string | null;
+  confirmed_at?: string | null;
+}
+
+
+export interface ChangedFileOrSection {
+  name: string;
+  type: 'artifact_section' | 'source_file' | string;
+  change_type: 'Added' | 'Modified' | 'Deleted' | string;
+  description: string;
+  before_snippet?: string;
+  after_snippet?: string;
+}
+
+export interface RequirementTraceabilityItem {
+  requirement_id: string;
+  title: string;
+  implementation: string;
+  validation: 'Passed' | 'Failed' | 'Not run' | 'Blocked' | string;
+}
+
+export interface ImplementationData {
+  title: string;
+  implementation_summary: {
+    what_implemented: string;
+    why_changes_made: string;
+    how_satisfies_prd: string;
+    what_is_incomplete?: string;
+  };
+  implementation_plan: ImplementationTask[];
+  affected_sections: string[];
+  changed_files_or_sections: ChangedFileOrSection[];
+  artifact_diff?: Array<{
+    section: string;
+    label: string;
+    before?: any;
+    after?: any;
+    diff_type: 'changed' | 'added' | 'removed' | string;
+  }>;
+  code_diff?: Array<{
+    file: string;
+    old_code?: string;
+    new_code?: string;
+    unified_diff?: string;
+  }>;
+  preview_reference?: {
+    target_section: string;
+    operations?: any[];
+    mock_payload?: Record<string, any>;
+  };
+  validation_results: {
+    schema_validation: { status: 'passed' | 'failed' | 'not_run' | string; message: string };
+    build_result: { status: 'passed' | 'failed' | 'not_run' | string; message: string };
+    type_checking: { status: 'passed' | 'failed' | 'not_run' | string; message: string };
+  };
+  test_results: {
+    executed: number;
+    passed: number;
+    failed: number;
+    status: 'passed' | 'failed' | 'not_run' | string;
+    details?: string[];
+  };
+  requirement_traceability: RequirementTraceabilityItem[];
+  known_limitations: string[];
+  base_requirements_version?: number;
 }

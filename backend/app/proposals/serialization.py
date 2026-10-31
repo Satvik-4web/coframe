@@ -1,11 +1,17 @@
 from typing import Dict, Any, Optional
 from backend.app.db.models import ProposalModel
+from backend.app.proposals.output_transformers import (
+    build_nova_prd_data,
+    build_pixel_implementation_data,
+)
 
 
 def serialize_proposal_for_api(p: ProposalModel) -> Dict[str, Any]:
     """
     Serializes a ProposalModel into the authoritative COFRAME API response format,
     strictly distinguishing AUTHOR, REVIEWER, and DECISION OWNER without fabrication.
+    Separates NOVA's human-readable Product Requirements Document (PRD) from
+    PIXEL's engineering implementation contributions.
     """
     # 1. Author and Author Type resolution
     author_id = p.created_by
@@ -75,6 +81,16 @@ def serialize_proposal_for_api(p: ProposalModel) -> Dict[str, Any]:
         else:
             reviewer_name = reviewed_by.capitalize()
 
+    # 6. Structured PRD Document vs Engineering Implementation Data
+    prd_data = getattr(p, "prd_data", None)
+    impl_data = getattr(p, "implementation_data", None)
+
+    if (author_key == "nova" or contribution_type == "PRODUCT REQUIREMENTS") and not prd_data:
+        prd_data = build_nova_prd_data(p, p.project_id)
+
+    if (author_key == "pixel" or contribution_type == "IMPLEMENTATION") and not impl_data:
+        impl_data = build_pixel_implementation_data(p, p.project_id)
+
     return {
         "proposal_id": p.id,
         "project_id": p.project_id,
@@ -108,6 +124,8 @@ def serialize_proposal_for_api(p: ProposalModel) -> Dict[str, Any]:
         "source": p.source,
         "is_simulated": p.is_simulated,
         "prune_metadata": getattr(p, "prune_metadata", None),
+        "prd_data": prd_data,
+        "implementation_data": impl_data,
         "created_at": p.created_at,
         "updated_at": p.updated_at,
     }

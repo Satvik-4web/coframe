@@ -1,5 +1,14 @@
 import os
 import logging
+from dotenv import load_dotenv
+
+# Load environment variables from .env
+load_dotenv()
+
+# Suppress httpx URL logging to prevent credential exposure in logs
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles

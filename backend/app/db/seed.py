@@ -43,6 +43,8 @@ def init_db(target_engine=None):
                 ("proposals", "reviewed_by", "VARCHAR(64)"),
                 ("proposals", "review_outcome", "VARCHAR(32)"),
                 ("proposals", "review_findings", "JSON"),
+                ("proposals", "prd_data", "JSON"),
+                ("proposals", "implementation_data", "JSON"),
                 ("agent_runs", "prune_metadata", "JSON"),
                 ("agent_runs", "lifecycle_state", "VARCHAR(32) DEFAULT 'idle'"),
                 ("agent_runs", "last_heartbeat", "VARCHAR(64)"),

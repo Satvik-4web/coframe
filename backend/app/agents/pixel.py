@@ -6,7 +6,8 @@ from sqlalchemy.orm import Session
 
 from backend.app.context.pack_builder import create_and_persist_agent_run
 from backend.app.proposals.stamping import stamp_and_persist_proposal
-from backend.app.agents.provider import call_llm_json
+from backend.app.agents.provider import call_llm_json, get_effective_model
+from backend.app.agents.tools import get_agent_tools
 from backend.app.agents.prompts.pixel_prompt import PIXEL_SYSTEM_PROMPT
 from backend.app.agents.fallback import (
     FALLBACK_PIXEL_PROPOSAL_C,
@@ -42,6 +43,9 @@ async def run_pixel_initial(db: Session, project_id: str) -> List[ProposalModel]
         f"Target section: 'hero', Operation: 'set_hero_content'."
     )
 
+    pixel_model = get_effective_model("pixel")
+    pixel_tools = get_agent_tools("pixel")
+
     raw_c = None
     source_c = "live_llm"
     sim_c = False
@@ -50,7 +54,10 @@ async def run_pixel_initial(db: Session, project_id: str) -> List[ProposalModel]
         res_c = await call_llm_json(
             system_prompt=PIXEL_SYSTEM_PROMPT,
             user_prompt=user_prompt,
-            timeout=8.0,
+            timeout=12.0,
+            model=pixel_model,
+            agent_id="pixel",
+            tools=pixel_tools,
         )
         raw_c, source_c, sim_c = res_c
         prune_meta_c = getattr(res_c, "prune_metadata", None)
@@ -68,6 +75,7 @@ async def run_pixel_initial(db: Session, project_id: str) -> List[ProposalModel]
         source=source_c,
         is_simulated=sim_c,
         prune_metadata=prune_meta_c,
+        implementation_data=raw_c.get("implementation_data") if isinstance(raw_c, dict) else None,
     )
     return [prop_c]
 
@@ -95,6 +103,9 @@ async def run_pixel_approval_policy(db: Session, project_id: str) -> ProposalMod
         f"Propose enterprise approval queue configuration based on REQ_APPROVAL_POLICY and REQ_ROLES."
     )
 
+    pixel_model = get_effective_model("pixel")
+    pixel_tools = get_agent_tools("pixel")
+
     raw_output = None
     source = "live_llm"
     is_simulated = False
@@ -103,11 +114,15 @@ async def run_pixel_approval_policy(db: Session, project_id: str) -> ProposalMod
         res = await call_llm_json(
             system_prompt=PIXEL_SYSTEM_PROMPT,
             user_prompt=user_prompt,
-            timeout=8.0,
+            timeout=12.0,
+            model=pixel_model,
+            agent_id="pixel",
+            tools=pixel_tools,
         )
         raw_output, source, is_simulated = res
         prune_meta = getattr(res, "prune_metadata", None)
-    except Exception:
+    except Exception as e:
+        logger.info(f"PIXEL Policy using deterministic fallback: {e}")
         raw_output = FALLBACK_HIGH_IMPACT_APPROVAL_POLICY
         source = "cached_fallback"
         is_simulated = True
@@ -120,6 +135,7 @@ async def run_pixel_approval_policy(db: Session, project_id: str) -> ProposalMod
         source=source,
         is_simulated=is_simulated,
         prune_metadata=prune_meta,
+        implementation_data=raw_output.get("implementation_data") if isinstance(raw_output, dict) else None,
     )
     return proposal
 
@@ -160,6 +176,9 @@ async def redirect_pixel_proposal(
         f"Produce a revised structured proposal strictly following the human instruction."
     )
 
+    pixel_model = get_effective_model("pixel")
+    pixel_tools = get_agent_tools("pixel")
+
     raw_output = None
     source = "live_llm"
     is_simulated = False
@@ -168,11 +187,15 @@ async def redirect_pixel_proposal(
         res = await call_llm_json(
             system_prompt=PIXEL_SYSTEM_PROMPT,
             user_prompt=user_prompt,
-            timeout=8.0,
+            timeout=12.0,
+            model=pixel_model,
+            agent_id="pixel",
+            tools=pixel_tools,
         )
         raw_output, source, is_simulated = res
         prune_meta = getattr(res, "prune_metadata", None)
-    except Exception:
+    except Exception as e:
+        logger.info(f"PIXEL Redirect using deterministic fallback: {e}")
         raw_output = FALLBACK_REDIRECTED_PROPOSAL_D
         source = "cached_fallback"
         is_simulated = True
@@ -186,6 +209,7 @@ async def redirect_pixel_proposal(
         is_simulated=is_simulated,
         supersedes_proposal_id=original_proposal_id,
         prune_metadata=prune_meta,
+        implementation_data=raw_output.get("implementation_data") if isinstance(raw_output, dict) else None,
     )
 
     # Mark original proposal as superseded/redirected

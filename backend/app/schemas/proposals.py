@@ -67,3 +67,8 @@ class HumanProposalCreateRequest(BaseModel):
     requires_decision: Optional[bool] = False
     assigned_decider_id: Optional[str] = "alex"
 
+
+
+class ConfirmRequirementsRequest(BaseModel):
+    confirmed_by: str = "alex"
+    note: Optional[str] = "Confirmed product requirements. Ready for engineering implementation."

@@ -28,6 +28,8 @@ def stamp_and_persist_proposal(
     review_outcome: Optional[str] = None,
     review_findings: Optional[List[Dict[str, Any]]] = None,
     proposal_type: Optional[str] = None,
+    prd_data: Optional[Dict[str, Any]] = None,
+    implementation_data: Optional[Dict[str, Any]] = None,
 ) -> ProposalModel:
     """
     Stamps authoritative backend metadata onto agent-produced content
@@ -114,6 +116,20 @@ def stamp_and_persist_proposal(
         except Exception:
             prune_metadata = None
 
+    # 7b. Formulate output documents & engineering implementation data
+    final_prd_data = prd_data or raw_output.get("prd_data")
+    final_impl_data = implementation_data or raw_output.get("implementation_data")
+
+    if run.agent_id == "nova" or effective_proposal_type in ("prd_requirement", "requirements", "product_requirements"):
+        if not final_prd_data:
+            from backend.app.proposals.output_transformers import build_nova_prd_data
+            final_prd_data = build_nova_prd_data(raw_output, project_id)
+
+    if run.agent_id == "pixel" or effective_proposal_type in ("prototype_modification", "implementation"):
+        if not final_impl_data:
+            from backend.app.proposals.output_transformers import build_pixel_implementation_data
+            final_impl_data = build_pixel_implementation_data(raw_output, project_id)
+
     # 8. Create proposal record
     proposal = ProposalModel(
         id=proposal_id,
@@ -144,6 +160,8 @@ def stamp_and_persist_proposal(
         source=source,
         is_simulated=is_simulated,
         prune_metadata=prune_metadata,
+        prd_data=final_prd_data,
+        implementation_data=final_impl_data,
         created_at=utcnow_str(),
         updated_at=utcnow_str(),
     )

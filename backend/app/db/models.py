@@ -188,6 +188,8 @@ class ProposalModel(Base):
     source = Column(String(32), default="live_llm", nullable=False)
     is_simulated = Column(Boolean, default=False, nullable=False)
     prune_metadata = Column(JSON, nullable=True)
+    prd_data = Column(JSON, nullable=True)
+    implementation_data = Column(JSON, nullable=True)
     created_at = Column(String(64), default=utcnow_str, nullable=False)
     updated_at = Column(String(64), default=utcnow_str, nullable=False)
 

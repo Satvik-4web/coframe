@@ -148,3 +148,45 @@ async def trigger_high_impact_proposal(project_id: str, db: Session = Depends(ge
         "requires_decision": prop.requires_decision,
         "assigned_decider_id": prop.assigned_decider_id,
     }
+
+
+
+@router.get("/projects/{project_id}/agents/telemetry")
+async def get_agent_telemetry(project_id: str):
+    """
+    Returns operational observability metrics per agent:
+    Provider, model, request counts, token counts, average latency, and fallback rates.
+    """
+    from backend.app.agents.telemetry import telemetry_tracker
+    return {
+        "status": "success",
+        "project_id": project_id,
+        "telemetry": telemetry_tracker.get_all_metrics(),
+    }
+
+
+@router.post("/projects/{project_id}/agents/{agent_id}/tools/{tool_name}")
+async def execute_tool_endpoint(
+    project_id: str,
+    agent_id: str,
+    tool_name: str,
+    arguments: dict,
+    db: Session = Depends(get_db),
+):
+    """
+    Executes a structured tool call strictly within the agent's permission boundaries.
+    """
+    from backend.app.agents.tools import execute_agent_tool
+    try:
+        result = execute_agent_tool(
+            agent_id=agent_id,
+            tool_name=tool_name,
+            arguments=arguments,
+            db=db,
+            project_id=project_id,
+        )
+        return {"status": "success", "result": result}
+    except PermissionError as pe:
+        raise HTTPException(status_code=403, detail=str(pe))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
