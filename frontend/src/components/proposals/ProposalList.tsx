@@ -353,6 +353,9 @@ export const ProposalList: React.FC<ProposalListProps> = ({
         <div className="space-y-4">
           {filteredProposals.map((prop) => {
             if (isNovaProposal(prop)) {
+              const linkedPixel = proposals.find(
+                (p) => p.supersedes_proposal_id === prop.proposal_id && (p.agent_id === 'pixel' || p.created_by === 'pixel')
+              );
               return (
                 <NovaPrdCard
                   key={prop.proposal_id}
@@ -361,6 +364,8 @@ export const ProposalList: React.FC<ProposalListProps> = ({
                   onOpenPrd={(p) => setSelectedNovaProposal(p)}
                   onConfirmRequirements={handleConfirmRequirements}
                   onReject={handleReject}
+                  hasLinkedImplementation={Boolean(linkedPixel)}
+                  onOpenPixelProposal={linkedPixel ? () => setSelectedPixelProposal(linkedPixel) : undefined}
                 />
               );
             }
@@ -375,6 +380,12 @@ export const ProposalList: React.FC<ProposalListProps> = ({
                   onReject={handleReject}
                   onRedirect={(p) => setRedirectingProposal(p)}
                   onCompareConflict={(p) => setConflictedProposal(p)}
+                  onOpenParentPrd={(parentPrdId) => {
+                    const parentPrd = proposals.find((p) => p.proposal_id === parentPrdId);
+                    if (parentPrd) {
+                      setSelectedNovaProposal(parentPrd);
+                    }
+                  }}
                 />
               );
             }

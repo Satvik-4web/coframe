@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel, Field
 
 
@@ -48,7 +48,7 @@ class ContextRetrievalMetrics(BaseModel):
 class AgentTask(BaseModel):
     task_id: str
     description: str
-    last_checkpoint: Optional[str] = None
+    last_checkpoint: Optional[Union[str, Dict[str, Any]]] = None
     target_sections: Optional[List[str]] = Field(default_factory=list)
     affected_requirements: Optional[List[str]] = Field(default_factory=list)
 

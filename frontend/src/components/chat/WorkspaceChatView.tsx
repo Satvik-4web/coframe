@@ -105,6 +105,35 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
     }
   }, [activeConversationId, projectId]);
 
+  // Real-time WebSocket synchronization for chat messages
+  useEffect(() => {
+    const handleWs = (evt: Event) => {
+      const customEvt = evt as CustomEvent;
+      const data = customEvt.detail;
+      if (!data) return;
+
+      if (data.type === 'CHAT_MESSAGE_CREATED' && data.conversation_id === activeConversationId && data.message) {
+        setMessages((prev) => {
+          if (prev.some((m) => m.id === data.message.id)) return prev;
+          const isReplacingOptimistic = prev.some(
+            (m) => m.id.startsWith('temp_') && m.sender_id === data.message.sender_id && m.message_content === data.message.message_content
+          );
+          if (isReplacingOptimistic) {
+            return prev.map((m) =>
+              m.id.startsWith('temp_') && m.sender_id === data.message.sender_id && m.message_content === data.message.message_content
+                ? data.message
+                : m
+            );
+          }
+          return [...prev, data.message];
+        });
+      }
+    };
+
+    window.addEventListener('coframe:ws_message', handleWs);
+    return () => window.removeEventListener('coframe:ws_message', handleWs);
+  }, [activeConversationId]);
+
   // Auto-scroll to bottom of chat
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -157,10 +186,22 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
         recipient: targetRecipient,
       });
 
-      // Replace optimistic message and append agent responses
+      // Replace optimistic message and append agent responses without duplication
       setMessages((prev) => {
         const filtered = prev.filter((m) => m.id !== tempId);
-        return [...filtered, res.human_message, ...res.agent_responses];
+        const existingIds = new Set(filtered.map((m) => m.id));
+        const toAdd: ChatMessage[] = [];
+        if (!existingIds.has(res.human_message.id)) {
+          toAdd.push(res.human_message);
+          existingIds.add(res.human_message.id);
+        }
+        for (const resp of res.agent_responses) {
+          if (!existingIds.has(resp.id)) {
+            toAdd.push(resp);
+            existingIds.add(resp.id);
+          }
+        }
+        return [...filtered, ...toAdd];
       });
 
       // Refresh conversations list to update last_message preview
@@ -474,6 +515,29 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
                     {/* Markdown Body */}
                     <ChatMessageMarkdown content={msg.message_content || msg.content || ''} />
+
+                    {/* Delivery Status & Retry */}
+                    {msg.status === 'failed' && (
+                      <div className="mt-2 p-2.5 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-between text-xs text-rose-700">
+                        <span className="font-medium">
+                          Failed to deliver message to agent. Check network or model quota.
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleSendMessage(msg.message_content, msg.recipient_id as any)}
+                          className="px-2.5 py-1 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-[11px] transition shadow-2xs cursor-pointer"
+                        >
+                          Retry
+                        </button>
+                      </div>
+                    )}
+
+                    {msg.status === 'sending' && (
+                      <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium italic pt-1">
+                        <span className="w-2.5 h-2.5 rounded-full border border-slate-400 border-t-transparent animate-spin" />
+                        <span>Sending message...</span>
+                      </div>
+                    )}
 
                     {/* Embedded Linked Proposal Card if attached */}
                     {(msg.related_proposal_id || msg.related_proposal) && (

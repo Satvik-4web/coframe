@@ -1,6 +1,7 @@
 import uuid
 import json
 import logging
+import time
 from typing import Dict, Any, List, Optional, Tuple
 from sqlalchemy.orm import Session
 
@@ -12,6 +13,7 @@ from backend.app.db.models import (
     RequirementModel,
     ArtifactSectionModel,
     ProposalModel,
+    AgentRunModel,
     utcnow_str,
 )
 from backend.app.agents.provider import call_llm_json, get_effective_model
@@ -31,19 +33,19 @@ Your collaborators are:
 
 Your role:
 1. Clarify user requirements, target audience, business value, constraints, and measurable acceptance criteria.
-2. Provide strategic guidance and formulate Product Requirement Documents (PRDs).
+2. Provide strategic guidance, answer product questions, and formulate Product Requirement Documents (PRDs).
 3. Do NOT make up fake technical capabilities; respect COFRAME's proposal lifecycle.
-4. When the user proposes a concrete requirement or asks to define a feature/PRD, generate:
-   - Clear markdown analysis with headings, bullet points, and acceptance criteria.
-   - Propose affected requirements and target sections.
+4. Maintain continuity across multiple conversation turns: remember prior discussion points, requirements, and decisions.
+5. Answer questions conversationally and thoughtfully by default.
+6. ONLY set "proposal_intent": true when the user explicitly requests to create/generate/submit a proposal or PRD, or specifically asks to propose a concrete change. For exploratory or policy questions (e.g. "how should we structure...", "what do you think...", "can you explain..."), provide clear strategic advice and set "proposal_intent": false.
 
 Respond with valid JSON containing:
 {
   "message": "Your conversational response in clear, professional GitHub-flavored Markdown",
-  "proposal_intent": true or false,
-  "proposal_summary": "Short title if proposing a requirements change",
-  "affected_requirements": ["REQ_AUDIENCE" or "REQ_METRICS" or "REQ_BRAND" or "REQ_APPROVAL_POLICY"],
-  "target_sections": ["product_brief" or "dashboard"]
+  "proposal_intent": false,
+  "proposal_summary": "Short title if proposing a requirements change (null otherwise)",
+  "affected_requirements": ["REQ_AUDIENCE" or "REQ_METRICS" or "REQ_BRAND" or "REQ_ROLES"],
+  "target_sections": ["product_brief" or "dashboard" or "approval_queue" or "hero"]
 }
 """
 
@@ -54,26 +56,153 @@ Your collaborators are:
 - NOVA (AI Product Strategist)
 
 Your role:
-1. Discuss implementation, frontend components, state management, and artifact changes.
+1. Discuss implementation, frontend components, state management, architecture, and artifact changes.
 2. Inspect current section versions and confirmed requirements before proposing changes.
-3. You NEVER modify canonical artifact sections directly from chat. You create structured proposals that require human review and approval.
-4. Supported operations allowlist:
+3. Maintain conversation continuity: remember what was previously discussed or proposed in this conversation.
+4. You NEVER modify canonical artifact sections directly from chat. You create structured proposals that require human review and approval.
+5. Supported operations allowlist:
    - set_hero_content (fields: headline, subheadline, cta_primary, cta_secondary)
    - set_dashboard_metrics (metrics: list of {label, value, change})
    - set_approval_queue_config (config: {threshold, policy_mode, escalation_chain})
    - update_product_brief (fields: target_audience, value_proposition)
+6. ONLY set "proposal_intent": true and provide "operations" when the user explicitly requests code changes, UI updates, or a proposal (e.g. "update the hero", "implement this", "create proposal"). For general engineering discussions or questions, provide an engineering breakdown and set "proposal_intent": false.
 
 Respond with valid JSON containing:
 {
   "message": "Your conversational response explaining the implementation approach in Markdown",
-  "proposal_intent": true or false,
-  "proposal_summary": "Short title if proposing an artifact change",
+  "proposal_intent": false,
+  "proposal_summary": "Short title if proposing an artifact change (null otherwise)",
   "target_sections": ["hero" or "dashboard" or "approval_queue"],
-  "operations": [
-    {"op": "set_hero_content" or "set_dashboard_metrics" or "set_approval_queue_config", "section": "...", "fields": {...}}
-  ]
+  "operations": []
 }
 """
+
+
+def _build_multi_turn_context(
+    db: Session,
+    project_id: str,
+    conversation_id: str,
+    user_id: str,
+    user_message: str,
+    agent_id: str,
+    max_history_turns: int = 8,
+) -> Tuple[str, List[str], List[str]]:
+    """
+    Builds an authoritative, token-bounded multi-turn context including:
+    1. Past conversation transcript (up to max_history_turns preceding messages).
+    2. Confirmed project requirements with versions.
+    3. Canonical artifact section versions.
+    4. Recent active proposals with statuses.
+    5. The incoming user prompt.
+
+    Returns: (assembled_user_prompt, valid_requirement_keys, target_section_keys)
+    """
+    requirements = db.query(RequirementModel).filter(RequirementModel.project_id == project_id).all()
+    valid_req_keys = [r.requirement_key for r in requirements] or ["REQ_AUDIENCE", "REQ_METRICS", "REQ_BRAND", "REQ_ROLES"]
+    reqs_summary = "\n".join([f"- {r.requirement_key}: {r.value} (v{r.version})" for r in requirements])
+
+    sections = db.query(ArtifactSectionModel).filter(ArtifactSectionModel.project_id == project_id).all()
+    section_keys = [s.section_key for s in sections] or ["hero", "dashboard", "approval_queue", "product_brief"]
+    secs_summary = "\n".join([f"- § {s.section_key} (v{s.version})" for s in sections])
+
+    recent_proposals = (
+        db.query(ProposalModel)
+        .filter(ProposalModel.project_id == project_id)
+        .order_by(ProposalModel.created_at.desc())
+        .limit(3)
+        .all()
+    )
+    props_summary = "\n".join([
+        f"- #{p.id[-6:]} ({p.created_by}): {p.summary} [{p.status}]"
+        for p in recent_proposals
+    ]) or "None"
+
+    # Prior messages (excluding the message that just arrived if it is already in DB)
+    all_msgs = (
+        db.query(ChatMessageModel)
+        .filter(ChatMessageModel.conversation_id == conversation_id)
+        .order_by(ChatMessageModel.created_at.asc())
+        .all()
+    )
+    prior_msgs = [
+        m for m in all_msgs
+        if not (m.sender_type == "human" and m.message_content.strip() == user_message.strip() and m == all_msgs[-1])
+    ]
+    recent_history = prior_msgs[-max_history_turns:] if len(prior_msgs) > max_history_turns else prior_msgs
+
+    history_lines = []
+    for m in recent_history:
+        sender_label = m.sender_id.upper() if m.sender_type == "agent" else m.sender_id.capitalize()
+        content_preview = m.message_content.strip()
+        if len(content_preview) > 300:
+            content_preview = content_preview[:300] + "... [truncated]"
+        history_lines.append(f"{sender_label}: \"{content_preview}\"")
+
+    history_text = "\n".join(history_lines) if history_lines else "(No prior conversation messages)"
+
+    user_name = user_id.capitalize()
+    assembled_prompt = f"""=== Multi-Turn Conversation History ===
+{history_text}
+
+=== Confirmed LedgerFlow Requirements ===
+{reqs_summary}
+
+=== Current Canvas Sections ===
+{secs_summary}
+
+=== Recent Active Proposals ===
+{props_summary}
+
+=== Current User Message ===
+User ({user_name}):
+"{user_message}"
+
+Instruction for {agent_id.upper()}:
+- Review the conversation history and maintain context continuity.
+- Directly address {user_name}'s question or request.
+- Only propose formal artifact or PRD updates if explicitly requested or needed.
+"""
+    return assembled_prompt, valid_req_keys, section_keys
+
+
+def _should_create_proposal(user_message: str, raw_output: Dict[str, Any], agent_id: str) -> bool:
+    """
+    Separates general conversational questions from explicit proposal actions.
+    Proposals are created if:
+    1. The user explicitly requests a proposal/PRD/implementation/improvement.
+    2. The LLM output provides complete PRD data or concrete operations
+       AND the user message is NOT a pure informational/exploratory question ('how should we', 'what do you think', etc.).
+    """
+    m_lower = user_message.lower().strip()
+
+    # Pure conversational/exploratory questions should NOT create premature proposals
+    is_exploratory_question = any(
+        m_lower.startswith(q) or f" {q}" in m_lower
+        for q in [
+            "how should we", "how do we", "how would we", "what do you think",
+            "can you explain", "what are the options", "tell me about", "what is"
+        ]
+    )
+
+    # Explicit proposal triggers always create proposal if agent supports it
+    explicit_triggers = [
+        "create proposal", "create a proposal", "submit proposal", "submit a proposal",
+        "generate proposal", "generate a proposal", "propose a change", "propose an update",
+        "create prd", "generate prd", "submit prd", "update hero", "update dashboard",
+        "implement this", "apply this change",
+    ]
+    if any(t in m_lower for t in explicit_triggers):
+        return bool(raw_output.get("proposal_intent"))
+
+    if is_exploratory_question:
+        # Don't create a proposal for exploratory questions even if LLM defaulted to proposal_intent=True
+        return False
+
+    if raw_output.get("force_proposal") is True:
+        return True
+
+    # Otherwise, if the agent returned proposal_intent with target sections or operations
+    return bool(raw_output.get("proposal_intent")) and bool(raw_output.get("target_sections") or raw_output.get("operations"))
 
 
 async def dispatch_chat_message(
@@ -90,7 +219,7 @@ async def dispatch_chat_message(
     1. Validates sender authorization (Alex or Maya).
     2. Persists human message in database.
     3. Broadcasts message over WebSocket.
-    4. Dispatches to NOVA, PIXEL, or Team Orchestration based on recipient.
+    4. Routes to NOVA, PIXEL, or Team Orchestration based on recipient or mention.
     5. Returns (human_msg, agent_responses).
     """
     sender_clean = sender_id.strip().lower()
@@ -102,7 +231,6 @@ async def dispatch_chat_message(
         ConversationModel.project_id == project_id,
     ).first()
     if not conversation:
-        # Fallback to default team conversation if exists or create
         conversation = db.query(ConversationModel).filter(
             ConversationModel.project_id == project_id,
             ConversationModel.conversation_type == "team_shared",
@@ -145,9 +273,19 @@ async def dispatch_chat_message(
         "message": serialize_chat_message(human_msg),
     })
 
-    # 2. Agent Dispatch
+    # 2. Agent Dispatch with intelligent recipient detection
     agent_responses: List[ChatMessageModel] = []
     recipient_clean = recipient.lower().strip()
+    m_lower = message_content.lower().strip()
+
+    # Intelligent addressing: if recipient is 'team', check for direct agent mention/prefix
+    if recipient_clean == "team":
+        nova_prefixes = ["nova,", "nova:", "@nova", "hey nova", "to nova:"]
+        pixel_prefixes = ["pixel,", "pixel:", "@pixel", "hey pixel", "to pixel:"]
+        if any(m_lower.startswith(p) for p in nova_prefixes):
+            recipient_clean = "nova"
+        elif any(m_lower.startswith(p) for p in pixel_prefixes):
+            recipient_clean = "pixel"
 
     if recipient_clean == "nova":
         resp = await handle_nova_chat(db, project_id, conversation.id, sender_clean, message_content)
@@ -172,18 +310,29 @@ async def handle_nova_chat(
     user_id: str,
     user_message: str,
 ) -> Optional[ChatMessageModel]:
-    """Executes NOVA conversational logic and optionally creates requirements proposal."""
-    project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
-    requirements = db.query(RequirementModel).filter(RequirementModel.project_id == project_id).all()
-    reqs_summary = "\n".join([f"- {r.requirement_key}: {r.value} (v{r.version})" for r in requirements])
+    """Executes NOVA conversational logic, maintaining multi-turn context and run lifecycle."""
+    user_prompt, valid_req_keys, section_keys = _build_multi_turn_context(
+        db=db,
+        project_id=project_id,
+        conversation_id=conversation_id,
+        user_id=user_id,
+        user_message=user_message,
+        agent_id="nova",
+    )
 
-    user_prompt = f"""Current LedgerFlow Confirmed Requirements:
-{reqs_summary}
-
-User ({user_id.capitalize()}):
-"{user_message}"
-
-Provide a strategic analysis, clarifying questions, and next development steps."""
+    # 1. Initialize and persist Agent Run tracking this conversational turn
+    run_id = f"run_nova_chat_{uuid.uuid4().hex[:6]}"
+    task_desc = f"NOVA Chat Consultation: {user_message[:50]}"
+    run = create_and_persist_agent_run(
+        db=db,
+        project_id=project_id,
+        agent_id="nova",
+        run_id=run_id,
+        task_id=f"chat_{conversation_id}",
+        task_description=task_desc,
+        target_sections=section_keys[:2],
+        affected_requirements=valid_req_keys[:2],
+    )
 
     raw_output = None
     source = "live_llm"
@@ -192,7 +341,7 @@ Provide a strategic analysis, clarifying questions, and next development steps."
         res = await call_llm_json(
             system_prompt=NOVA_CHAT_SYSTEM_PROMPT,
             user_prompt=user_prompt,
-            timeout=12.0,
+            timeout=25.0,
             model=get_effective_model("nova"),
             agent_id="nova",
             tools=get_agent_tools("nova"),
@@ -202,39 +351,43 @@ Provide a strategic analysis, clarifying questions, and next development steps."
         logger.info(f"NOVA Chat using deterministic intelligence fallback: {e}")
         source = "cached_fallback"
         is_simulated = True
+        requirements = db.query(RequirementModel).filter(RequirementModel.project_id == project_id).all()
         raw_output = _generate_nova_chat_fallback(user_message, requirements)
 
     message_text = raw_output.get("message") or "I have reviewed your strategic prompt."
-    proposal_intent = raw_output.get("proposal_intent", False)
     related_proposal_id = None
 
-    # If NOVA determines proposal intent (e.g. defining PRD / new feature), create a proposal
-    if proposal_intent and raw_output.get("target_sections"):
+    # Determine if proposal should be created
+    should_propose = _should_create_proposal(user_message, raw_output, "nova")
+
+    if should_propose and raw_output.get("target_sections"):
         summary = raw_output.get("proposal_summary") or f"NOVA Requirements: {user_message[:40]}"
+        # Ensure affected requirements only contain valid requirement keys
+        candidate_reqs = raw_output.get("affected_requirements") or []
+        filtered_reqs = [r for r in candidate_reqs if r in valid_req_keys]
+        if not filtered_reqs:
+            filtered_reqs = [valid_req_keys[0]] if valid_req_keys else ["REQ_AUDIENCE"]
+
+        candidate_secs = raw_output.get("target_sections") or []
+        filtered_secs = [s for s in candidate_secs if s in section_keys]
+        if not filtered_secs:
+            filtered_secs = ["product_brief"]
+
         try:
-            run_id = f"run_nova_chat_{uuid.uuid4().hex[:6]}"
-            create_and_persist_agent_run(
-                db=db,
-                project_id=project_id,
-                agent_id="nova",
-                run_id=run_id,
-                task_id=f"chat_{conversation_id}",
-                task_description=f"NOVA Chat Consultation: {summary}",
-            )
             prop = stamp_and_persist_proposal(
                 db=db,
                 project_id=project_id,
-                run_id=run_id,
+                run_id=run.id,
                 raw_output={
                     "summary": summary,
                     "reasoning": f"Formulated in workspace chat discussion with {user_id.capitalize()}: '{user_message}'",
-                    "affected_requirements": raw_output.get("affected_requirements", ["REQ_AUDIENCE"]),
-                    "target_sections": raw_output.get("target_sections", ["product_brief"]),
+                    "affected_requirements": filtered_reqs,
+                    "target_sections": filtered_secs,
                     "changes": {
                         "operations": [
                             {
                                 "op": "update_product_brief",
-                                "section": "product_brief",
+                                "section": filtered_secs[0],
                                 "fields": {"strategic_note": summary},
                             }
                         ]
@@ -249,8 +402,22 @@ Provide a strategic analysis, clarifying questions, and next development steps."
             )
             related_proposal_id = prop.id
             message_text += f"\n\n**Actionable Proposal Created:** I've submitted a formal requirements proposal for review. Link: `#{prop.id[-6:]}`."
+            run.status = "waiting_for_review"
+            run.lifecycle_state = "completed"
+            run.completed_at = utcnow_str()
+            db.commit()
         except Exception as err:
             logger.warning(f"Could not create proposal from NOVA chat: {err}")
+            run.status = "completed"
+            run.lifecycle_state = "completed"
+            run.completed_at = utcnow_str()
+            db.commit()
+    else:
+        # Conversational answer completed
+        run.status = "completed"
+        run.lifecycle_state = "completed"
+        run.completed_at = utcnow_str()
+        db.commit()
 
     now_str = utcnow_str()
     agent_msg = ChatMessageModel(
@@ -268,6 +435,7 @@ Provide a strategic analysis, clarifying questions, and next development steps."
             "agent_role": "AI Product Strategist",
             "source": source,
             "is_simulated": is_simulated,
+            "run_id": run.id,
         },
         created_at=now_str,
     )
@@ -291,17 +459,29 @@ async def handle_pixel_chat(
     user_id: str,
     user_message: str,
 ) -> Optional[ChatMessageModel]:
-    """Executes PIXEL implementation assistant and creates implementation proposals when requested."""
-    sections = db.query(ArtifactSectionModel).filter(ArtifactSectionModel.project_id == project_id).all()
-    sec_summary = "\n".join([f"- § {s.section_key} (v{s.version})" for s in sections])
+    """Executes PIXEL implementation assistant, maintaining multi-turn context and run lifecycle."""
+    user_prompt, valid_req_keys, section_keys = _build_multi_turn_context(
+        db=db,
+        project_id=project_id,
+        conversation_id=conversation_id,
+        user_id=user_id,
+        user_message=user_message,
+        agent_id="pixel",
+    )
 
-    user_prompt = f"""Current LedgerFlow Artifact Sections:
-{sec_summary}
-
-User ({user_id.capitalize()}):
-"{user_message}"
-
-Explain the engineering approach and provide structured component updates if applicable."""
+    # 1. Initialize and persist Agent Run
+    run_id = f"run_pixel_chat_{uuid.uuid4().hex[:6]}"
+    task_desc = f"PIXEL Chat Implementation: {user_message[:50]}"
+    run = create_and_persist_agent_run(
+        db=db,
+        project_id=project_id,
+        agent_id="pixel",
+        run_id=run_id,
+        task_id=f"chat_{conversation_id}",
+        task_description=task_desc,
+        target_sections=section_keys[:2],
+        affected_requirements=valid_req_keys[:2],
+    )
 
     raw_output = None
     source = "live_llm"
@@ -310,7 +490,7 @@ Explain the engineering approach and provide structured component updates if app
         res = await call_llm_json(
             system_prompt=PIXEL_CHAT_SYSTEM_PROMPT,
             user_prompt=user_prompt,
-            timeout=12.0,
+            timeout=25.0,
             model=get_effective_model("pixel"),
             agent_id="pixel",
             tools=get_agent_tools("pixel"),
@@ -320,34 +500,29 @@ Explain the engineering approach and provide structured component updates if app
         logger.info(f"PIXEL Chat using deterministic intelligence fallback: {e}")
         source = "cached_fallback"
         is_simulated = True
+        sections = db.query(ArtifactSectionModel).filter(ArtifactSectionModel.project_id == project_id).all()
         raw_output = _generate_pixel_chat_fallback(user_message, sections)
 
     message_text = raw_output.get("message") or "I have analyzed the LedgerFlow prototype architecture."
-    proposal_intent = raw_output.get("proposal_intent", False)
     related_proposal_id = None
 
-    if proposal_intent and raw_output.get("operations"):
+    should_propose = _should_create_proposal(user_message, raw_output, "pixel")
+
+    if should_propose and raw_output.get("operations"):
         summary = raw_output.get("proposal_summary") or f"PIXEL Implementation: {user_message[:40]}"
         target_secs = raw_output.get("target_sections") or [raw_output["operations"][0].get("section", "hero")]
+        filtered_secs = [s for s in target_secs if s in section_keys] or ["hero"]
+
         try:
-            run_id = f"run_pixel_chat_{uuid.uuid4().hex[:6]}"
-            create_and_persist_agent_run(
-                db=db,
-                project_id=project_id,
-                agent_id="pixel",
-                run_id=run_id,
-                task_id=f"chat_{conversation_id}",
-                task_description=f"PIXEL Chat Implementation: {summary}",
-            )
             prop = stamp_and_persist_proposal(
                 db=db,
                 project_id=project_id,
-                run_id=run_id,
+                run_id=run.id,
                 raw_output={
                     "summary": summary,
                     "reasoning": f"Implementation requested via Workspace Chat by {user_id.capitalize()}: '{user_message}'",
                     "affected_requirements": [],
-                    "target_sections": target_secs,
+                    "target_sections": filtered_secs,
                     "changes": {"operations": raw_output["operations"]},
                 },
                 source=source,
@@ -359,8 +534,21 @@ Explain the engineering approach and provide structured component updates if app
             )
             related_proposal_id = prop.id
             message_text += f"\n\n**Implementation Proposal Submitted:** I've prepared the component modifications and submitted proposal `#{prop.id[-6:]}` for review. It requires human sign-off before applying to the canvas."
+            run.status = "waiting_for_review"
+            run.lifecycle_state = "completed"
+            run.completed_at = utcnow_str()
+            db.commit()
         except Exception as err:
             logger.warning(f"Could not create proposal from PIXEL chat: {err}")
+            run.status = "completed"
+            run.lifecycle_state = "completed"
+            run.completed_at = utcnow_str()
+            db.commit()
+    else:
+        run.status = "completed"
+        run.lifecycle_state = "completed"
+        run.completed_at = utcnow_str()
+        db.commit()
 
     now_str = utcnow_str()
     agent_msg = ChatMessageModel(
@@ -378,6 +566,7 @@ Explain the engineering approach and provide structured component updates if app
             "agent_role": "AI Software Engineer",
             "source": source,
             "is_simulated": is_simulated,
+            "run_id": run.id,
         },
         created_at=now_str,
     )
@@ -435,14 +624,13 @@ def _classify_team_intent(message: str) -> str:
     elif has_impl and not has_product:
         return "implementation_led"
     elif has_product and has_impl:
-        # product always wins when both present (e.g. "improve the dashboard code")
         return "product_led"
     elif has_both:
         return "both_parallel"
     elif has_greeting:
         return "greeting_or_general"
     else:
-        return "greeting_or_general"  # safe default: both respond
+        return "greeting_or_general"
 
 
 async def _handle_pixel_listening_mode(
@@ -455,7 +643,7 @@ async def _handle_pixel_listening_mode(
     """PIXEL's response when NOVA is leading on a product/UX topic."""
     now_str = utcnow_str()
     listen_text = (
-        "### Engineering Readiness \u00b7 PIXEL\n\n"
+        "### Engineering Readiness · PIXEL\n\n"
         "I've received the product improvement request and I'm waiting for "
         "**NOVA's requirements analysis** before preparing implementation details.\n\n"
         "**My current stance:**\n"
@@ -510,10 +698,10 @@ async def _handle_nova_requirements_tracking(
     """NOVA's brief response when PIXEL is leading on an implementation task."""
     now_str = utcnow_str()
     track_text = (
-        "### Requirements Alignment \u00b7 NOVA\n\n"
+        "### Requirements Alignment · NOVA\n\n"
         "I'm tracking this implementation request against our confirmed product requirements.\n\n"
         "**Requirements Check:**\n"
-        "- This change should align with our current audience targeting (small business \u2192 enterprise)\n"
+        "- This change should align with our current audience targeting (small business → enterprise)\n"
         "- Any UI modifications must maintain WCAG AA contrast compliance\n"
         "- Component changes touching approval flows require Alex's sign-off per our governance policy\n\n"
         "**My Advisory Role:**\n"
@@ -569,26 +757,20 @@ async def handle_team_chat(
     responses: List[ChatMessageModel] = []
 
     if intent == "product_led":
-        # NOVA leads with full product analysis
         nova_resp = await handle_nova_chat(db, project_id, conversation_id, user_id, user_message)
         if nova_resp:
             responses.append(nova_resp)
-        # PIXEL acknowledges and waits for confirmed requirements
         pixel_ack = await _handle_pixel_listening_mode(db, project_id, conversation_id, user_id, user_message)
         if pixel_ack:
             responses.append(pixel_ack)
-
     elif intent == "implementation_led":
-        # PIXEL leads with engineering analysis
         pixel_resp = await handle_pixel_chat(db, project_id, conversation_id, user_id, user_message)
         if pixel_resp:
             responses.append(pixel_resp)
-        # NOVA tracks requirements alignment
         nova_track = await _handle_nova_requirements_tracking(db, project_id, conversation_id, user_id, user_message)
         if nova_track:
             responses.append(nova_track)
-
-    else:  # both_parallel or greeting_or_general
+    else:
         nova_resp = await handle_nova_chat(db, project_id, conversation_id, user_id, user_message)
         if nova_resp:
             responses.append(nova_resp)
@@ -657,7 +839,13 @@ def create_system_chat_notification(
 def serialize_chat_message(m: ChatMessageModel, proposal: Optional[ProposalModel] = None) -> Dict[str, Any]:
     """Formats chat message for API/WebSocket client consumers."""
     sender_name = m.sender_id.upper() if m.sender_type == "agent" else m.sender_id.capitalize()
-    sender_role = "AI Product Strategist" if m.sender_id == "nova" else "AI Software Engineer" if m.sender_id == "pixel" else "Founder / Decision Owner" if m.sender_id == "alex" else "Product Designer" if m.sender_id == "maya" else "System Event"
+    sender_role = (
+        "AI Product Strategist" if m.sender_id == "nova"
+        else "AI Software Engineer" if m.sender_id == "pixel"
+        else "Founder / Decision Owner" if m.sender_id == "alex"
+        else "Product Designer" if m.sender_id == "maya"
+        else "System Event"
+    )
 
     prop_summary = None
     if proposal:
@@ -694,7 +882,28 @@ def serialize_chat_message(m: ChatMessageModel, proposal: Optional[ProposalModel
 def _generate_nova_chat_fallback(message: str, requirements: List[RequirementModel]) -> Dict[str, Any]:
     """High-quality deterministic fallback response for NOVA."""
     m_lower = message.lower()
-    if "idea" in m_lower or "define" in m_lower:
+
+    # Specific policy question handler (e.g. international travel expense approval)
+    if "travel" in m_lower or "policy" in m_lower or "international" in m_lower or "expense approval" in m_lower:
+        return {
+            "message": """### Strategic Policy Architecture · International Travel & Spend Governance
+
+To structure LedgerFlow's international travel expense policy effectively while ensuring compliance and friction-free employee experience, I recommend a three-tiered framework:
+
+1. **Pre-Trip Authorization**:
+   - Automated travel request routing for international trips exceeding $1,000.
+   - Built-in per-diem rate validation based on GSA/destination benchmarks.
+2. **Multi-Currency & VAT Compliance**:
+   - Real-time foreign exchange rate freezing at time of swipe.
+   - Automatic VAT/GST receipt separation for corporate tax reclamation.
+3. **Escalation & Approvals**:
+   - Standard business expenses under $500: auto-approved by direct manager.
+   - High-variance expenses (>$1,500) or out-of-policy flights: automatically escalate to executive review (Alex).
+
+*Would you like me to formalize this into a PRD requirements proposal for Alex's review? If so, reply: `Create proposal for international travel policy`.*""",
+            "proposal_intent": False,
+        }
+    elif "idea" in m_lower or "define" in m_lower:
         return {
             "message": """### Strategic Product Framing · NOVA Analysis
 
@@ -709,21 +918,7 @@ I've analyzed your product idea for **LedgerFlow**. To translate this into a mea
    - Expenses > $5,000 automatically escalate to executive review.
    - Instant visual diff on modified requirements.
 
-Shall I generate a formal PRD proposal for review?""",
-            "proposal_intent": True,
-            "proposal_summary": "Define enterprise spend governance requirements",
-            "affected_requirements": ["REQ_AUDIENCE", "REQ_APPROVAL_POLICY"],
-            "target_sections": ["product_brief"],
-        }
-    elif "metric" in m_lower or "dashboard" in m_lower:
-        return {
-            "message": """### Metrics Visibility Guidance · NOVA
-
-Tracking visibility is critical for financial controllers. For the LedgerFlow dashboard, I recommend:
-- **Primary Metric**: Monthly aggregate spend against departmental budget.
-- **Secondary Metrics**: Pending approval backlog, average time-to-approve, and category variance.
-
-I have submitted this requirement alignment to keep PIXEL's component work synchronized.""",
+*If you would like me to submit this as a formal PRD proposal, reply `Create proposal`.*""",
             "proposal_intent": False,
         }
     elif any(w in m_lower for w in ["ui", "ux", "better", "improve", "redesign", "user experience", "design", "usability"]):
@@ -740,18 +935,15 @@ I've reviewed the LedgerFlow product for improvement opportunities. Here's my an
 
 **Top UX Improvement Opportunities:**
 1. **Hero Messaging**: Sharpen the headline to resonate with our target segment (finance directors at 50-500 person companies)
-2. **Approval Workflow Clarity**: The escalation path (\$500 threshold → Alex) needs a clearer visual indicator
+2. **Approval Workflow Clarity**: The escalation path ($500 threshold → Alex) needs a clearer visual indicator
 3. **Dashboard Hierarchy**: Monthly spend should be the dominant metric with secondary breakdowns visible on interaction
 4. **Empty State Handling**: No expense submissions should show a clear action prompt rather than an empty table
 
 **My Recommendation:**
-I'll prepare a structured UX Improvement Brief. Once confirmed, PIXEL can map these to specific component changes.
+We should formalize a UX Improvement Brief. Once confirmed, PIXEL can map these to specific component changes.
 
-Shall I generate a formal improvement PRD for review?""",
-            "proposal_intent": True,
-            "proposal_summary": "UX & Product Experience Improvement Brief",
-            "affected_requirements": ["REQ_AUDIENCE", "REQ_BRAND"],
-            "target_sections": ["product_brief"],
+*If you want me to submit this as a formal PRD proposal, reply `Create proposal for UX improvements`.*""",
+            "proposal_intent": False,
         }
     else:
         return {
@@ -763,7 +955,7 @@ From a product strategy perspective:
 - We should ensure alignment with our current **small business to enterprise** roadmap.
 - Any change that modifies high-level approval limits requires **Alex's approval** to prevent unauthorized context drift.
 
-Ready to assist you with PRD documentation or requirements synthesis.""",
+Ready to assist you with PRD documentation or requirements synthesis. If you'd like a formal proposal, reply `Create proposal`.""",
             "proposal_intent": False,
         }
 
@@ -771,6 +963,7 @@ Ready to assist you with PRD documentation or requirements synthesis.""",
 def _generate_pixel_chat_fallback(message: str, sections: List[ArtifactSectionModel]) -> Dict[str, Any]:
     """High-quality deterministic fallback response for PIXEL."""
     m_lower = message.lower()
+
     if "dashboard" in m_lower or "metric" in m_lower:
         return {
             "message": """### Engineering Blueprint · PIXEL Implementation
@@ -796,7 +989,7 @@ Submitting structured implementation proposal for approval.""",
                 }
             ],
         }
-    elif "hero" in m_lower or "header" in m_lower or "improve" in m_lower:
+    elif "hero" in m_lower or "header" in m_lower:
         return {
             "message": """### Component Enhancement · PIXEL Engineering
 

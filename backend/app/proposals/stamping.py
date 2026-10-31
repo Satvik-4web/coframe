@@ -43,6 +43,39 @@ def stamp_and_persist_proposal(
     context_pack = run.context_pack
     known_req_keys = [r["id"] for r in context_pack.get("requirements", [])]
 
+    # Normalize raw_output to conform to schema robustly
+    if isinstance(raw_output, dict):
+        if isinstance(raw_output.get("changes"), list):
+            raw_output["changes"] = {"operations": raw_output["changes"]}
+        elif not isinstance(raw_output.get("changes"), dict):
+            raw_output["changes"] = {"operations": []}
+
+        from backend.app.proposals.validation import ALLOWED_SECTIONS, ALLOWED_OPERATIONS
+
+        ops = raw_output["changes"].get("operations")
+        if isinstance(ops, list):
+            for op in ops:
+                if isinstance(op, dict) and (not op.get("op") or op.get("op") not in ALLOWED_OPERATIONS):
+                    sec = op.get("section", "product_brief")
+                    if sec == "product_brief":
+                        op["op"] = "update_product_brief"
+                    elif sec == "hero":
+                        op["op"] = "set_hero_content"
+                    elif sec == "dashboard":
+                        op["op"] = "set_dashboard_metrics"
+                    elif sec == "approval_queue":
+                        op["op"] = "set_approval_queue_config"
+                    else:
+                        op["op"] = "update_product_brief"
+
+        if "target_sections" in raw_output and isinstance(raw_output["target_sections"], list):
+            raw_output["target_sections"] = [s for s in raw_output["target_sections"] if s in ALLOWED_SECTIONS]
+            if not raw_output["target_sections"]:
+                raw_output["target_sections"] = ["product_brief"]
+
+        if "affected_requirements" in raw_output and isinstance(raw_output["affected_requirements"], list):
+            raw_output["affected_requirements"] = [r for r in raw_output["affected_requirements"] if r in known_req_keys]
+
     # 2, 3, 4. Validate output schema & content
     validated = validate_proposal_content(
         output_dict=raw_output,
@@ -169,6 +202,7 @@ def stamp_and_persist_proposal(
 
     # Update run status & Prune receipt
     run.status = "waiting_for_review"
+    run.lifecycle_state = "waiting_for_review"
     run.prune_metadata = prune_metadata
     run.completed_at = utcnow_str()
 

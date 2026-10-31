@@ -146,12 +146,20 @@ def evaluate_checkpoint_and_resume_plan(
     last_seq = chk.get("last_processed_event_seq", 0)
 
     # Fetch events that occurred since checkpoint
-    offline_events = (
-        db.query(EventModel)
-        .filter(EventModel.project_id == project_id, EventModel.sequence_no > last_seq)
-        .order_by(EventModel.sequence_no.asc())
-        .all()
-    )
+    if (last_seq is None or last_seq == 0) and chk.get("timestamp"):
+        offline_events = (
+            db.query(EventModel)
+            .filter(EventModel.project_id == project_id, EventModel.created_at > str(chk["timestamp"]))
+            .order_by(EventModel.sequence_no.asc())
+            .all()
+        )
+    else:
+        offline_events = (
+            db.query(EventModel)
+            .filter(EventModel.project_id == project_id, EventModel.sequence_no > (int(last_seq) if last_seq else 0))
+            .order_by(EventModel.sequence_no.asc())
+            .all()
+        )
 
     # Check if context or artifact advanced
     is_context_outdated = curr_ctx_ver > chk_ctx_ver

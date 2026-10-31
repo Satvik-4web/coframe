@@ -3,7 +3,14 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from backend.app.db.database import get_db
-from backend.app.db.models import ProposalModel, DecisionModel, ProjectModel, AgentRunModel, utcnow_str
+from backend.app.db.models import (
+    ProposalModel,
+    DecisionModel,
+    ProjectModel,
+    AgentRunModel,
+    RequirementModel,
+    utcnow_str,
+)
 from backend.app.schemas.proposals import (
     ProposalApproveRequest,
     ProposalRejectRequest,
@@ -214,7 +221,8 @@ async def confirm_proposal_requirements(
     """
     Confirms NOVA's Product Requirements Document (PRD) proposal.
     Transitions proposal from READY FOR REVIEW -> CONFIRMED.
-    Updates requirement state without modifying the canonical prototype sections.
+    Updates requirement state without modifying canonical prototype sections.
+    Automatically delegates confirmed requirements to PIXEL for autonomous engineering implementation.
     """
     if body.confirmed_by.lower() not in ("alex", "maya"):
         raise HTTPException(
@@ -230,8 +238,36 @@ async def confirm_proposal_requirements(
     if not p:
         raise HTTPException(status_code=404, detail="Proposal not found")
 
+    # Idempotency / Repeated click support
+    if p.status == "approved" and p.prd_data and isinstance(p.prd_data, dict) and p.prd_data.get("status") == "confirmed":
+        from backend.app.agents.delegation_service import delegate_confirmed_prd_to_pixel
+        delegation_res = await delegate_confirmed_prd_to_pixel(
+            db=db,
+            project_id=project_id,
+            prd_proposal_id=p.id,
+            confirmed_by=body.confirmed_by,
+        )
+        resp = serialize_proposal_for_api(p)
+        resp["delegation"] = delegation_res.get("delegation")
+        resp["implementation_proposal"] = delegation_res.get("proposal")
+        resp["implementation_plan"] = delegation_res.get("implementation_plan")
+        return resp
+
     if p.status != "pending_review":
         raise HTTPException(status_code=400, detail=f"Proposal is already {p.status}.")
+
+    # Validate that proposal is genuinely a NOVA requirements document
+    is_nova_prd = (
+        p.agent_id == "nova"
+        or p.created_by == "nova"
+        or p.proposal_type in ("prd_requirement", "product_requirements", "requirements")
+        or (p.prd_data and isinstance(p.prd_data, dict))
+    )
+    if not is_nova_prd:
+        raise HTTPException(
+            status_code=400,
+            detail="Only NOVA Product Requirements Documents (PRDs) can be confirmed via this workflow.",
+        )
 
     project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
     if not project:
@@ -246,6 +282,26 @@ async def confirm_proposal_requirements(
         p.prd_data["confirmed_at"] = utcnow_str()
         from sqlalchemy.orm.attributes import flag_modified
         flag_modified(p, "prd_data")
+
+        # Update authoritative requirement versions if audience was specified
+        aud_val = (
+            p.prd_data.get("target_audience")
+            or p.prd_data.get("target_users", {}).get("primary_users")
+        )
+        if aud_val:
+            req_aud = (
+                db.query(RequirementModel)
+                .filter(
+                    RequirementModel.project_id == project_id,
+                    RequirementModel.requirement_key == "REQ_AUDIENCE",
+                )
+                .first()
+            )
+            if req_aud:
+                req_aud.value = aud_val
+                req_aud.version += 1
+                req_aud.updated_by = body.confirmed_by.lower()
+                req_aud.updated_at = utcnow_str()
 
     decision = DecisionModel(
         id=f"dec_{uuid.uuid4().hex[:10]}",
@@ -284,19 +340,20 @@ async def confirm_proposal_requirements(
         "decided_by": body.confirmed_by,
     })
 
-    try:
-        from backend.app.agents.chat_service import create_system_chat_notification
-        create_system_chat_notification(
-            db=db,
-            project_id=project_id,
-            conversation_id="conv_team_ledgerflow",
-            content=f"Human Decision: {body.confirmed_by.capitalize()} confirmed PRD requirements for '{p.summary}'. Requirements are now authoritative for implementation.",
-            related_proposal_id=p.id,
-        )
-    except Exception:
-        pass
+    # Automatically delegate confirmed PRD to PIXEL
+    from backend.app.agents.delegation_service import delegate_confirmed_prd_to_pixel
+    delegation_res = await delegate_confirmed_prd_to_pixel(
+        db=db,
+        project_id=project_id,
+        prd_proposal_id=p.id,
+        confirmed_by=body.confirmed_by,
+    )
 
-    return serialize_proposal_for_api(p)
+    resp = serialize_proposal_for_api(p)
+    resp["delegation"] = delegation_res.get("delegation")
+    resp["implementation_proposal"] = delegation_res.get("proposal")
+    resp["implementation_plan"] = delegation_res.get("implementation_plan")
+    return resp
 
 
 @router.post("/projects/{project_id}/proposals/{proposal_id}/reject")

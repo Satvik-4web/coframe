@@ -25,6 +25,7 @@ interface PixelImplementationCardProps {
   onReject: (proposalId: string) => void;
   onRedirect: (proposal: Proposal) => void;
   onCompareConflict?: (proposal: Proposal) => void;
+  onOpenParentPrd?: (parentProposalId: string) => void;
 }
 
 export const PixelImplementationCard: React.FC<PixelImplementationCardProps> = ({
@@ -35,6 +36,7 @@ export const PixelImplementationCard: React.FC<PixelImplementationCardProps> = (
   onReject,
   onRedirect,
   onCompareConflict,
+  onOpenParentPrd,
 }) => {
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
 
@@ -87,9 +89,21 @@ export const PixelImplementationCard: React.FC<PixelImplementationCardProps> = (
                 Engineering Implementation
               </span>
               {proposal.supersedes_proposal_id && (
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
-                  revised from #{proposal.supersedes_proposal_id.slice(-6)}
-                </span>
+                onOpenParentPrd ? (
+                  <button
+                    type="button"
+                    onClick={() => onOpenParentPrd(proposal.supersedes_proposal_id!)}
+                    className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 flex items-center gap-1 transition cursor-pointer"
+                    title="Click to view originating NOVA PRD"
+                  >
+                    <span>Originating PRD:</span>
+                    <span className="font-mono">#{proposal.supersedes_proposal_id.slice(-6)}</span>
+                  </button>
+                ) : (
+                  <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+                    Originating PRD: #{proposal.supersedes_proposal_id.slice(-6)}
+                  </span>
+                )
               )}
             </div>
             <p className="text-[10px] text-[#657189] mt-0.5 font-mono">

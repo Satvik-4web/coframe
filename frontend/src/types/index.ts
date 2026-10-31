@@ -205,6 +205,24 @@ export interface EventRecord {
   created_at: string;
 }
 
+
+export interface RecoveryRecord {
+  id: string;
+  agent_id: string;
+  previous_run_id?: string | null;
+  checkpoint_reference?: any;
+  validation_outcome: string;
+  conflicts_detected: string[];
+  resulting_agent_run_id?: string | null;
+  task_resumed: boolean;
+  resumed_task_description?: string | null;
+  recovery_status: string;
+  failure_reason?: string | null;
+  changes_detected: any;
+  events_consumed_count: number;
+  created_at: string;
+}
+
 export interface Delegation {
   id: string;
   source_agent: 'nova' | 'pixel';

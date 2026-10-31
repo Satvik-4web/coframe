@@ -332,13 +332,25 @@ def build_pixel_implementation_data(proposal_or_dict: Any, project_id: str = "de
                 "after_snippet": "Monthly Spend: $54,120 (+8.4% MoM)\nActive Cards: 24\nAvg Approval: 2.4 hrs",
             })
             for m in metrics:
-                diff_items.append({
-                    "section": "dashboard",
-                    "label": f"Metric: {m.get('label', 'KPI')}",
-                    "before": "Static seed value",
-                    "after": f"{m.get('value')} ({m.get('change', 'active')})",
-                    "diff_type": "added",
-                })
+                if isinstance(m, dict):
+                    lbl = m.get("label", "KPI")
+                    val = m.get("value", "")
+                    chg = m.get("change") or m.get("trend") or "active"
+                    diff_items.append({
+                        "section": "dashboard",
+                        "label": f"Metric: {lbl}",
+                        "before": "Static seed value",
+                        "after": f"{val} ({chg})",
+                        "diff_type": "added",
+                    })
+                elif isinstance(m, str):
+                    diff_items.append({
+                        "section": "dashboard",
+                        "label": f"Metric: {m}",
+                        "before": "Static seed value",
+                        "after": m,
+                        "diff_type": "added",
+                    })
             traceability_items.append({
                 "requirement_id": "REQ_METRICS",
                 "title": "Financial Health Metrics",

@@ -174,9 +174,67 @@ export async function restartAgent(projectId: string, agentId: string): Promise<
   return res.json();
 }
 
-export async function getAgentContextPack(projectId: string, agentId: string): Promise<any> {
-  const res = await fetch(`${API_BASE}/projects/${projectId}/agents/${agentId}/context-pack`);
+export async function getAgentContextPack(projectId: string, agentId: string, runId?: string): Promise<any> {
+  const url = runId 
+    ? `${API_BASE}/projects/${projectId}/agents/${agentId}/context-pack?run_id=${runId}`
+    : `${API_BASE}/projects/${projectId}/agents/${agentId}/context-pack`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error('Failed to get context pack');
+  return res.json();
+}
+
+export async function getAgentRuns(projectId: string, agentId: string): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/agents/${agentId}/runs`);
+  if (!res.ok) throw new Error('Failed to fetch agent runs');
+  return res.json();
+}
+
+export async function getAgentRunContextPack(projectId: string, agentId: string, runId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/agents/${agentId}/runs/${runId}/context-pack`);
+  if (!res.ok) throw new Error('Failed to fetch specific run context pack');
+  return res.json();
+}
+
+export async function rebuildAgentContext(projectId: string, agentId: string, baseRunId?: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/agents/${agentId}/context-pack/rebuild`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ base_run_id: baseRunId }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to rebuild context' }));
+    throw new Error(err.detail || 'Failed to rebuild context');
+  }
+  return res.json();
+}
+
+export async function resumeAgentExecution(
+  projectId: string,
+  agentId: string,
+  baseRunId?: string,
+  idempotencyKey?: string,
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/agents/${agentId}/resume`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ base_run_id: baseRunId, idempotency_key: idempotencyKey }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: 'Failed to resume agent' }));
+    throw new Error(err.detail || 'Failed to resume agent');
+  }
+  return res.json();
+}
+
+export async function getAgentRecoveryHistory(projectId: string, agentId: string): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/agents/${agentId}/recovery-history`);
+  if (!res.ok) throw new Error('Failed to fetch recovery history');
+  return res.json();
+}
+
+export async function getInterruptedTask(projectId: string, agentId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/agents/${agentId}/interrupted-task`);
+  if (!res.ok) throw new Error('Failed to check interrupted task');
   return res.json();
 }
 

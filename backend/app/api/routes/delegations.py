@@ -246,3 +246,19 @@ async def trigger_demo_delegation(
         "proposal_id": proposal.id,
         "message": "NOVA successfully delegated policy implementation to PIXEL.",
     }
+
+
+@router.post("/{delegation_id}/retry")
+async def retry_delegation_endpoint(
+    project_id: str,
+    delegation_id: str,
+    db: Session = Depends(get_db),
+):
+    """Retries a failed or stalled agent delegation."""
+    from backend.app.agents.delegation_service import retry_pixel_delegation
+    try:
+        result = await retry_pixel_delegation(db, project_id, delegation_id)
+        return result
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+

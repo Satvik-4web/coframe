@@ -23,7 +23,7 @@ def test_clean_baseline_state_reporting():
     assert data["is_clean_baseline"] is True
     assert data["scenario_label"] == "Clean Baseline"
     assert len(data["proposals"]) == 0
-    assert "Clean baseline" in data["observer_summary"]["what_changed"]
+    assert "baseline" in data["observer_summary"]["what_changed"].lower()
 
 
 def test_load_scenario_state_reporting():

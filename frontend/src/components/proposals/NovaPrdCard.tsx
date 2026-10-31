@@ -12,6 +12,7 @@ import {
   Layers,
   HelpCircle,
   Check,
+  Code2,
 } from 'lucide-react';
 import { Proposal, HumanIdentity } from '../../types';
 
@@ -21,6 +22,8 @@ interface NovaPrdCardProps {
   onOpenPrd: (proposal: Proposal) => void;
   onConfirmRequirements: (proposalId: string) => void;
   onReject?: (proposalId: string) => void;
+  hasLinkedImplementation?: boolean;
+  onOpenPixelProposal?: () => void;
 }
 
 export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
@@ -29,6 +32,8 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
   onOpenPrd,
   onConfirmRequirements,
   onReject,
+  hasLinkedImplementation,
+  onOpenPixelProposal,
 }) => {
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
 
@@ -80,7 +85,7 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
           {isConfirmed ? (
             <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-2xs">
               <Check className="w-3.5 h-3.5 text-emerald-600" />
-              <span>CONFIRMED REQUIREMENTS</span>
+              <span>{hasLinkedImplementation ? 'CONFIRMED · DELEGATED TO PIXEL' : 'CONFIRMED REQUIREMENTS'}</span>
             </span>
           ) : proposal.status === 'stale' ? (
             <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
@@ -179,7 +184,10 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
         <div className="text-[11px] text-[#657189]">
           {isConfirmed ? (
             <span className="text-emerald-700 font-semibold flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Authoritative Product Context
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              {hasLinkedImplementation
+                ? 'Confirmed & Delegated to PIXEL · Implementation Active'
+                : 'Authoritative Product Context'}
             </span>
           ) : (
             <span>Alex confirmation required to authorize implementation</span>
@@ -198,6 +206,20 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
 
+          {/* If confirmed and linked pixel proposal exists, show View PIXEL Task */}
+          {isConfirmed && onOpenPixelProposal && (
+            <button
+              type="button"
+              onClick={onOpenPixelProposal}
+              className="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+              title="View PIXEL implementation proposal and technical diff"
+            >
+              <Code2 className="w-3.5 h-3.5" />
+              <span>View PIXEL Task</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+
           {/* Secondary Action: Confirm Requirements if not confirmed */}
           {!isConfirmed && proposal.status === 'pending_review' && (
             <button
@@ -209,7 +231,7 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-2xs'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
               }`}
-              title={isAlex ? 'Confirm requirements as authoritative' : 'Only Alex (Founder / Decision Owner) can confirm requirements'}
+              title={isAlex ? 'Confirm requirements and automatically delegate implementation to PIXEL' : 'Only Alex (Founder / Decision Owner) can confirm requirements'}
             >
               <Check className="w-3.5 h-3.5" />
               <span>Confirm Requirements</span>

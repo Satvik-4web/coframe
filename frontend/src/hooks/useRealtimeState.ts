@@ -67,6 +67,8 @@ export function useRealtimeState() {
         if (event.data === 'pong') return;
         try {
           const msg = JSON.parse(event.data);
+          // Broadcast to components via window custom event
+          window.dispatchEvent(new CustomEvent('coframe:ws_message', { detail: msg }));
           // Any backend update triggers state reload
           refresh();
         } catch {

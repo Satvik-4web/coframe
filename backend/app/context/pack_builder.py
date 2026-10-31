@@ -172,32 +172,58 @@ def build_context_pack(
     offline_changes = []
     if last_checkpoint:
         # Full retrieval of all missed events since checkpoint (no 15-event cutoff)
-        if last_checkpoint.isdigit():
+        checkpoint_events = []
+        if isinstance(last_checkpoint, dict):
+            last_seq = last_checkpoint.get("last_processed_event_seq")
+            chk_ts = last_checkpoint.get("timestamp")
+            if last_seq is not None and int(last_seq) > 0:
+                checkpoint_events = (
+                    db.query(EventModel)
+                    .filter(EventModel.project_id == project_id, EventModel.sequence_no > int(last_seq))
+                    .order_by(EventModel.sequence_no.asc())
+                    .all()
+                )
+            elif chk_ts:
+                checkpoint_events = (
+                    db.query(EventModel)
+                    .filter(EventModel.project_id == project_id, EventModel.created_at > str(chk_ts))
+                    .order_by(EventModel.sequence_no.asc())
+                    .all()
+                )
+        elif isinstance(last_checkpoint, int):
             checkpoint_events = (
                 db.query(EventModel)
-                .filter(EventModel.project_id == project_id, EventModel.sequence_no > int(last_checkpoint))
+                .filter(EventModel.project_id == project_id, EventModel.sequence_no > last_checkpoint)
                 .order_by(EventModel.sequence_no.asc())
                 .all()
             )
-        else:
-            last_evt = db.query(EventModel).filter(
-                EventModel.project_id == project_id,
-                EventModel.id == last_checkpoint,
-            ).first()
-            if last_evt:
+        elif isinstance(last_checkpoint, str):
+            if last_checkpoint.isdigit():
                 checkpoint_events = (
                     db.query(EventModel)
-                    .filter(EventModel.project_id == project_id, EventModel.sequence_no > last_evt.sequence_no)
+                    .filter(EventModel.project_id == project_id, EventModel.sequence_no > int(last_checkpoint))
                     .order_by(EventModel.sequence_no.asc())
                     .all()
                 )
             else:
-                checkpoint_events = (
-                    db.query(EventModel)
-                    .filter(EventModel.project_id == project_id, EventModel.created_at > last_checkpoint)
-                    .order_by(EventModel.sequence_no.asc())
-                    .all()
-                )
+                last_evt = db.query(EventModel).filter(
+                    EventModel.project_id == project_id,
+                    EventModel.id == last_checkpoint,
+                ).first()
+                if last_evt:
+                    checkpoint_events = (
+                        db.query(EventModel)
+                        .filter(EventModel.project_id == project_id, EventModel.sequence_no > last_evt.sequence_no)
+                        .order_by(EventModel.sequence_no.asc())
+                        .all()
+                    )
+                else:
+                    checkpoint_events = (
+                        db.query(EventModel)
+                        .filter(EventModel.project_id == project_id, EventModel.created_at > last_checkpoint)
+                        .order_by(EventModel.sequence_no.asc())
+                        .all()
+                    )
 
         offline_changes = [
             {

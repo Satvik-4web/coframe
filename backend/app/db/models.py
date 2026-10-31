@@ -547,3 +547,30 @@ class ChatMessageModel(Base):
         Index("idx_msg_conv_created", "conversation_id", "created_at"),
         Index("idx_msg_proposal", "related_proposal_id"),
     )
+
+
+class RecoveryRecordModel(Base):
+    __tablename__ = "recovery_records"
+
+    id = Column(String(64), primary_key=True, default=lambda: f"rec_{uuid.uuid4().hex[:10]}")
+    project_id = Column(String(64), ForeignKey("projects.id"), index=True, nullable=False)
+    agent_id = Column(String(32), index=True, nullable=False)  # "nova", "pixel"
+    previous_run_id = Column(String(64), nullable=True)
+    checkpoint_reference = Column(JSON, nullable=True)
+    previous_context_pack = Column(JSON, nullable=True)
+    reconstructed_context_pack = Column(JSON, nullable=False)
+    events_consumed = Column(JSON, default=list, nullable=False)
+    changes_detected = Column(JSON, default=dict, nullable=False)
+    validation_outcome = Column(String(64), default="PASSED", nullable=False)
+    conflicts_detected = Column(JSON, default=list, nullable=False)
+    resulting_agent_run_id = Column(String(64), nullable=True)
+    task_resumed = Column(Boolean, default=False, nullable=False)
+    resumed_task_description = Column(Text, nullable=True)
+    recovery_status = Column(String(32), default="COMPLETED", nullable=False)  # "COMPLETED", "REBUILT_ONLY", "FAILED", "NO_TASK_TO_RESUME"
+    failure_reason = Column(Text, nullable=True)
+    created_at = Column(String(64), default=utcnow_str, nullable=False)
+
+    __table_args__ = (
+        Index("idx_recovery_proj_agent", "project_id", "agent_id"),
+        Index("idx_recovery_created", "created_at"),
+    )
