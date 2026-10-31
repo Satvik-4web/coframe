@@ -32,20 +32,22 @@ Your collaborators are:
 - PIXEL (AI Software Engineer)
 
 Your role:
-1. Clarify user requirements, target audience, business value, constraints, and measurable acceptance criteria.
-2. Provide strategic guidance, answer product questions, and formulate Product Requirement Documents (PRDs).
-3. Do NOT make up fake technical capabilities; respect COFRAME's proposal lifecycle.
-4. Maintain continuity across multiple conversation turns: remember prior discussion points, requirements, and decisions.
-5. Answer questions conversationally and thoughtfully by default.
-6. ONLY set "proposal_intent": true when the user explicitly requests to create/generate/submit a proposal or PRD, or specifically asks to propose a concrete change. For exploratory or policy questions (e.g. "how should we structure...", "what do you think...", "can you explain..."), provide clear strategic advice and set "proposal_intent": false.
+1. When Alex or Maya introduces a new product idea with ambiguous acronyms (e.g. "SAI"), missing problem definitions, or brief phrases without target audience, IDENTIFY the ambiguity and ASK clarifying questions first rather than fabricating details or generating a premature PRD. Keep "proposal_intent": false.
+2. Clarify user requirements, target audience, business value, constraints, and measurable acceptance criteria.
+3. Formulate structured Product Requirement Documents (PRDs) when requirements are sufficiently specified or the user explicitly asks to create/generate a PRD or proposal.
+4. Set "proposal_intent": true ONLY when the user explicitly requests to create/generate/submit a proposal or PRD, or when sufficient requirements have been established to formulate a complete PRD.
+5. For exploratory, policy, or clarifying questions (e.g. "how should we structure...", "what do you think...", "can you explain..."), provide clear strategic guidance and set "proposal_intent": false.
+6. When creating a PRD proposal, include a complete 11-section PRD object in "prd_data" with:
+   - title, objective, executive_summary, problem_statement, target_audience, proposed_solution, functional_requirements, non_functional_requirements, user_stories, acceptance_criteria, constraints_and_assumptions, dependencies_and_risks, open_questions.
 
 Respond with valid JSON containing:
 {
-  "message": "Your conversational response in clear, professional GitHub-flavored Markdown",
+  "message": "Your conversational response in clear, professional GitHub-flavored Markdown. If asking clarifying questions, outline potential interpretations (e.g. what an acronym stands for). If submitting a PRD, summarize the key sections.",
   "proposal_intent": false,
   "proposal_summary": "Short title if proposing a requirements change (null otherwise)",
   "affected_requirements": ["REQ_AUDIENCE" or "REQ_METRICS" or "REQ_BRAND" or "REQ_ROLES"],
-  "target_sections": ["product_brief" or "dashboard" or "approval_queue" or "hero"]
+  "target_sections": ["product_brief" or "dashboard" or "approval_queue" or "hero"],
+  "prd_data": null
 }
 """
 
@@ -165,6 +167,33 @@ Instruction for {agent_id.upper()}:
     return assembled_prompt, valid_req_keys, section_keys
 
 
+def _detect_ambiguity(message: str) -> bool:
+    """Detects whether a product prompt contains ambiguous acronyms or underspecified requests."""
+    m_lower = message.lower().strip()
+    words = [w.strip(".,!?:;\"'()") for w in m_lower.split()]
+
+    ambiguous_acronyms = ["sai", "erp", "sso", "ai", "ml", "nlp"]
+    has_ambiguous_acronym = any(acronym in words for acronym in ambiguous_acronyms)
+
+    known_expansions = [
+        "smart automated invoicing",
+        "spend anomaly intelligence",
+        "strategic account integration",
+        "single sign on",
+        "enterprise resource planning",
+    ]
+    if any(exp in m_lower for exp in known_expansions):
+        return False
+
+    if has_ambiguous_acronym:
+        return True
+
+    if len(words) <= 5 and not any(t in m_lower for t in ["create proposal", "create prd", "generate prd", "submit prd"]):
+        return True
+
+    return False
+
+
 def _should_create_proposal(user_message: str, raw_output: Dict[str, Any], agent_id: str) -> bool:
     """
     Separates general conversational questions from explicit proposal actions.
@@ -174,6 +203,13 @@ def _should_create_proposal(user_message: str, raw_output: Dict[str, Any], agent
        AND the user message is NOT a pure informational/exploratory question ('how should we', 'what do you think', etc.).
     """
     m_lower = user_message.lower().strip()
+
+    if raw_output.get("force_proposal") is True:
+        return True
+
+    # Ambiguity gate for NOVA
+    if agent_id == "nova" and _detect_ambiguity(user_message):
+        return False
 
     # Pure conversational/exploratory questions should NOT create premature proposals
     is_exploratory_question = any(
@@ -197,9 +233,6 @@ def _should_create_proposal(user_message: str, raw_output: Dict[str, Any], agent
     if is_exploratory_question:
         # Don't create a proposal for exploratory questions even if LLM defaulted to proposal_intent=True
         return False
-
-    if raw_output.get("force_proposal") is True:
-        return True
 
     # Otherwise, if the agent returned proposal_intent with target sections or operations
     return bool(raw_output.get("proposal_intent")) and bool(raw_output.get("target_sections") or raw_output.get("operations"))
@@ -377,7 +410,7 @@ async def handle_nova_chat(
             prop = stamp_and_persist_proposal(
                 db=db,
                 project_id=project_id,
-                run_id=run.id,
+                run_id=run_id,
                 raw_output={
                     "summary": summary,
                     "reasoning": f"Formulated in workspace chat discussion with {user_id.capitalize()}: '{user_message}'",
@@ -401,11 +434,23 @@ async def handle_nova_chat(
                 prd_data=raw_output.get("prd_data") if isinstance(raw_output, dict) else None,
             )
             related_proposal_id = prop.id
-            message_text += f"\n\n**Actionable Proposal Created:** I've submitted a formal requirements proposal for review. Link: `#{prop.id[-6:]}`."
+            message_text += f"\n\n**Actionable Proposal Created:** I've submitted a formal requirements proposal for review: [View PRD Proposal #{prop.id[-6:]}](/proposals). Requirements are awaiting Alex's confirmation before PIXEL begins implementation."
             run.status = "waiting_for_review"
             run.lifecycle_state = "completed"
             run.completed_at = utcnow_str()
             db.commit()
+
+            try:
+                from backend.app.services.workflow_service import update_workflow_stage
+                await update_workflow_stage(
+                    db=db,
+                    project_id=project_id,
+                    stage="prd_awaiting_confirmation",
+                    active_prd_id=prop.id,
+                    last_action_by="nova",
+                )
+            except Exception as e:
+                logger.warning(f"Could not update workflow stage for NOVA PRD: {e}")
         except Exception as err:
             logger.warning(f"Could not create proposal from NOVA chat: {err}")
             run.status = "completed"
@@ -418,6 +463,19 @@ async def handle_nova_chat(
         run.lifecycle_state = "completed"
         run.completed_at = utcnow_str()
         db.commit()
+
+        try:
+            from backend.app.services.workflow_service import update_workflow_stage
+            is_clarification = any(w in message_text.lower() for w in ["clarif", "could you", "which of these", "what does", "sai"])
+            stage = "product_clarification" if is_clarification else "product_discovery"
+            await update_workflow_stage(
+                db=db,
+                project_id=project_id,
+                stage=stage,
+                last_action_by="nova",
+            )
+        except Exception as e:
+            logger.warning(f"Could not update workflow stage for NOVA conversational turn: {e}")
 
     now_str = utcnow_str()
     agent_msg = ChatMessageModel(
@@ -517,7 +575,7 @@ async def handle_pixel_chat(
             prop = stamp_and_persist_proposal(
                 db=db,
                 project_id=project_id,
-                run_id=run.id,
+                run_id=run_id,
                 raw_output={
                     "summary": summary,
                     "reasoning": f"Implementation requested via Workspace Chat by {user_id.capitalize()}: '{user_message}'",
@@ -747,36 +805,61 @@ async def handle_team_chat(
     user_id: str,
     user_message: str,
 ) -> List[ChatMessageModel]:
-    """Role-aware team orchestration.
-    NOVA owns product strategy. PIXEL owns engineering.
-    For product/UX messages: NOVA leads, PIXEL acknowledges readiness.
-    For implementation messages: PIXEL leads, NOVA tracks requirements.
-    For general team messages: both respond in parallel.
+    """Sequential, stage-aware team orchestration.
+    Entire Team is a shared collaboration channel with deterministic, role-aware routing.
+    It does NOT broadcast messages to execute both agents in parallel or inject fake listening messages.
     """
-    intent = _classify_team_intent(user_message)
+    from backend.app.services.workflow_service import get_or_sync_workflow_stage
+    stage_data = get_or_sync_workflow_stage(db, project_id)
+    current_stage = stage_data.get("current_stage", "product_discovery")
+
     responses: List[ChatMessageModel] = []
 
-    if intent == "product_led":
+    # 1. Product idea / discovery / clarification / PRD stages: NOVA leads alone.
+    # PIXEL does NOT execute and does NOT post fake messages. PIXEL status is "Waiting for confirmed requirements".
+    if current_stage in ("product_discovery", "product_clarification", "prd_generation", "prd_awaiting_confirmation"):
         nova_resp = await handle_nova_chat(db, project_id, conversation_id, user_id, user_message)
         if nova_resp:
             responses.append(nova_resp)
-        pixel_ack = await _handle_pixel_listening_mode(db, project_id, conversation_id, user_id, user_message)
-        if pixel_ack:
-            responses.append(pixel_ack)
-    elif intent == "implementation_led":
+        return responses
+
+    # 2. Implementation in progress stage: PIXEL executes if technical, otherwise NOVA guides
+    if current_stage == "implementation_in_progress":
+        intent = _classify_team_intent(user_message)
+        if intent == "implementation_led" or any(k in user_message.lower() for k in ["code", "pixel", "component", "build", "frontend", "bug", "style"]):
+            pixel_resp = await handle_pixel_chat(db, project_id, conversation_id, user_id, user_message)
+            if pixel_resp:
+                responses.append(pixel_resp)
+        else:
+            nova_resp = await handle_nova_chat(db, project_id, conversation_id, user_id, user_message)
+            if nova_resp:
+                responses.append(nova_resp)
+        return responses
+
+    # 3. Implementation awaiting human approval stage:
+    if current_stage == "implementation_awaiting_approval":
+        intent = _classify_team_intent(user_message)
+        if intent == "implementation_led":
+            pixel_resp = await handle_pixel_chat(db, project_id, conversation_id, user_id, user_message)
+            if pixel_resp:
+                responses.append(pixel_resp)
+        else:
+            nova_resp = await handle_nova_chat(db, project_id, conversation_id, user_id, user_message)
+            if nova_resp:
+                responses.append(nova_resp)
+        return responses
+
+    # 4. Default / implementation_applied stage:
+    # A new cycle begins: product ideas route to NOVA
+    intent = _classify_team_intent(user_message)
+    if intent == "implementation_led":
         pixel_resp = await handle_pixel_chat(db, project_id, conversation_id, user_id, user_message)
         if pixel_resp:
             responses.append(pixel_resp)
-        nova_track = await _handle_nova_requirements_tracking(db, project_id, conversation_id, user_id, user_message)
-        if nova_track:
-            responses.append(nova_track)
     else:
         nova_resp = await handle_nova_chat(db, project_id, conversation_id, user_id, user_message)
         if nova_resp:
             responses.append(nova_resp)
-        pixel_resp = await handle_pixel_chat(db, project_id, conversation_id, user_id, user_message)
-        if pixel_resp:
-            responses.append(pixel_resp)
 
     return responses
 
@@ -882,6 +965,87 @@ def serialize_chat_message(m: ChatMessageModel, proposal: Optional[ProposalModel
 def _generate_nova_chat_fallback(message: str, requirements: List[RequirementModel]) -> Dict[str, Any]:
     """High-quality deterministic fallback response for NOVA."""
     m_lower = message.lower()
+
+    # Ambiguity check for acronyms like "SAI"
+    if "sai" in m_lower and not any(kw in m_lower for kw in ["smart automated invoicing", "spend anomaly", "stands for", "create proposal", "create prd", "generate prd"]):
+        return {
+            "message": """### Product Discovery & Clarification · NOVA
+
+I noticed your idea mentions **"SAI"** for LedgerFlow. Because "SAI" can refer to multiple distinct capabilities in financial systems, let's clarify your target scope first:
+
+1. **Smart Automated Invoicing (SAI)**: AI-powered extraction of line items, vendor tax IDs, and GL codes from incoming supplier bills.
+2. **Spend Anomaly Intelligence (SAI)**: Machine learning heuristics that flag unusual department spend velocity or duplicate expense submissions.
+3. **Strategic Account Integration (SAI)**: Deep bidirectional ERP sync with enterprise ledgers like NetSuite, SAP, or QuickBooks.
+
+**Key Clarifying Questions:**
+- Which of these directions matches your vision?
+- Who is the primary target audience (e.g. finance controllers vs employee submitters)?
+- What is the primary success metric for this capability?
+
+*Once you clarify the core objective, I will formulate a formal 11-section PRD proposal for Alex's review. PIXEL will remain waiting for confirmed requirements.*""",
+            "proposal_intent": False,
+        }
+
+    # Clarified PRD request for Smart Automated Invoicing (SAI)
+    if "smart automated invoicing" in m_lower or ("sai" in m_lower and any(kw in m_lower for kw in ["stands for", "invoice", "invoicing", "create prd", "create proposal", "generate prd"])):
+        return {
+            "message": """### Formal Product Requirements Document · Smart Automated Invoicing (SAI)
+
+I have formulated a comprehensive 11-section PRD for **Smart Automated Invoicing (SAI)** in LedgerFlow.
+
+**Key Strategic Specifications:**
+- **Objective:** Eliminate manual invoice data entry by extracting line items, currency amounts, and GL codes automatically.
+- **Target Audience:** Accounts Payable Specialists and Financial Controllers managing 100+ supplier invoices monthly.
+- **Core Capabilities:** Optical character recognition (OCR), automated duplicate invoice detection, and tiered manager approval routing.
+- **Acceptance Criteria:** 99.2% line item extraction accuracy on standard PDFs; sub-2-second sync with LedgerFlow's approval queue.
+
+I have submitted this PRD proposal for human review. **PIXEL is waiting for Alex's confirmation** before starting implementation.""",
+            "proposal_intent": True,
+            "force_proposal": True,
+            "proposal_summary": "PRD: Smart Automated Invoicing (SAI) Engine",
+            "target_sections": ["approval_queue", "dashboard", "product_brief"],
+            "affected_requirements": ["REQ_AUDIENCE", "REQ_ROLES"],
+            "prd_data": {
+                "title": "Smart Automated Invoicing (SAI) Engine",
+                "objective": "Automate supplier bill ingestion, OCR line-item extraction, and approval routing.",
+                "executive_summary": {
+                    "what_proposed": "Deploy an AI-powered Smart Automated Invoicing engine within LedgerFlow.",
+                    "problem_addressed": "Finance teams spend 15+ hours weekly manually transcribing invoice PDFs into spreadsheets.",
+                    "target_outcomes": "Reduce bill processing time by 85% and prevent duplicate vendor payouts."
+                },
+                "problem_statement": "Manual invoice processing introduces human transcription errors, payment delays, and lack of visibility into unapproved liabilities.",
+                "target_audience": "Accounts Payable teams, Finance Directors, and Enterprise Controllers",
+                "proposed_solution": "Direct PDF upload interface with optical extraction, GL code suggestion, and escalation to Alex for invoices exceeding $500.",
+                "functional_requirements": [
+                    {"id": "FR-SAI-1", "title": "Automated PDF Line Item Ingestion", "description": "Extract invoice number, vendor name, invoice date, line items, and tax breakdown.", "priority": "High"},
+                    {"id": "FR-SAI-2", "title": "Tiered Governance Escalation", "description": "Invoices exceeding $500 ceiling require Alex sign-off before GL posting.", "priority": "High"},
+                    {"id": "FR-SAI-3", "title": "Real-Time Liability KPI", "description": "Update Pending Approvals KPI in Dashboard immediately upon invoice ingest.", "priority": "Medium"}
+                ],
+                "non_functional_requirements": [
+                    {"id": "NFR-1", "category": "Performance", "requirement": "OCR parsing completes in under 2.5 seconds per document."},
+                    {"id": "NFR-2", "category": "Compliance", "requirement": "Maintain immutable audit log of all extraction changes."}
+                ],
+                "user_stories": [
+                    {"role": "Accounts Payable Specialist", "action": "upload a vendor invoice PDF", "benefit": "I do not have to manually retype line items into LedgerFlow.", "text": "As an AP Specialist, I want to upload an invoice PDF so that line items are populated automatically."},
+                    {"role": "Finance Director", "action": "enforce approval tiers on automated invoices", "benefit": "unauthorized large liabilities are blocked.", "text": "As a Finance Director, I want high-value invoices escalated to Alex so that capital is protected."}
+                ],
+                "acceptance_criteria": [
+                    {"id": "AC-SAI-1", "req_id": "FR-SAI-1", "criterion": "Line items match vendor total with zero variance.", "measurable": True},
+                    {"id": "AC-SAI-2", "req_id": "FR-SAI-2", "criterion": "Invoices > $500 route to Alex with flagged warning badge.", "measurable": True}
+                ],
+                "constraints_and_assumptions": [
+                    "Assumes supported formats include PDF, PNG, and JPEG up to 15MB.",
+                    "Assumes standard currency formatting adhering to LedgerFlow multi-currency standards."
+                ],
+                "dependencies_and_risks": [
+                    "Dependency on LedgerFlow approval queue state machine.",
+                    "Risk: Low-resolution scans may require manual fallback editing."
+                ],
+                "open_questions": [
+                    "Should international vendor invoices auto-convert to USD or display native currency?"
+                ]
+            }
+        }
 
     # Specific policy question handler (e.g. international travel expense approval)
     if "travel" in m_lower or "policy" in m_lower or "international" in m_lower or "expense approval" in m_lower:

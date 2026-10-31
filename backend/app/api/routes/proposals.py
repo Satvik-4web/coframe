@@ -375,6 +375,18 @@ async def approve_proposal(
     })
 
     try:
+        from backend.app.services.workflow_service import update_workflow_stage
+        await update_workflow_stage(
+            db=db,
+            project_id=project_id,
+            stage="implementation_applied",
+            active_pixel_proposal_id=approved_prop.id,
+            last_action_by=body.decided_by,
+        )
+    except Exception as e:
+        logger.warning(f"Could not update workflow stage for approved proposal: {e}")
+
+    try:
         from backend.app.agents.chat_service import create_system_chat_notification
         create_system_chat_notification(
             db=db,

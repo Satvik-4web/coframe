@@ -122,6 +122,7 @@ def serialize_proposal_for_api(p: ProposalModel, db: Optional[Any] = None) -> Di
                 break
 
     return {
+        "id": p.id,
         "proposal_id": p.id,
         "project_id": p.project_id,
         "agent_id": p.agent_id,

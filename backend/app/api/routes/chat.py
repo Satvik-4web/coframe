@@ -307,3 +307,33 @@ async def mark_conversation_read(
         db.commit()
 
     return {"status": "ok"}
+
+
+
+@router.get("/projects/{project_id}/workflow-stage")
+async def get_workflow_stage(
+    project_id: str,
+    db: Session = Depends(get_db),
+):
+    """Retrieves current collaboration workflow stage and agent readiness states."""
+    from backend.app.services.workflow_service import get_or_sync_workflow_stage
+    stage_data = get_or_sync_workflow_stage(db, project_id)
+    return stage_data
+
+
+@router.post("/projects/{project_id}/workflow-stage/sync")
+async def sync_workflow_stage(
+    project_id: str,
+    db: Session = Depends(get_db),
+):
+    """Re-evaluates database state and synchronizes workflow stage across clients."""
+    from backend.app.services.workflow_service import get_or_sync_workflow_stage
+    stage_data = get_or_sync_workflow_stage(db, project_id)
+    try:
+        await ws_manager.broadcast(project_id, {
+            "type": "WORKFLOW_STAGE_UPDATED",
+            "stage": stage_data,
+        })
+    except Exception as e:
+        logger.warning(f"Could not broadcast workflow sync: {e}")
+    return stage_data

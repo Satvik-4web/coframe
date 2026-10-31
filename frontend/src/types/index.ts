@@ -437,11 +437,20 @@ export interface ImplementationPlan {
 }
 
 export interface WorkflowStageInfo {
-  current_stage: 'discovery' | 'requirements_review' | 'implementation_planning' | 'prototype_development' | 'agent_review' | 'human_approval' | 'completed';
-  stage_label: string;
-  description: string;
-  actor: string;
-  active_index: number;
+  project_id?: string;
+  current_stage: string;
+  display_label?: string;
+  stage_label?: string;
+  description?: string;
+  nova_status?: string;
+  pixel_status?: string;
+  active_prd_id?: string | null;
+  active_pixel_proposal_id?: string | null;
+  active_task_id?: string | null;
+  last_action_by?: string | null;
+  actor?: string;
+  active_index?: number;
+  updated_at?: string;
 }
 
 export interface GitHubConnectionStatus {

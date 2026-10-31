@@ -391,6 +391,19 @@ async def delegate_confirmed_prd_to_pixel(
         "parent_prd_id": prd_proposal_id,
     })
 
+    try:
+        from backend.app.services.workflow_service import update_workflow_stage
+        await update_workflow_stage(
+            db=db,
+            project_id=project_id,
+            stage="implementation_in_progress",
+            active_prd_id=prd_proposal_id,
+            active_task_id=delegation.id,
+            last_action_by=confirmed_by,
+        )
+    except Exception as e:
+        logger.warning(f"Could not update workflow stage for delegation start: {e}")
+
     # 4. Execute PIXEL Agent
     pixel_output = None
     source = "live_llm"
@@ -440,7 +453,7 @@ async def delegate_confirmed_prd_to_pixel(
         pixel_prop = stamp_and_persist_proposal(
             db=db,
             project_id=project_id,
-            run_id=run.id,
+            run_id=run_id,
             raw_output=pixel_output,
             source=source,
             is_simulated=is_simulated,
@@ -538,6 +551,20 @@ async def delegate_confirmed_prd_to_pixel(
         "prd_proposal_id": prd_proposal_id,
         "pixel_proposal_id": pixel_prop.id,
     })
+
+    try:
+        from backend.app.services.workflow_service import update_workflow_stage
+        await update_workflow_stage(
+            db=db,
+            project_id=project_id,
+            stage="implementation_awaiting_approval",
+            active_prd_id=prd_proposal_id,
+            active_pixel_proposal_id=pixel_prop.id,
+            active_task_id=delegation.id,
+            last_action_by="pixel",
+        )
+    except Exception as e:
+        logger.warning(f"Could not update workflow stage for delegation completion: {e}")
 
     return {
         "status": "success",

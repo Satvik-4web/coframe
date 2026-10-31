@@ -280,12 +280,11 @@ async def test_live_pixel_request_execution():
 # 4. Entire Team Test
 # ---------------------------------------------------------------------------
 
-def test_entire_team_orchestration_both_respond():
+def test_entire_team_orchestration_sequential_nova_leads():
     """
-    Phase 8 Entire Team Test:
+    Sequential Orchestration Test:
     Send a product improvement request to Entire Team.
-    Verify message reaches both agents, NOVA provides analysis, PIXEL enters listening mode,
-    responses are independently persisted, and duplicate execution is prevented.
+    Verify message routes to NOVA exclusively. PIXEL remains waiting for confirmed requirements.
     """
     resp = client.post(
         f"/api/projects/{DEMO_PROJECT_ID}/conversations/{TEAM_CONV_ID}/messages",
@@ -299,14 +298,12 @@ def test_entire_team_orchestration_both_respond():
     result = resp.json()
     assert result["status"] == "success"
     agent_keys = [r["sender_key"] for r in result["agent_responses"]]
-    assert "nova" in agent_keys
-    assert "pixel" in agent_keys
+    assert agent_keys == ["nova"], f"Expected only NOVA to respond, got {agent_keys}"
 
-    # Verify both messages are in history
+    # Verify PIXEL did not post a fake message in history
     history = client.get(f"/api/projects/{DEMO_PROJECT_ID}/conversations/{TEAM_CONV_ID}/messages").json()
-    senders = [m["sender_key"] for m in history]
-    assert "nova" in senders
-    assert "pixel" in senders
+    last_agent_msgs = [m for m in history if m["sender_key"] in ("nova", "pixel")]
+    assert last_agent_msgs[-1]["sender_key"] == "nova"
 
 
 # ---------------------------------------------------------------------------

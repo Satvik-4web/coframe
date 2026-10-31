@@ -228,7 +228,7 @@ async def test_agent_switching_context_preservation():
 # ---------------------------------------------------------------------------
 @pytest.mark.asyncio
 async def test_entire_team_dispatch():
-    """Verifies that addressing 'team' with general or sprint intent prompts both agents."""
+    """Verifies that addressing 'team' with general or sprint intent prompts NOVA under sequential orchestration."""
     resp = client.post(
         f"/api/projects/{DEMO_PROJECT_ID}/conversations/{TEAM_CONV_ID}/messages",
         json={
@@ -239,9 +239,8 @@ async def test_entire_team_dispatch():
     )
     assert resp.status_code == 200
     data = resp.json()
-    assert len(data["agent_responses"]) == 2
-    senders = {r["sender_id"] for r in data["agent_responses"]}
-    assert senders == {"nova", "pixel"}
+    assert len(data["agent_responses"]) == 1
+    assert data["agent_responses"][0]["sender_id"] == "nova"
 
 
 # ---------------------------------------------------------------------------

@@ -86,8 +86,8 @@ def test_classify_unknown_falls_back_to_general():
 # Integration Tests — Team Routing
 # ---------------------------------------------------------------------------
 
-def test_team_ui_improvement_both_agents_respond():
-    """Critical: 'make the ui better' to Entire Team must trigger BOTH nova and pixel."""
+def test_team_ui_improvement_routes_to_nova_sequentially():
+    """Sequential: 'make the ui better' to Entire Team routes to NOVA leads alone; PIXEL waits."""
     resp = client.post(
         f"/api/projects/{DEMO_PROJECT_ID}/conversations/{TEAM_CONV_ID}/messages",
         json={
@@ -100,8 +100,7 @@ def test_team_ui_improvement_both_agents_respond():
     result = resp.json()
     assert result["status"] == "success"
     agent_keys = [r["sender_key"] for r in result["agent_responses"]]
-    assert "nova" in agent_keys, f"NOVA missing from responses: {agent_keys}"
-    assert "pixel" in agent_keys, f"PIXEL missing from responses: {agent_keys}"
+    assert agent_keys == ["nova"], f"Expected NOVA alone, got: {agent_keys}"
 
 
 def test_nova_only_never_dispatches_pixel():
@@ -159,8 +158,8 @@ def test_product_improvement_nova_responds_with_analysis():
     ), f"NOVA response does not mention product/UX: {nova_content[:300]}"
 
 
-def test_both_agent_responses_stored_in_db():
-    """Both agent responses are persisted to the database."""
+def test_agent_responses_stored_in_db():
+    """NOVA response is persisted to the database under sequential routing."""
     resp = client.post(
         f"/api/projects/{DEMO_PROJECT_ID}/conversations/{TEAM_CONV_ID}/messages",
         json={
@@ -173,9 +172,8 @@ def test_both_agent_responses_stored_in_db():
     result = resp.json()
     agent_keys = [r["sender_key"] for r in result["agent_responses"]]
     assert "nova" in agent_keys, "NOVA must respond to milestone messages"
-    assert "pixel" in agent_keys, "PIXEL must respond to milestone messages"
 
-    # Verify messages are persisted in conversation history
+    # Verify message is persisted in conversation history
     msgs_resp = client.get(
         f"/api/projects/{DEMO_PROJECT_ID}/conversations/{TEAM_CONV_ID}/messages"
     )
@@ -183,4 +181,3 @@ def test_both_agent_responses_stored_in_db():
     msgs = msgs_resp.json()
     msg_senders = [m.get("sender_key", m.get("sender_id", "")) for m in msgs]
     assert "nova" in msg_senders, "NOVA message not found in conversation history"
-    assert "pixel" in msg_senders, "PIXEL message not found in conversation history"

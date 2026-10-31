@@ -574,3 +574,35 @@ class RecoveryRecordModel(Base):
         Index("idx_recovery_proj_agent", "project_id", "agent_id"),
         Index("idx_recovery_created", "created_at"),
     )
+
+
+
+class WorkflowStateModel(Base):
+    __tablename__ = "workflow_states"
+
+    id = Column(String(64), primary_key=True)
+    project_id = Column(String(64), ForeignKey("projects.id"), unique=True, index=True, nullable=False)
+    current_stage = Column(String(64), default="product_discovery", nullable=False)
+    # Allowed stages:
+    # "product_discovery" -> NOVA leads, PIXEL waits
+    # "product_clarification" -> NOVA clarifying requirements, PIXEL waits
+    # "prd_generation" -> NOVA generating PRD, PIXEL waits
+    # "prd_awaiting_confirmation" -> PRD ready for human review, PIXEL waits
+    # "prd_confirmed" -> PRD confirmed, PIXEL receives implementation task
+    # "implementation_in_progress" -> PIXEL executing implementation task
+    # "implementation_submitted" -> PIXEL submitted proposal, NOVA reviewing
+    # "implementation_awaiting_approval" -> NOVA reviewed, Alex final decision pending
+    # "implementation_applied" -> changes applied to LedgerFlow, ready for next cycle
+    display_label = Column(String(128), default="Product Discovery", nullable=False)
+    nova_status = Column(String(128), default="Analyzing product ideas", nullable=False)
+    pixel_status = Column(String(128), default="Waiting for confirmed requirements", nullable=False)
+    active_prd_id = Column(String(64), nullable=True)
+    active_pixel_proposal_id = Column(String(64), nullable=True)
+    active_task_id = Column(String(64), nullable=True)
+    last_action_by = Column(String(64), nullable=True)
+    updated_at = Column(String(64), default=utcnow_str, nullable=False)
+
+    __table_args__ = (
+        Index("idx_wf_proj", "project_id"),
+        Index("idx_wf_stage", "current_stage"),
+    )

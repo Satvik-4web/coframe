@@ -20,6 +20,7 @@ import {
   ChatMessage,
   ProposalStats,
   ProposalConflictDetail,
+  WorkflowStageInfo,
 } from '../types';
 
 const API_BASE = '/api';
@@ -903,5 +904,21 @@ export async function retrieveContextAdhoc(
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || 'Failed to retrieve context');
   }
+  return res.json();
+}
+
+
+
+export async function fetchChatWorkflowStage(projectId: string = 'demo-ledgerflow'): Promise<WorkflowStageInfo> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/workflow-stage`);
+  if (!res.ok) throw new Error('Failed to fetch chat workflow stage');
+  return res.json();
+}
+
+export async function syncChatWorkflowStage(projectId: string = 'demo-ledgerflow'): Promise<WorkflowStageInfo> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/workflow-stage/sync`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error('Failed to sync chat workflow stage');
   return res.json();
 }

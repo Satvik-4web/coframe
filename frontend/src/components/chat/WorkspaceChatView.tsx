@@ -25,6 +25,7 @@ import {
   Conversation,
   ChatMessage,
   Proposal,
+  WorkflowStageInfo,
 } from '../../types';
 import {
   fetchConversations,
@@ -32,8 +33,10 @@ import {
   fetchConversationMessages,
   sendChatMessage,
   markConversationRead,
+  fetchChatWorkflowStage,
 } from '../../lib/api';
 import { ChatMessageMarkdown } from './ChatMessageMarkdown';
+import { WorkflowStageBanner } from './WorkflowStageBanner';
 
 interface WorkspaceChatViewProps {
   projectId?: string;
@@ -62,6 +65,16 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
   const [showNewModal, setShowNewModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [showRightPanel, setShowRightPanel] = useState(true);
+  const [stageInfo, setStageInfo] = useState<WorkflowStageInfo | null>(null);
+
+  const loadWorkflowStage = async () => {
+    try {
+      const data = await fetchChatWorkflowStage(projectId);
+      setStageInfo(data);
+    } catch (err) {
+      console.error('Failed to load workflow stage:', err);
+    }
+  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -81,6 +94,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
   useEffect(() => {
     loadConversations();
+    loadWorkflowStage();
   }, [projectId]);
 
   // Load messages whenever active conversation changes
@@ -112,6 +126,16 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
       const data = customEvt.detail;
       if (!data) return;
 
+      if (data.type === 'WORKFLOW_STAGE_UPDATED') {
+        if (data.stage) setStageInfo(data.stage);
+        else loadWorkflowStage();
+      }
+
+      if (['PROPOSAL_APPROVED', 'PROPOSAL_CREATED', 'DELEGATION_CREATED', 'DELEGATION_COMPLETED', 'PROPOSAL_REJECTED'].includes(data.type)) {
+        loadWorkflowStage();
+        if (onRefresh) onRefresh();
+      }
+
       if (data.type === 'CHAT_MESSAGE_CREATED' && data.conversation_id === activeConversationId && data.message) {
         setMessages((prev) => {
           if (prev.some((m) => m.id === data.message.id)) return prev;
@@ -127,6 +151,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
           }
           return [...prev, data.message];
         });
+        loadWorkflowStage();
       }
     };
 
@@ -414,6 +439,13 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
             </button>
           </div>
         </div>
+
+        {/* Sequential Collaboration Stage Banner */}
+        <WorkflowStageBanner
+          stageInfo={stageInfo}
+          onNavigateTab={onNavigateTab}
+          onRefresh={loadWorkflowStage}
+        />
 
         {/* Scrollable Messages Stream */}
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
