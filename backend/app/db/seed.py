@@ -18,6 +18,8 @@ from backend.app.db.models import (
     GitHubContributionModel,
     GitHubSyncJobModel,
     ExpenseModel,
+    PRDModel,
+    ImplementationPlanModel,
     utcnow_str,
 )
 
@@ -31,6 +33,7 @@ def init_db(target_engine=None):
         with use_engine.connect() as conn:
             columns_to_add = [
                 ("proposals", "prune_metadata", "JSON"),
+                ("proposals", "proposal_type", "VARCHAR(64) DEFAULT 'prototype_modification'"),
                 ("agent_runs", "prune_metadata", "JSON"),
                 ("agent_runs", "lifecycle_state", "VARCHAR(32) DEFAULT 'idle'"),
                 ("agent_runs", "last_heartbeat", "VARCHAR(64)"),
@@ -71,6 +74,8 @@ def reset_demo_database(db: Session, project_id: str = DEMO_PROJECT_ID):
     db.query(ApprovalRequestModel).filter(ApprovalRequestModel.project_id == project_id).delete(synchronize_session=False)
     db.query(SharedResourceModel).filter(SharedResourceModel.project_id == project_id).delete(synchronize_session=False)
     db.query(ExpenseModel).filter(ExpenseModel.project_id == project_id).delete(synchronize_session=False)
+    db.query(ImplementationPlanModel).filter(ImplementationPlanModel.project_id == project_id).delete(synchronize_session=False)
+    db.query(PRDModel).filter(PRDModel.project_id == project_id).delete(synchronize_session=False)
 
     db.query(DecisionModel).filter(DecisionModel.proposal_id.in_(
         db.query(ProposalModel.id).filter(ProposalModel.project_id == project_id)

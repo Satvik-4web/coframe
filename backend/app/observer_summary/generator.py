@@ -78,9 +78,15 @@ async def generate_observer_summary(
         payload = latest_event.payload or {}
 
         if etype in ["PROJECT_INITIALIZED", "workspace.initialized"]:
-            what_changed = "Demo project reset to clean baseline."
-            why = "Reset button triggered deterministic seed state."
-            what_happens_next = "Click 'Start Collaboration' to launch NOVA and PIXEL parallel runs."
+            if pending or stale_or_conflicted:
+                total = len(pending) + len(stale_or_conflicted)
+                what_changed = f"Active demo scenario loaded with {total} proposals."
+                why = "Workspace loaded with pre-seeded collaborative contributions."
+                what_happens_next = "Review pending proposals in the Proposals view."
+            else:
+                what_changed = "Clean baseline initialized."
+                why = "Workspace reset to baseline state with no pending proposals."
+                what_happens_next = "Start a new product task to engage NOVA."
 
         elif etype in ["HUMAN_REQUIREMENT_EDITED", "requirement.updated"]:
             req_key = payload.get("requirement_key", "REQ_AUDIENCE")

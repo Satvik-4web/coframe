@@ -30,16 +30,44 @@ class JoinRequest(BaseModel):
 
 @router.post("/demo/reset")
 async def reset_demo(db: Session = Depends(get_db)):
-    """Wipes and resets the project to the exact baseline defined in the specification."""
+    """Wipes and resets the project to the exact clean baseline defined in the specification."""
     project = reset_demo_database(db, project_id=DEMO_PROJECT_ID)
     summary = await generate_observer_summary(db, DEMO_PROJECT_ID)
     await ws_manager.broadcast(DEMO_PROJECT_ID, {"type": "STATE_REFRESHED", "reason": "DEMO_RESET"})
     return {
         "status": "success",
-        "message": "Demo project reset to deterministic baseline.",
+        "message": "Demo project reset to clean baseline (no pending proposals).",
         "project_id": project.id,
         "context_version": project.context_version,
         "artifact_version": project.artifact_version,
+        "is_clean_baseline": True,
+        "scenario_label": "Clean Baseline",
+        "summary": summary.model_dump(),
+    }
+
+
+@router.post("/demo/load-scenario")
+async def load_demo_scenario(db: Session = Depends(get_db)):
+    """Pre-seeds the demo scenario with NOVA & PIXEL initial proposals."""
+    project = reset_demo_database(db, project_id=DEMO_PROJECT_ID)
+    import asyncio
+    from backend.app.agents.nova import run_nova_initial
+    from backend.app.agents.pixel import run_pixel_initial
+
+    await asyncio.gather(
+        run_nova_initial(db, DEMO_PROJECT_ID),
+        run_pixel_initial(db, DEMO_PROJECT_ID),
+    )
+    summary = await generate_observer_summary(db, DEMO_PROJECT_ID)
+    await ws_manager.broadcast(DEMO_PROJECT_ID, {"type": "STATE_REFRESHED", "reason": "SCENARIO_LOADED"})
+    return {
+        "status": "success",
+        "message": "Demo scenario loaded with initial proposals.",
+        "project_id": project.id,
+        "context_version": project.context_version,
+        "artifact_version": project.artifact_version,
+        "is_clean_baseline": False,
+        "scenario_label": "Loaded Demo Scenario",
         "summary": summary.model_dump(),
     }
 
@@ -168,6 +196,7 @@ async def get_project_state(project_id: str, db: Session = Depends(get_db)):
                 "status": p.status,
                 "stale_reason": p.stale_reason,
                 "conflict_reason": p.conflict_reason,
+                "proposal_type": getattr(p, "proposal_type", None) or ("prd_requirement" if p.agent_id == "nova" else "prototype_modification"),
                 "source": p.source,
                 "is_simulated": p.is_simulated,
                 "created_at": p.created_at,
@@ -232,6 +261,8 @@ async def get_project_state(project_id: str, db: Session = Depends(get_db)):
             for a in approvals
         ],
         "resources": resources,
+        "is_clean_baseline": len(proposals) == 0,
+        "scenario_label": "Clean Baseline" if len(proposals) == 0 else "Loaded Demo Scenario",
         "observer_summary": summary.model_dump(),
         "online_members": list(ws_manager.active_presence.get(project_id, set())),
     }

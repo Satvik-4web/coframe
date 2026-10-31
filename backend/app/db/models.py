@@ -178,6 +178,7 @@ class ProposalModel(Base):
     status = Column(String(32), default="pending_review", index=True, nullable=False)
     stale_reason = Column(Text, nullable=True)
     conflict_reason = Column(Text, nullable=True)
+    proposal_type = Column(String(64), default="prototype_modification", nullable=False)
     source = Column(String(32), default="live_llm", nullable=False)
     is_simulated = Column(Boolean, default=False, nullable=False)
     prune_metadata = Column(JSON, nullable=True)
@@ -388,5 +389,59 @@ class ExpenseModel(Base):
         Index("idx_expense_proj_status", "project_id", "status"),
         Index("idx_expense_category", "project_id", "category"),
     )
+
+
+class PRDModel(Base):
+    __tablename__ = "prds"
+
+    id = Column(String(64), primary_key=True, default=lambda: f"prd_{uuid.uuid4().hex[:10]}")
+    project_id = Column(String(64), ForeignKey("projects.id"), index=True, nullable=False)
+    version = Column(Integer, default=1, nullable=False)
+    prompt = Column(Text, nullable=False)
+    title = Column(String(256), nullable=False)
+    product_name = Column(String(128), default="LedgerFlow", nullable=False)
+    objective = Column(Text, nullable=False)
+    target_audience = Column(Text, nullable=False)
+    problem_statement = Column(Text, nullable=False)
+    product_direction = Column(Text, nullable=False)
+    functional_requirements = Column(JSON, default=list, nullable=False)
+    non_functional_requirements = Column(JSON, default=list, nullable=False)
+    constraints = Column(JSON, default=list, nullable=False)
+    assumptions = Column(JSON, default=list, nullable=False)
+    dependencies = Column(JSON, default=list, nullable=False)
+    acceptance_criteria = Column(JSON, default=list, nullable=False)
+    missing_information = Column(JSON, default=list, nullable=False)
+    status = Column(String(32), default="awaiting_confirmation", nullable=False)  # "draft", "awaiting_confirmation", "confirmed"
+    confirmed_by = Column(String(32), nullable=True)  # "alex"
+    confirmed_at = Column(String(64), nullable=True)
+    created_at = Column(String(64), default=utcnow_str, nullable=False)
+    updated_at = Column(String(64), default=utcnow_str, nullable=False)
+
+    __table_args__ = (
+        Index("idx_prd_proj_ver", "project_id", "version"),
+    )
+
+
+class ImplementationPlanModel(Base):
+    __tablename__ = "implementation_plans"
+
+    id = Column(String(64), primary_key=True, default=lambda: f"plan_{uuid.uuid4().hex[:10]}")
+    project_id = Column(String(64), ForeignKey("projects.id"), index=True, nullable=False)
+    prd_id = Column(String(64), nullable=True)
+    proposal_id = Column(String(64), nullable=True)
+    agent_id = Column(String(32), default="pixel", nullable=False)
+    title = Column(String(256), nullable=False)
+    tasks = Column(JSON, default=list, nullable=False)
+    target_sections = Column(JSON, default=list, nullable=False)
+    dependencies = Column(JSON, default=list, nullable=False)
+    expected_ui_changes = Column(JSON, default=list, nullable=False)
+    acceptance_criteria_mapping = Column(JSON, default=list, nullable=False)
+    status = Column(String(32), default="planned", nullable=False)  # "planned", "executing", "completed"
+    created_at = Column(String(64), default=utcnow_str, nullable=False)
+
+    __table_args__ = (
+        Index("idx_plan_proj", "project_id"),
+    )
+
 
 

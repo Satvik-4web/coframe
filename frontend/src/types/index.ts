@@ -62,6 +62,7 @@ export interface Proposal {
   status: 'pending_review' | 'stale' | 'conflict' | 'approved' | 'rejected' | 'superseded';
   stale_reason?: string | null;
   conflict_reason?: string | null;
+  proposal_type?: 'prototype_modification' | 'prd_requirement' | 'strategic_recommendation' | string;
   source: 'live_llm' | 'cached_fallback';
   is_simulated: boolean;
   prune_metadata?: PruneMetadata | null;
@@ -297,6 +298,79 @@ export interface FullProjectState {
   resources?: SharedResource[];
   observer_summary: ObserverSummary;
   online_members: string[];
+  is_clean_baseline?: boolean;
+  scenario_label?: string;
+}
+
+export interface PRDFunctionalRequirement {
+  id: string;
+  title: string;
+  description: string;
+  priority: string;
+}
+
+export interface PRDNonFunctionalRequirement {
+  id: string;
+  title: string;
+  description: string;
+}
+
+export interface PRDAcceptanceCriteria {
+  req_id: string;
+  criteria: string[];
+}
+
+export interface PRD {
+  id: string;
+  version: number;
+  prompt: string;
+  title: string;
+  product_name: string;
+  objective: string;
+  target_audience: string;
+  problem_statement: string;
+  product_direction: string;
+  functional_requirements: PRDFunctionalRequirement[];
+  non_functional_requirements: PRDNonFunctionalRequirement[];
+  constraints: string[];
+  assumptions: string[];
+  dependencies: string[];
+  acceptance_criteria: PRDAcceptanceCriteria[];
+  missing_information: string[];
+  status: 'draft' | 'awaiting_confirmation' | 'confirmed';
+  confirmed_by?: string | null;
+  confirmed_at?: string | null;
+  created_at: string;
+}
+
+export interface ImplementationTask {
+  id: string;
+  task: string;
+  section: string;
+  status: string;
+}
+
+export interface ImplementationPlan {
+  id: string;
+  prd_id?: string;
+  proposal_id?: string;
+  agent_id: string;
+  title: string;
+  tasks: ImplementationTask[];
+  target_sections: string[];
+  dependencies: string[];
+  expected_ui_changes: string[];
+  acceptance_criteria_mapping: Array<{ req_id: string; section?: string; verified: boolean }>;
+  status: string;
+  created_at: string;
+}
+
+export interface WorkflowStageInfo {
+  current_stage: 'discovery' | 'requirements_review' | 'implementation_planning' | 'prototype_development' | 'agent_review' | 'human_approval' | 'completed';
+  stage_label: string;
+  description: string;
+  actor: string;
+  active_index: number;
 }
 
 export interface GitHubConnectionStatus {

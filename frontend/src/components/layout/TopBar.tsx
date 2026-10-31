@@ -10,7 +10,10 @@ import {
   Users,
   Info,
   ChevronDown,
+  Shield,
+  FileCode,
 } from 'lucide-react';
+import { loadDemoScenario } from '../../lib/api';
 
 interface TopBarProps {
   project?: ProjectInfo;
@@ -24,6 +27,8 @@ interface TopBarProps {
   isDemoGuideOpen?: boolean;
   onToggleCollaboratorsPanel?: () => void;
   isCollaboratorsPanelOpen?: boolean;
+  isCleanBaseline?: boolean;
+  onRefresh?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -38,15 +43,30 @@ export const TopBar: React.FC<TopBarProps> = ({
   isDemoGuideOpen = false,
   onToggleCollaboratorsPanel,
   isCollaboratorsPanelOpen = false,
+  isCleanBaseline = false,
+  onRefresh,
 }) => {
-  const isAlexOnline = onlineMembers.includes('alex');
-  const isMayaOnline = onlineMembers.includes('maya');
   const [showPruneModal, setShowPruneModal] = useState(false);
   const [showVersionTooltip, setShowVersionTooltip] = useState(false);
+  const [showResetMenu, setShowResetMenu] = useState(false);
+  const [isLoadingScenario, setIsLoadingScenario] = useState(false);
+
+  const handleLoadDemoScenario = async () => {
+    setShowResetMenu(false);
+    setIsLoadingScenario(true);
+    try {
+      await loadDemoScenario();
+      if (onRefresh) onRefresh();
+    } catch {
+      alert('Failed to load demo scenario');
+    } finally {
+      setIsLoadingScenario(false);
+    }
+  };
 
   return (
     <header className="h-16 border-b border-[#E7ECF2] bg-white px-6 flex items-center justify-between z-30 select-none shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-      {/* 1. Left: Brand & Active Project */}
+      {/* 1. Left: Brand & Active Project & Scenario Status */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-600 via-teal-700 to-violet-600 flex items-center justify-center font-bold text-white text-sm shadow-2xs">
@@ -63,18 +83,30 @@ export const TopBar: React.FC<TopBarProps> = ({
           </div>
         </div>
 
-        {/* Real-time Connection Status Dot */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F8FAFC] border border-[#E7ECF2] text-xs text-[#657189]">
+        {/* Scenario Pill: Clean Baseline vs Loaded Demo */}
+        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs border">
           <span
             className={`w-2 h-2 rounded-full ${
-              isConnected ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
+              isCleanBaseline ? 'bg-emerald-500' : 'bg-violet-500 animate-pulse'
+            }`}
+          />
+          <span className="text-[11px] font-semibold text-[#172033]">
+            {isCleanBaseline ? 'Clean Baseline' : 'Demo Scenario Active'}
+          </span>
+        </div>
+
+        {/* Real-time Connection Status Dot */}
+        <div className="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F8FAFC] border border-[#E7ECF2] text-xs text-[#657189]">
+          <span
+            className={`w-1.5 h-1.5 rounded-full ${
+              isConnected ? 'bg-emerald-500' : 'bg-amber-500'
             }`}
           />
           <span className="text-[11px] font-medium">{isConnected ? 'Live Sync' : 'Connecting...'}</span>
         </div>
       </div>
 
-      {/* 2. Middle: Provenance Versions Chips with Explain Popover */}
+      {/* 2. Middle: Provenance Versions Chips */}
       <div className="hidden lg:flex items-center gap-2 text-xs relative">
         <div
           onMouseEnter={() => setShowVersionTooltip(true)}
@@ -94,7 +126,6 @@ export const TopBar: React.FC<TopBarProps> = ({
           </div>
         </div>
 
-        {/* Provenance Explainer Tooltip */}
         {showVersionTooltip && (
           <div className="absolute top-10 left-0 w-72 bg-white rounded-xl border border-[#E7ECF2] p-3 shadow-xl z-50 text-xs text-[#657189] animate-in fade-in zoom-in-95 duration-100">
             <div className="font-bold text-[#172033] mb-1 flex items-center gap-1.5">
@@ -112,7 +143,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       </div>
 
       {/* 3. Right: Collaborators Presence, Guided Demo, Identity & Reset */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2.5">
         {/* Collaborators Toggle Pill */}
         {onToggleCollaboratorsPanel && (
           <button
@@ -142,7 +173,7 @@ export const TopBar: React.FC<TopBarProps> = ({
           </button>
         )}
 
-        {/* Guided Demo Button */}
+        {/* Compact Guided Demo Drawer Button (Requirement 1.A) */}
         {onToggleDemoGuide && (
           <button
             onClick={onToggleDemoGuide}
@@ -173,25 +204,53 @@ export const TopBar: React.FC<TopBarProps> = ({
           <span className="text-[10px] text-[#657189] uppercase tracking-wider font-bold">Switch</span>
         </button>
 
-        {/* Prune AI Seatbelt Pill */}
+        {/* Subtle Prune AI Security Shield Icon (Requirement 1.E: reduce clutter) */}
         <button
           onClick={() => setShowPruneModal(true)}
-          className="px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition shadow-2xs bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 cursor-pointer"
-          title="Prune AI Seatbelt (BIOS V2 Workshop) — Vault, Shield & Signed Receipts"
+          className="p-2 rounded-xl text-emerald-800 hover:bg-emerald-50 transition border border-transparent hover:border-emerald-200 cursor-pointer"
+          title="Prune AI Seatbelt (Ed25519 Receipts & Shield Status)"
         >
-          <span>🛡️</span>
-          <span className="hidden sm:inline">Prune Seatbelt</span>
+          <Shield className="w-4 h-4 text-emerald-600" />
         </button>
 
-        {/* Reset Demo Secondary Action */}
-        <button
-          onClick={onResetDemo}
-          disabled={isResetting}
-          className="p-2 rounded-xl text-[#657189] hover:text-red-600 hover:bg-red-50 transition border border-transparent hover:border-red-200 cursor-pointer"
-          title="Reset Demo to Baseline State"
-        >
-          <RotateCcw className={`w-4 h-4 ${isResetting ? 'animate-spin text-red-500' : ''}`} />
-        </button>
+        {/* Reset / Scenario Dropdown Menu */}
+        <div className="relative">
+          <button
+            onClick={() => setShowResetMenu(!showResetMenu)}
+            disabled={isResetting || isLoadingScenario}
+            className="p-2 rounded-xl text-[#657189] hover:text-[#172033] hover:bg-slate-100 transition border border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-1"
+            title="Workspace Reset & Demo Scenarios"
+          >
+            <RotateCcw className={`w-4 h-4 ${isResetting || isLoadingScenario ? 'animate-spin text-teal-600' : ''}`} />
+            <ChevronDown className="w-3 h-3 text-slate-400" />
+          </button>
+
+          {showResetMenu && (
+            <div className="absolute right-0 top-10 w-56 bg-white rounded-xl border border-[#E5EAF0] shadow-xl z-50 p-1.5 space-y-1 text-xs">
+              <button
+                onClick={() => {
+                  setShowResetMenu(false);
+                  onResetDemo();
+                }}
+                className="w-full text-left p-2.5 rounded-lg hover:bg-red-50 text-red-700 font-semibold transition"
+              >
+                <div className="font-bold text-xs">Reset to Clean Baseline</div>
+                <div className="text-[10px] text-red-500 font-normal mt-0.5">
+                  Wipes proposals and starts fresh
+                </div>
+              </button>
+              <button
+                onClick={handleLoadDemoScenario}
+                className="w-full text-left p-2.5 rounded-lg hover:bg-violet-50 text-violet-800 font-semibold transition"
+              >
+                <div className="font-bold text-xs">Load Demo Scenario</div>
+                <div className="text-[10px] text-violet-600 font-normal mt-0.5">
+                  Seeds 3 initial proposals for walkthrough
+                </div>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <PruneModal isOpen={showPruneModal} onClose={() => setShowPruneModal(false)} />

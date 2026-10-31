@@ -32,7 +32,7 @@ export function App() {
   const [currentTab, setCurrentTab] = useState<NavigationTab>('overview');
   const [demoStep, setDemoStep] = useState(1);
   const [isResetting, setIsResetting] = useState(false);
-  const [isDemoGuideOpen, setIsDemoGuideOpen] = useState(true);
+  const [isDemoGuideOpen, setIsDemoGuideOpen] = useState(false);
   const [isCollaboratorsPanelOpen, setIsCollaboratorsPanelOpen] = useState(false);
   const [restartingAgent, setRestartingAgent] = useState<string | null>(null);
 
@@ -97,6 +97,8 @@ export function App() {
         isDemoGuideOpen={isDemoGuideOpen}
         onToggleCollaboratorsPanel={() => setIsCollaboratorsPanelOpen(!isCollaboratorsPanelOpen)}
         isCollaboratorsPanelOpen={isCollaboratorsPanelOpen}
+        isCleanBaseline={state?.is_clean_baseline ?? false}
+        onRefresh={refresh}
       />
 
       {/* 2. Observer Summary Banner */}

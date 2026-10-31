@@ -560,3 +560,82 @@ export async function fetchExpenseMetrics(projectId: string = 'demo-ledgerflow')
   if (!res.ok) throw new Error('Failed to fetch expense metrics');
   return res.json();
 }
+
+export async function analyseProductPrompt(
+  prompt: string,
+  constraints?: string,
+  submitterId: string = 'alex',
+  projectId: string = 'demo-ledgerflow'
+): Promise<{ status: string; message: string; prd: any }> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/prd/analyse`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt, constraints, submitter_id: submitterId }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to analyse product prompt with NOVA');
+  }
+  return res.json();
+}
+
+export async function fetchLatestPRD(projectId: string = 'demo-ledgerflow'): Promise<{ prd: any }> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/prd/latest`);
+  if (!res.ok) throw new Error('Failed to fetch latest PRD');
+  return res.json();
+}
+
+export async function updatePRD(
+  prdId: string,
+  updates: any,
+  projectId: string = 'demo-ledgerflow'
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/prd/${prdId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(updates),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to update PRD');
+  }
+  return res.json();
+}
+
+export async function confirmPRD(
+  prdId: string,
+  confirmedBy: string = 'alex',
+  note?: string,
+  projectId: string = 'demo-ledgerflow'
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/prd/${prdId}/confirm`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ confirmed_by: confirmedBy, note }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to confirm PRD');
+  }
+  return res.json();
+}
+
+export async function fetchLatestPlan(projectId: string = 'demo-ledgerflow'): Promise<{ plan: any }> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/prd/plan/latest`);
+  if (!res.ok) throw new Error('Failed to fetch latest implementation plan');
+  return res.json();
+}
+
+export async function fetchWorkflowStage(projectId: string = 'demo-ledgerflow'): Promise<{ stage: any; stages: any[] }> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/prd/workflow/stage`);
+  if (!res.ok) throw new Error('Failed to fetch workflow stage');
+  return res.json();
+}
+
+export async function loadDemoScenario(): Promise<any> {
+  const res = await fetch(`${API_BASE}/demo/load-scenario`, {
+    method: 'POST',
+  });
+  if (!res.ok) throw new Error('Failed to load demo scenario');
+  return res.json();
+}

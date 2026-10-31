@@ -48,6 +48,11 @@ def test_coframe_two_session_full_workflow():
         # 2. NOVA and PIXEL produce proposals
         # -------------------------------------------------------------
         print("\n[Step 2] Alex starts agent collaboration via UI button...")
+        if not page_alex.is_visible("button:has-text('Start Collaboration (Run Agents)')"):
+            page_alex.click("button:has-text('Guided Demo')")
+            time.sleep(0.5)
+            page_alex.click("button:has-text('2')")
+            time.sleep(0.5)
         page_alex.click("button:has-text('Start Collaboration (Run Agents)')")
         time.sleep(2.5)
 
@@ -138,6 +143,9 @@ def test_coframe_two_session_full_workflow():
         # -------------------------------------------------------------
         print("\n[Step 6] Triggering high-impact approval policy proposal via Stepper...")
         # Select Step 6 in the walkthrough stepper and trigger
+        if not page_alex.is_visible("button:has-text('6')"):
+            page_alex.click("button:has-text('Guided Demo')")
+            time.sleep(0.5)
         page_alex.click("button:has-text('6')")
         time.sleep(0.5)
         page_alex.click("button:has-text('Propose Enterprise Policy (PIXEL)')")

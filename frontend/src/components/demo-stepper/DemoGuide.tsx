@@ -56,7 +56,7 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
       step: 2,
       title: 'Step 2: Start Parallel Agent Runs',
       description: 'Dispatch NOVA (Strategist) and PIXEL (Engineer) to generate initial proposals in parallel.',
-      buttonLabel: 'Run Start Collaboration',
+      buttonLabel: 'Start Collaboration (Run Agents)',
       action: async () => {
         setLoadingStep(2);
         try {
@@ -64,6 +64,7 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
           onRefresh();
           onNavigateTab('proposals');
           onSetStep(3);
+          onClose();
         } finally {
           setLoadingStep(null);
         }
@@ -149,6 +150,7 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
           onRefresh();
           onNavigateTab('proposals');
           onSetStep(7);
+          onClose();
         } finally {
           setLoadingStep(null);
         }
@@ -172,31 +174,56 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
   const isLoading = loadingStep === currentStepData.step;
 
   return (
-    <div className="bg-white border border-[#E5EAF0] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] mb-6 transition-all duration-200">
-      {/* Top Header Row */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-[#E5EAF0]">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center font-bold">
-            <Compass className="w-4 h-4 text-teal-700" />
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h3 className="font-bold text-sm text-[#172033]">
-                Guided Demo Assistant
-              </h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
-                Phase {currentStep} of 7
-              </span>
+    <div className="fixed top-16 right-0 bottom-0 w-full max-w-md bg-white shadow-xl z-30 border-l border-[#E5EAF0] flex flex-col animate-in slide-in-from-right duration-250">
+      {/* Drawer Header */}
+      <div className="p-5 border-b border-[#E5EAF0] flex items-center justify-between bg-white">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center font-bold">
+              <Compass className="w-4 h-4 text-teal-700" />
             </div>
-            <p className="text-xs text-[#657189] mt-0.5">
-              Follow the 7-step deterministic BIOS FORGE judging sequence
-            </p>
+            <div>
+              <div className="flex items-center space-x-2">
+                <h3 className="font-bold text-sm text-[#172033]">
+                  Guided Demo Assistant
+                </h3>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                  Step {currentStep} of 7
+                </span>
+              </div>
+              <p className="text-xs text-[#657189] mt-0.5">
+                Deterministic 7-step judging walkthrough
+              </p>
+            </div>
           </div>
+
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-[#657189] hover:text-[#172033] hover:bg-slate-100 transition cursor-pointer"
+            title="Close Assistant"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Progress Line */}
+        <div className="w-full h-1 bg-slate-100 overflow-hidden">
+          <div
+            className="h-full bg-teal-600 transition-all duration-300"
+            style={{ width: `${progressPercent}%` }}
+          />
         </div>
 
         {/* Step Selector Chips (1 through 7) */}
-        <div className="flex items-center space-x-1.5 self-start sm:self-center">
-          <div className="flex items-center space-x-1 bg-slate-50 p-1 rounded-xl border border-[#E5EAF0]">
+        <div className="p-4 bg-[#F8FAFC] border-b border-[#E5EAF0]">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#657189]">
+              Jump to Step
+            </span>
+            <span className="text-[11px] font-semibold text-teal-800">
+              {progressPercent}% Complete
+            </span>
+          </div>
+          <div className="grid grid-cols-7 gap-1.5 bg-white p-1.5 rounded-xl border border-[#E5EAF0]">
             {steps.map((s) => {
               const isCompleted = currentStep > s.step;
               const isCurrent = currentStep === s.step;
@@ -205,12 +232,12 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
                 <button
                   key={s.step}
                   onClick={() => onSetStep(s.step)}
-                  className={`w-7 h-7 rounded-lg font-mono text-xs font-bold flex items-center justify-center transition cursor-pointer ${
+                  className={`h-8 rounded-lg font-mono text-xs font-bold flex items-center justify-center transition cursor-pointer ${
                     isCurrent
                       ? 'bg-teal-600 text-white shadow-xs'
                       : isCompleted
                       ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : 'text-[#657189] hover:text-[#172033] hover:bg-slate-200'
+                      : 'text-[#657189] hover:text-[#172033] hover:bg-slate-100'
                   }`}
                   title={s.title}
                 >
@@ -219,58 +246,73 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
               );
             })}
           </div>
+        </div>
 
+        {/* Drawer Body: Active Step Detail */}
+        <div className="p-5 flex-1 overflow-y-auto space-y-4">
+          <div className="p-4 rounded-xl bg-teal-50/40 border border-teal-200/80 space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-teal-600 text-white">
+                Step {currentStepData.step}
+              </span>
+              <h4 className="text-xs font-bold text-[#172033]">
+                {currentStepData.title}
+              </h4>
+            </div>
+            <p className="text-xs text-[#657189] leading-relaxed">
+              {currentStepData.description}
+            </p>
+          </div>
+
+          {/* Steps Overview Checklist */}
+          <div className="space-y-2 pt-2">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#657189] block">
+              Walkthrough Roadmap
+            </span>
+            {steps.map((s) => {
+              const isDone = currentStep > s.step;
+              const isCur = currentStep === s.step;
+              return (
+                <div
+                  key={s.step}
+                  onClick={() => onSetStep(s.step)}
+                  className={`p-2.5 rounded-xl border text-xs cursor-pointer transition flex items-center justify-between ${
+                    isCur
+                      ? 'bg-teal-50 border-teal-200 text-teal-900 font-semibold'
+                      : isDone
+                      ? 'bg-emerald-50/30 border-emerald-100 text-[#172033]'
+                      : 'bg-white border-[#E5EAF0] text-[#657189] hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    {isDone ? (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    ) : (
+                      <span className={`w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0 ${isCur ? 'bg-teal-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                        {s.step}
+                      </span>
+                    )}
+                    <span className="truncate">{s.title.split(': ')[1] || s.title}</span>
+                  </div>
+                  {isCur && <span className="text-[10px] font-bold text-teal-700">Active</span>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Drawer Action Footer */}
+        <div className="p-4 border-t border-[#E5EAF0] bg-[#F8FAFC]">
           <button
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-[#657189] hover:text-[#172033] hover:bg-slate-100 transition cursor-pointer"
-            title="Minimize Guide"
+            onClick={currentStepData.action}
+            disabled={isLoading}
+            className="w-full py-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs flex items-center justify-center space-x-2 shadow-xs transition cursor-pointer disabled:opacity-50"
           >
-            <X className="w-4 h-4" />
+            <Play className={`w-3.5 h-3.5 fill-current ${isLoading ? 'animate-spin' : ''}`} />
+            <span>{isLoading ? 'Executing...' : currentStepData.buttonLabel}</span>
+            <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
-
-      {/* Progress Line */}
-      <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden mb-3">
-        <div
-          className="h-full bg-teal-600 rounded-full transition-all duration-300"
-          style={{ width: `${progressPercent}%` }}
-        />
-      </div>
-
-      {/* Prune Seatbelt Callout Banner */}
-      <div className="mb-3 px-3 py-2 rounded-lg bg-emerald-50/70 border border-emerald-200 flex items-center justify-between text-xs">
-        <div className="flex items-center space-x-2 text-emerald-900">
-          <span className="text-sm">🛡️</span>
-          <span className="font-medium">
-            <strong>Prune Seatbelt Active:</strong> All NOVA & PIXEL proposals are guarded against prompt injection, cached at $0 repeat cost, and stamped with Ed25519 receipts.
-          </span>
-        </div>
-      </div>
-
-      {/* Active Step Action Card */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-slate-50/70 border border-[#E5EAF0]">
-        <div className="space-y-1">
-          <div className="flex items-center space-x-2">
-            <span className="text-xs font-bold text-[#172033]">
-              {currentStepData.title}
-            </span>
-          </div>
-          <p className="text-xs text-[#657189] leading-relaxed">
-            {currentStepData.description}
-          </p>
-        </div>
-
-        <button
-          onClick={currentStepData.action}
-          disabled={isLoading}
-          className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs flex items-center space-x-2 shadow-xs transition cursor-pointer shrink-0 disabled:opacity-50"
-        >
-          <Play className={`w-3.5 h-3.5 fill-current ${isLoading ? 'animate-spin' : ''}`} />
-          <span>{isLoading ? 'Executing...' : currentStepData.buttonLabel}</span>
-          <ChevronRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
-    </div>
   );
 };

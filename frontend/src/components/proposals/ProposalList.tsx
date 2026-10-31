@@ -9,7 +9,7 @@ import {
   reconcileProposal,
   publishApprovedProposal,
 } from '../../lib/api';
-import { GitPullRequest, Filter, Sparkles, AlertCircle } from 'lucide-react';
+import { GitPullRequest, Filter, Sparkles, AlertCircle, Bot, Code2, Layers } from 'lucide-react';
 
 interface ProposalListProps {
   proposals: Proposal[];
@@ -24,21 +24,30 @@ export const ProposalList: React.FC<ProposalListProps> = ({
   identity,
   onRefresh,
 }) => {
-  const [filter, setFilter] = useState<'all' | 'pending' | 'attention' | 'approved'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'attention' | 'approved'>('all');
+  const [agentFilter, setAgentFilter] = useState<'all' | 'pixel' | 'nova'>('all');
   const [redirectingProposal, setRedirectingProposal] = useState<Proposal | null>(null);
   const [conflictedProposal, setConflictedProposal] = useState<Proposal | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const filteredProposals = proposals.filter((p) => {
-    if (filter === 'pending') return p.status === 'pending_review';
-    if (filter === 'attention') return p.status === 'stale' || p.status === 'conflict';
-    if (filter === 'approved') return p.status === 'approved';
+    // 1. Agent filter (Requirement 1.C: Separate NOVA outputs from PIXEL outputs)
+    if (agentFilter === 'pixel' && p.agent_id !== 'pixel') return false;
+    if (agentFilter === 'nova' && p.agent_id !== 'nova') return false;
+
+    // 2. Status filter
+    if (statusFilter === 'pending') return p.status === 'pending_review';
+    if (statusFilter === 'attention') return p.status === 'stale' || p.status === 'conflict';
+    if (statusFilter === 'approved') return p.status === 'approved';
     return true;
   });
 
   const pendingCount = proposals.filter((p) => p.status === 'pending_review').length;
   const attentionCount = proposals.filter((p) => p.status === 'stale' || p.status === 'conflict').length;
   const approvedCount = proposals.filter((p) => p.status === 'approved').length;
+
+  const pixelCount = proposals.filter((p) => p.agent_id === 'pixel').length;
+  const novaCount = proposals.filter((p) => p.agent_id === 'nova').length;
 
   const handleApprove = async (proposalId: string) => {
     setActionError(null);
@@ -88,67 +97,118 @@ export const ProposalList: React.FC<ProposalListProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-        <div className="flex items-center space-x-3.5">
-          <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 shadow-xs">
-            <GitPullRequest className="w-5 h-5" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-base font-bold text-[#172033] tracking-tight">
-                Agent Proposals
-              </h1>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-[#172033] border border-[#E7ECF2]">
-                {proposals.length} Total
-              </span>
+      <div className="bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center space-x-3.5">
+            <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 shadow-xs">
+              <GitPullRequest className="w-5 h-5" />
             </div>
-            <p className="text-xs text-[#657189] mt-0.5">
-              Contributions created by NOVA and PIXEL awaiting human review and approval
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-base font-bold text-[#172033] tracking-tight">
+                  Proposals & Contributions
+                </h1>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-[#172033] border border-[#E7ECF2]">
+                  {proposals.length} Total
+                </span>
+              </div>
+              <p className="text-xs text-[#657189] mt-0.5">
+                Targeted contributions created by NOVA (Strategist) and PIXEL (Prototype Engineer)
+              </p>
+            </div>
+          </div>
+
+          {/* Status Filter Chips */}
+          <div className="flex items-center space-x-1.5 text-xs overflow-x-auto pb-1 sm:pb-0">
+            <button
+              onClick={() => setStatusFilter('all')}
+              className={`px-3 py-1.5 rounded-xl transition font-medium cursor-pointer ${
+                statusFilter === 'all'
+                  ? 'bg-[#F0F3F7] text-[#172033] font-semibold shadow-2xs'
+                  : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
+              }`}
+            >
+              All ({proposals.length})
+            </button>
+            <button
+              onClick={() => setStatusFilter('pending')}
+              className={`px-3 py-1.5 rounded-xl transition font-medium cursor-pointer ${
+                statusFilter === 'pending'
+                  ? 'bg-blue-50 text-blue-700 border border-blue-200 font-semibold shadow-2xs'
+                  : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
+              }`}
+            >
+              Needs Review ({pendingCount})
+            </button>
+            <button
+              onClick={() => setStatusFilter('attention')}
+              className={`px-3 py-1.5 rounded-xl transition font-medium cursor-pointer ${
+                statusFilter === 'attention'
+                  ? 'bg-amber-50 text-amber-800 border border-amber-200 font-semibold shadow-2xs'
+                  : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
+              }`}
+            >
+              Outdated & Conflicts ({attentionCount})
+            </button>
+            <button
+              onClick={() => setStatusFilter('approved')}
+              className={`px-3 py-1.5 rounded-xl transition font-medium cursor-pointer ${
+                statusFilter === 'approved'
+                  ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold shadow-2xs'
+                  : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
+              }`}
+            >
+              Approved ({approvedCount})
+            </button>
           </div>
         </div>
 
-        <div className="flex items-center space-x-1.5 text-xs overflow-x-auto pb-1 sm:pb-0">
-          <button
-            onClick={() => setFilter('all')}
-            className={`px-3.5 py-1.5 rounded-xl transition font-medium cursor-pointer ${
-              filter === 'all'
-                ? 'bg-[#F0F3F7] text-[#172033] font-semibold shadow-2xs'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
-            }`}
-          >
-            All ({proposals.length})
-          </button>
-          <button
-            onClick={() => setFilter('pending')}
-            className={`px-3.5 py-1.5 rounded-xl transition font-medium cursor-pointer ${
-              filter === 'pending'
-                ? 'bg-blue-50 text-blue-700 border border-blue-200 font-semibold shadow-2xs'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
-            }`}
-          >
-            Needs Review ({pendingCount})
-          </button>
-          <button
-            onClick={() => setFilter('attention')}
-            className={`px-3.5 py-1.5 rounded-xl transition font-medium cursor-pointer ${
-              filter === 'attention'
-                ? 'bg-amber-50 text-amber-800 border border-amber-200 font-semibold shadow-2xs'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
-            }`}
-          >
-            Outdated & Conflicts ({attentionCount})
-          </button>
-          <button
-            onClick={() => setFilter('approved')}
-            className={`px-3.5 py-1.5 rounded-xl transition font-medium cursor-pointer ${
-              filter === 'approved'
-                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold shadow-2xs'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
-            }`}
-          >
-            Approved ({approvedCount})
-          </button>
+        {/* Agent Separation Tabs (Requirement 1.C: Clarify NOVA vs PIXEL responsibilities) */}
+        <div className="pt-3 border-t border-[#F0F3F7] flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center space-x-2">
+            <span className="text-[11px] font-bold text-[#657189] uppercase tracking-wider">
+              Output Category:
+            </span>
+            <div className="flex items-center space-x-1.5 bg-[#F8FAFC] p-1 rounded-xl border border-[#E5EAF0]">
+              <button
+                onClick={() => setAgentFilter('all')}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                  agentFilter === 'all'
+                    ? 'bg-white text-[#172033] shadow-xs'
+                    : 'text-[#657189] hover:text-[#172033]'
+                }`}
+              >
+                All Contributors ({proposals.length})
+              </button>
+              <button
+                onClick={() => setAgentFilter('pixel')}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                  agentFilter === 'pixel'
+                    ? 'bg-teal-600 text-white shadow-xs'
+                    : 'text-teal-800 hover:bg-teal-50'
+                }`}
+              >
+                <Code2 className="w-3.5 h-3.5" />
+                <span>PIXEL · Prototype Changes ({pixelCount})</span>
+              </button>
+              <button
+                onClick={() => setAgentFilter('nova')}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                  agentFilter === 'nova'
+                    ? 'bg-violet-600 text-white shadow-xs'
+                    : 'text-violet-800 hover:bg-violet-50'
+                }`}
+              >
+                <Bot className="w-3.5 h-3.5" />
+                <span>NOVA · Strategy & PRD ({novaCount})</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="text-[11px] text-[#657189]">
+            {agentFilter === 'pixel' && 'PIXEL outputs: target UI sections, components & before/after code previews.'}
+            {agentFilter === 'nova' && 'NOVA outputs: strategic positioning, PRDs, requirements & semantic reviews.'}
+          </div>
         </div>
       </div>
 
@@ -168,9 +228,9 @@ export const ProposalList: React.FC<ProposalListProps> = ({
       {filteredProposals.length === 0 ? (
         <div className="text-center py-16 bg-white border border-[#E7ECF2] rounded-2xl p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
           <GitPullRequest className="w-10 h-10 text-[#657189] mx-auto mb-3 opacity-30" />
-          <h3 className="text-sm font-bold text-[#172033]">No proposals in this view</h3>
+          <h3 className="text-sm font-bold text-[#172033]">No proposals matching this filter</h3>
           <p className="text-xs text-[#657189] mt-1 max-w-sm mx-auto">
-            Click 'Start Collaboration (Run Agents)' from the workspace or use the guided demo assistant to dispatch NOVA and PIXEL.
+            Use the staged workflow from Overview or the Guided Demo assistant to generate new contributions.
           </p>
         </div>
       ) : (
