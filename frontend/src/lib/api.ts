@@ -23,7 +23,9 @@ import {
   WorkflowStageInfo,
 } from '../types';
 
-const API_BASE = '/api';
+const rawApiUrl = (import.meta as any).env?.VITE_API_URL;
+const ENV_API_URL = rawApiUrl ? String(rawApiUrl).replace(/\/+$/, '') : '';
+const API_BASE = ENV_API_URL ? `${ENV_API_URL}/api` : '/api';
 
 export async function fetchProjectState(projectId: string = 'demo-ledgerflow'): Promise<FullProjectState> {
   const res = await fetch(`${API_BASE}/projects/${projectId}/state`);

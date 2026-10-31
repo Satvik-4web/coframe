@@ -45,7 +45,10 @@ export function useRealtimeState() {
     if (!identity) return;
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${protocol}//${window.location.host}/ws/${PROJECT_ID}/${identity}`;
+    const rawWsUrl = (import.meta as any).env?.VITE_WS_URL;
+    const wsUrl = rawWsUrl
+      ? `${String(rawWsUrl).replace(/\/+$/, '')}/ws/${PROJECT_ID}/${identity}`
+      : `${protocol}//${window.location.host}/ws/${PROJECT_ID}/${identity}`;
 
     let ws: WebSocket;
     let pingInterval: any;
@@ -93,6 +96,15 @@ export function useRealtimeState() {
       if (ws) ws.close();
     };
   }, [identity, refresh]);
+
+  // Periodic polling fallback when WebSocket is inactive (e.g. serverless environments)
+  useEffect(() => {
+    if (isConnected || !identity) return;
+    const pollTimer = setInterval(() => {
+      refresh();
+    }, 10000);
+    return () => clearInterval(pollTimer);
+  }, [isConnected, identity, refresh]);
 
   return {
     projectId: PROJECT_ID,
