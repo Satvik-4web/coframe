@@ -4,7 +4,7 @@ import { LedgerFlowHero } from './LedgerFlowHero';
 import { LedgerFlowMetricGrid } from './LedgerFlowMetricGrid';
 import { LedgerFlowApprovalQueue } from './LedgerFlowApprovalQueue';
 import { ManualHeroEditModal } from './ManualHeroEditModal';
-import { Edit3, CheckCircle, Target, Sparkles, AlertCircle, ArrowUpRight, Layers } from 'lucide-react';
+import { Edit3, CheckCircle, Target, Sparkles, AlertCircle, ArrowUpRight, Layers, Palette } from 'lucide-react';
 import { updateRequirement } from '../../lib/api';
 
 interface LedgerFlowCanvasProps {
@@ -49,41 +49,43 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Subheader Navigation Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-[#E5EAF0] p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
         <div className="flex items-center space-x-2">
           <button
             onClick={() => setActiveTab('prototype')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-2 ${
               activeTab === 'prototype'
-                ? 'bg-teal-50 text-teal-800 border border-teal-200'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-slate-50'
+                ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-2xs'
+                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
             }`}
           >
-            🎨 Prototype Preview (LedgerFlow)
+            <Palette className="w-3.5 h-3.5 text-teal-600" />
+            <span>Prototype Preview (LedgerFlow)</span>
           </button>
           <button
             onClick={() => setActiveTab('brief')}
-            className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-2 ${
               activeTab === 'brief'
-                ? 'bg-violet-50 text-violet-800 border border-violet-200'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-slate-50'
+                ? 'bg-violet-50 text-violet-800 border border-violet-200 shadow-2xs'
+                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
             }`}
           >
-            📋 Product Brief & Strategy
+            <Target className="w-3.5 h-3.5 text-violet-600" />
+            <span>Product Brief & Strategy</span>
           </button>
         </div>
 
         <div className="flex items-center space-x-3">
-          <span className="text-xs text-[#657189] font-medium bg-slate-50 px-2.5 py-1 rounded-md border border-[#E5EAF0]">
+          <span className="text-xs text-[#657189] font-medium bg-[#F8FAFC] px-3 py-1.5 rounded-xl border border-[#E7ECF2]">
             Artifact Version: <strong className="text-emerald-700 font-mono">v{artifactVersion}</strong>
           </span>
 
           {activeTab === 'prototype' && (
             <button
               onClick={() => setIsEditModalOpen(true)}
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 text-xs font-semibold transition cursor-pointer"
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 text-xs font-semibold transition cursor-pointer shadow-2xs"
               title="Manually edit the Hero section as Maya to demonstrate human-vs-agent conflict"
             >
               <Edit3 className="w-3.5 h-3.5" />
@@ -95,9 +97,9 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
 
       {/* Tab 1: Live React Prototype Preview (LedgerFlow Canvas) */}
       {activeTab === 'prototype' && (
-        <div className="rounded-2xl border border-[#E5EAF0] shadow-sm overflow-hidden bg-slate-50/80 p-4 sm:p-6 space-y-6">
+        <div className="rounded-2xl border border-[#E7ECF2] shadow-sm overflow-hidden bg-slate-50/80 p-4 sm:p-6 space-y-6">
           {/* App Header simulation inside LedgerFlow */}
-          <div className="bg-white border border-[#E5EAF0] rounded-xl px-5 py-3.5 flex items-center justify-between shadow-xs">
+          <div className="bg-white border border-[#E7ECF2] rounded-xl px-5 py-3.5 flex items-center justify-between shadow-xs">
             <div className="flex items-center space-x-3">
               <div className="w-7 h-7 rounded-lg bg-teal-600 flex items-center justify-center text-white font-bold text-xs shadow-xs">
                 LF
@@ -130,8 +132,8 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
       {/* Tab 2: Product Brief & Strategy */}
       {activeTab === 'brief' && (
         <div className="space-y-4">
-          <div className="bg-white border border-[#E5EAF0] rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#E5EAF0]">
+          <div className="bg-white border border-[#E7ECF2] rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#E7ECF2]">
               <div className="flex items-center space-x-2.5">
                 <div className="w-8 h-8 rounded-lg bg-violet-50 border border-violet-200 flex items-center justify-center">
                   <Target className="w-4 h-4 text-violet-600" />
@@ -141,14 +143,14 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
                   <p className="text-xs text-[#657189]">Core value propositions and audience definitions</p>
                 </div>
               </div>
-              <span className="text-xs font-mono text-[#657189] bg-slate-50 px-2 py-1 rounded border border-[#E5EAF0]">
+              <span className="text-xs font-mono text-[#657189] bg-[#F8FAFC] px-2.5 py-1 rounded-lg border border-[#E7ECF2]">
                 Section v{briefSection.version}
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Target Audience */}
-              <div className="bg-slate-50/70 p-4 rounded-xl border border-[#E5EAF0]">
+              <div className="bg-[#F8FAFC] p-4 rounded-xl border border-[#E7ECF2]">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">
                     Target Audience (REQ_AUDIENCE)
@@ -188,7 +190,7 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
               </div>
 
               {/* Value Proposition */}
-              <div className="bg-slate-50/70 p-4 rounded-xl border border-[#E5EAF0]">
+              <div className="bg-[#F8FAFC] p-4 rounded-xl border border-[#E7ECF2]">
                 <span className="text-xs font-bold text-violet-700 uppercase tracking-wider block mb-2">
                   Value Proposition
                 </span>
@@ -198,7 +200,7 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
               </div>
 
               {/* Problem */}
-              <div className="bg-slate-50/70 p-4 rounded-xl border border-[#E5EAF0] md:col-span-2">
+              <div className="bg-[#F8FAFC] p-4 rounded-xl border border-[#E7ECF2] md:col-span-2">
                 <span className="text-xs font-bold text-amber-700 uppercase tracking-wider block mb-2">
                   Core Problem Statement
                 </span>

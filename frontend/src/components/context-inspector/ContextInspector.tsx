@@ -12,6 +12,8 @@ import {
   AlertCircle,
   Copy,
   Sparkles,
+  ShieldCheck,
+  Check,
 } from 'lucide-react';
 
 interface ContextInspectorProps {
@@ -67,28 +69,29 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, i
   const pack = packData?.context_pack || {};
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Header Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-[#E5EAF0] p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-        <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-lg bg-violet-50 border border-violet-200 flex items-center justify-center">
-            <Cpu className="w-4 h-4 text-violet-600" />
+      <div className="bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center space-x-3.5">
+          <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-200 flex items-center justify-center text-violet-700 shadow-xs">
+            <Cpu className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[#172033] tracking-tight">
+            <h1 className="text-base font-bold text-[#172033] tracking-tight">
               Context Pack & Recovery Inspector
-            </h2>
-            <p className="text-xs text-[#657189]">
-              Authoritative state snapshots delivered to AI agents
+            </h1>
+            <p className="text-xs text-[#657189] mt-0.5">
+              Deterministic, typed context packs assembled by the backend for AI agent runs
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center bg-slate-100 p-0.5 rounded-lg border border-[#E5EAF0]">
+        <div className="flex items-center gap-3">
+          {/* Agent Picker Pill */}
+          <div className="flex items-center bg-[#F8FAFC] p-1 rounded-xl border border-[#E7ECF2]">
             <button
               onClick={() => setSelectedAgent('nova')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 selectedAgent === 'nova'
                   ? 'bg-violet-600 text-white shadow-xs'
                   : 'text-[#657189] hover:text-[#172033]'
@@ -98,7 +101,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, i
             </button>
             <button
               onClick={() => setSelectedAgent('pixel')}
-              className={`px-3 py-1.5 rounded-md text-xs font-semibold transition cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 selectedAgent === 'pixel'
                   ? 'bg-teal-600 text-white shadow-xs'
                   : 'text-[#657189] hover:text-[#172033]'
@@ -111,7 +114,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, i
           <button
             onClick={handleRestart}
             disabled={restarting}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-[#E5EAF0] text-xs font-semibold text-[#172033] shadow-xs transition cursor-pointer disabled:opacity-50"
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-[#E7ECF2] text-xs font-semibold text-[#172033] shadow-xs transition cursor-pointer disabled:opacity-50"
             title="Demonstrate Step 5: Restart this agent and recover fresh Context Pack from persisted state"
           >
             <RotateCcw className={`w-3.5 h-3.5 text-amber-600 ${restarting ? 'animate-spin' : ''}`} />
@@ -121,11 +124,11 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, i
       </div>
 
       {loading ? (
-        <div className="text-center py-16 text-xs text-[#657189] bg-white rounded-2xl border border-[#E5EAF0] shadow-sm">
+        <div className="text-center py-16 text-xs text-[#657189] bg-white rounded-2xl border border-[#E7ECF2] shadow-sm">
           Loading authoritative Context Pack...
         </div>
       ) : !packData ? (
-        <div className="text-center py-16 text-xs text-[#657189] bg-white rounded-2xl border border-[#E5EAF0] shadow-sm">
+        <div className="text-center py-16 text-xs text-[#657189] bg-white rounded-2xl border border-[#E7ECF2] shadow-sm">
           No active runs found for {selectedAgent.toUpperCase()}. Start collaboration first or click Restart.
         </div>
       ) : (
@@ -133,24 +136,24 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, i
           {/* Left 2 Cols: Pack Structure Breakdown */}
           <div className="lg:col-span-2 space-y-4">
             {/* Version Metadata Summary */}
-            <div className="bg-white border border-[#E5EAF0] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+            <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
               <span className="text-xs font-bold uppercase tracking-wider text-[#657189] block mb-3">
                 Run Context Metadata
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                <div className="bg-slate-50 p-3 rounded-xl border border-[#E5EAF0]">
+                <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
                   <span className="text-[11px] text-[#657189] block mb-0.5 font-medium">Run ID</span>
                   <span className="font-mono text-teal-700 font-semibold">{packData.run_id}</span>
                 </div>
-                <div className="bg-slate-50 p-3 rounded-xl border border-[#E5EAF0]">
+                <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
                   <span className="text-[11px] text-[#657189] block mb-0.5 font-medium">Context Version</span>
                   <span className="font-mono text-blue-700 font-semibold">v{pack.context_version}</span>
                 </div>
-                <div className="bg-slate-50 p-3 rounded-xl border border-[#E5EAF0]">
+                <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
                   <span className="text-[11px] text-[#657189] block mb-0.5 font-medium">Artifact Version</span>
                   <span className="font-mono text-emerald-700 font-semibold">v{pack.artifact_version}</span>
                 </div>
-                <div className="bg-slate-50 p-3 rounded-xl border border-[#E5EAF0]">
+                <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
                   <span className="text-[11px] text-[#657189] block mb-0.5 font-medium">Data Source</span>
                   <span className="font-mono text-violet-700 font-semibold">{packData.source}</span>
                 </div>
@@ -158,20 +161,20 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, i
             </div>
 
             {/* Verified Requirements Pack */}
-            <div className="bg-white border border-[#E5EAF0] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+            <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
               <span className="text-xs font-bold uppercase tracking-wider text-[#657189] block mb-3">
                 Supplied Requirements ({pack.requirements?.length || 0})
               </span>
               <div className="space-y-2 text-xs">
                 {pack.requirements?.map((req: any) => (
                   <div
-                    key={req.id}
-                    className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-[#E5EAF0]"
+                    key={req.id || req.key}
+                    className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2]"
                   >
                     <div>
                       <div className="flex items-center space-x-2">
                         <span className="font-mono text-blue-700 font-bold">{req.key}</span>
-                        <span className="text-[11px] font-medium text-[#657189] bg-white px-1.5 py-0.5 rounded border border-[#E5EAF0]">
+                        <span className="text-[11px] font-medium text-[#657189] bg-white px-1.5 py-0.5 rounded border border-[#E7ECF2]">
                           v{req.version}
                         </span>
                       </div>
@@ -182,8 +185,8 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, i
               </div>
             </div>
 
-            {/* Raw JSON Context Viewer */}
-            <div className="bg-white border border-[#E5EAF0] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+            {/* Raw JSON Context Viewer (Targeted by Playwright) */}
+            <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-xs font-bold uppercase tracking-wider text-[#657189]">
                   Authoritative Immutable JSON
@@ -192,7 +195,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, i
                   onClick={handleCopyJson}
                   className="flex items-center space-x-1.5 text-xs text-teal-600 hover:text-teal-800 font-semibold cursor-pointer"
                 >
-                  <Copy className="w-3.5 h-3.5" />
+                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                   <span>{copied ? 'Copied!' : 'Copy JSON'}</span>
                 </button>
               </div>
@@ -202,7 +205,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, i
             </div>
           </div>
 
-          {/* Right Col: Recovery Summary & Agent Task */}
+          {/* Right Col: Recovery Summary & Agent Task (Targeted by Playwright) */}
           <div className="space-y-4">
             <div className="bg-violet-50/50 border border-violet-200 rounded-2xl p-5 shadow-xs">
               <div className="flex items-center space-x-2 mb-3 text-violet-700">
@@ -224,7 +227,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, i
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Task Stream</span>
                   <p className="text-[#172033] font-medium leading-relaxed">
-                    {pack.agent_task?.description || 'Active background strategy analysis'}
+                    {pack.agent_task?.description || 'Active background strategy and prototype execution'}
                   </p>
                 </div>
 
@@ -239,14 +242,14 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, i
               </div>
             </div>
 
-            <div className="p-4 rounded-2xl bg-white border border-[#E5EAF0] text-xs text-[#657189] leading-relaxed shadow-xs">
-              💡 <strong className="text-[#172033]">Why this matters for judges:</strong> When an agent restarts, COFRAME does not dump raw messy chat logs. The backend builds a typed, authoritative Context Pack of verified requirements and section versions, guaranteeing reliable deterministic recovery.
+            <div className="p-4 rounded-2xl bg-white border border-[#E7ECF2] text-xs text-[#657189] leading-relaxed shadow-xs">
+              💡 <strong className="text-[#172033]">Deterministic Recovery:</strong> When an agent restarts, COFRAME does not dump raw messy chat logs. The backend builds a typed, authoritative Context Pack of verified requirements and section versions, guaranteeing reliable deterministic recovery.
             </div>
           </div>
         </div>
       )}
 
-      {/* 4. OpenAgents Model Context Protocol (MCP) Tools Explorer */}
+      {/* Model Context Protocol (MCP) Tools Explorer */}
       <div className="pt-2">
         <MCPToolExplorer identity={identity || null} />
       </div>

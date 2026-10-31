@@ -86,19 +86,24 @@ export const ProposalList: React.FC<ProposalListProps> = ({
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {/* Top Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-[#E5EAF0] p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-        <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 flex items-center justify-center">
-            <GitPullRequest className="w-4 h-4 text-teal-600" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="flex items-center space-x-3.5">
+          <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 shadow-xs">
+            <GitPullRequest className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-[#172033] tracking-tight">
-              Agent Proposals ({proposals.length})
-            </h2>
-            <p className="text-xs text-[#657189]">
-              Contributions created by NOVA and PIXEL awaiting human review
+            <div className="flex items-center gap-2">
+              <h1 className="text-base font-bold text-[#172033] tracking-tight">
+                Agent Proposals
+              </h1>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-[#172033] border border-[#E7ECF2]">
+                {proposals.length} Total
+              </span>
+            </div>
+            <p className="text-xs text-[#657189] mt-0.5">
+              Contributions created by NOVA and PIXEL awaiting human review and approval
             </p>
           </div>
         </div>
@@ -106,40 +111,40 @@ export const ProposalList: React.FC<ProposalListProps> = ({
         <div className="flex items-center space-x-1.5 text-xs overflow-x-auto pb-1 sm:pb-0">
           <button
             onClick={() => setFilter('all')}
-            className={`px-3 py-1.5 rounded-lg transition font-medium cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-xl transition font-medium cursor-pointer ${
               filter === 'all'
-                ? 'bg-slate-100 text-[#172033] font-semibold'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-slate-50'
+                ? 'bg-[#F0F3F7] text-[#172033] font-semibold shadow-2xs'
+                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
             }`}
           >
             All ({proposals.length})
           </button>
           <button
             onClick={() => setFilter('pending')}
-            className={`px-3 py-1.5 rounded-lg transition font-medium cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-xl transition font-medium cursor-pointer ${
               filter === 'pending'
-                ? 'bg-blue-50 text-blue-700 border border-blue-200 font-semibold'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-slate-50'
+                ? 'bg-blue-50 text-blue-700 border border-blue-200 font-semibold shadow-2xs'
+                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
             }`}
           >
             Needs Review ({pendingCount})
           </button>
           <button
             onClick={() => setFilter('attention')}
-            className={`px-3 py-1.5 rounded-lg transition font-medium cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-xl transition font-medium cursor-pointer ${
               filter === 'attention'
-                ? 'bg-amber-50 text-amber-800 border border-amber-200 font-semibold'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-slate-50'
+                ? 'bg-amber-50 text-amber-800 border border-amber-200 font-semibold shadow-2xs'
+                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
             }`}
           >
             Outdated & Conflicts ({attentionCount})
           </button>
           <button
             onClick={() => setFilter('approved')}
-            className={`px-3 py-1.5 rounded-lg transition font-medium cursor-pointer ${
+            className={`px-3.5 py-1.5 rounded-xl transition font-medium cursor-pointer ${
               filter === 'approved'
-                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-slate-50'
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold shadow-2xs'
+                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
             }`}
           >
             Approved ({approvedCount})
@@ -148,9 +153,9 @@ export const ProposalList: React.FC<ProposalListProps> = ({
       </div>
 
       {actionError && (
-        <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-center justify-between">
+        <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-center justify-between shadow-2xs">
           <div className="flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
             <span>{actionError}</span>
           </div>
           <button onClick={() => setActionError(null)} className="text-red-600 hover:text-red-900 text-xs font-bold cursor-pointer">
@@ -161,8 +166,8 @@ export const ProposalList: React.FC<ProposalListProps> = ({
 
       {/* Proposal Cards List */}
       {filteredProposals.length === 0 ? (
-        <div className="text-center py-16 bg-white border border-[#E5EAF0] rounded-2xl p-8 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-          <GitPullRequest className="w-10 h-10 text-[#657189] mx-auto mb-3 opacity-40" />
+        <div className="text-center py-16 bg-white border border-[#E7ECF2] rounded-2xl p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+          <GitPullRequest className="w-10 h-10 text-[#657189] mx-auto mb-3 opacity-30" />
           <h3 className="text-sm font-bold text-[#172033]">No proposals in this view</h3>
           <p className="text-xs text-[#657189] mt-1 max-w-sm mx-auto">
             Click 'Start Collaboration (Run Agents)' from the workspace or use the guided demo assistant to dispatch NOVA and PIXEL.

@@ -2,18 +2,20 @@ import React, { useState } from 'react';
 import { useRealtimeState } from './hooks/useRealtimeState';
 import { TopBar } from './components/layout/TopBar';
 import { Sidebar, NavigationTab } from './components/layout/Sidebar';
+import { RightCollaborationPanel } from './components/layout/RightCollaborationPanel';
 import { ObserverSummaryBanner } from './components/layout/ObserverSummaryBanner';
 import { IdentityPicker } from './components/identity/IdentityPicker';
 import { WorkspaceView } from './components/workspace/WorkspaceView';
 import { LedgerFlowCanvas } from './components/prototype/LedgerFlowCanvas';
 import { ProposalList } from './components/proposals/ProposalList';
+import { AITeamView } from './components/agents/AITeamView';
+import { ActivityHistoryView } from './components/activity/ActivityHistoryView';
 import { ContextInspector } from './components/context-inspector/ContextInspector';
-import { EventTimeline } from './components/event-timeline/EventTimeline';
 import { DemoGuide } from './components/demo-stepper/DemoGuide';
 import { GitHubDashboard } from './components/github/GitHubDashboard';
 import { GovernanceDashboard } from './components/governance/GovernanceDashboard';
 import { SharedCreationShelf } from './components/resources/SharedCreationShelf';
-import { resetDemo } from './lib/api';
+import { resetDemo, restartAgent } from './lib/api';
 
 export function App() {
   const {
@@ -27,10 +29,12 @@ export function App() {
     refresh,
   } = useRealtimeState();
 
-  const [currentTab, setCurrentTab] = useState<NavigationTab>('workspace');
+  const [currentTab, setCurrentTab] = useState<NavigationTab>('overview');
   const [demoStep, setDemoStep] = useState(1);
   const [isResetting, setIsResetting] = useState(false);
   const [isDemoGuideOpen, setIsDemoGuideOpen] = useState(true);
+  const [isCollaboratorsPanelOpen, setIsCollaboratorsPanelOpen] = useState(false);
+  const [restartingAgent, setRestartingAgent] = useState<string | null>(null);
 
   const handleReset = async () => {
     if (window.confirm('Reset demo project and LedgerFlow artifact to baseline seed state?')) {
@@ -39,12 +43,24 @@ export function App() {
         await resetDemo();
         await refresh();
         setDemoStep(1);
-        setCurrentTab('workspace');
+        setCurrentTab('overview');
       } catch (err) {
         alert('Failed to reset demo');
       } finally {
         setIsResetting(false);
       }
+    }
+  };
+
+  const handleRestartAgent = async (agentId: string) => {
+    setRestartingAgent(agentId);
+    try {
+      await restartAgent('demo-ledgerflow', agentId);
+      await refresh();
+    } catch (err) {
+      alert(`Failed to restart agent ${agentId}`);
+    } finally {
+      setRestartingAgent(null);
     }
   };
 
@@ -79,13 +95,15 @@ export function App() {
         isResetting={isResetting}
         onToggleDemoGuide={() => setIsDemoGuideOpen(!isDemoGuideOpen)}
         isDemoGuideOpen={isDemoGuideOpen}
+        onToggleCollaboratorsPanel={() => setIsCollaboratorsPanelOpen(!isCollaboratorsPanelOpen)}
+        isCollaboratorsPanelOpen={isCollaboratorsPanelOpen}
       />
 
       {/* 2. Observer Summary Banner */}
       <ObserverSummaryBanner summary={state?.observer_summary} />
 
-      {/* 3. Main Workspace Body (Sidebar + Content Area) */}
-      <div className="flex-1 flex overflow-hidden">
+      {/* 3. Main Workspace Body (Sidebar + Content Area + Right Panel) */}
+      <div className="flex-1 flex overflow-hidden relative">
         {/* Left Navigation Sidebar */}
         <Sidebar
           currentTab={currentTab}
@@ -111,7 +129,7 @@ export function App() {
           />
 
           {/* Active View Tab */}
-          {currentTab === 'workspace' && state && (
+          {(currentTab === 'overview' || currentTab === 'workspace') && state && (
             <WorkspaceView
               state={state}
               identity={identity}
@@ -120,7 +138,7 @@ export function App() {
             />
           )}
 
-          {currentTab === 'canvas' && state && (
+          {(currentTab === 'preview' || currentTab === 'canvas') && state && (
             <LedgerFlowCanvas
               sections={state.sections}
               requirements={state.requirements}
@@ -139,10 +157,22 @@ export function App() {
             />
           )}
 
-          {currentTab === 'governance' && state && (
-            <GovernanceDashboard
-              approvals={state.approvals || []}
+          {currentTab === 'agents' && state && (
+            <AITeamView
+              agentRuns={state.agent_runs}
               delegations={state.delegations || []}
+              identity={identity}
+              onRefresh={refresh}
+            />
+          )}
+
+          {currentTab === 'activity' && state && (
+            <ActivityHistoryView events={state.events || []} />
+          )}
+
+          {currentTab === 'context' && state && (
+            <ContextInspector
+              agentRuns={state.agent_runs}
               identity={identity}
               onRefresh={refresh}
             />
@@ -156,12 +186,13 @@ export function App() {
             />
           )}
 
-          {currentTab === 'agents' && state && (
-            <ContextInspector agentRuns={state.agent_runs} identity={identity} onRefresh={refresh} />
-          )}
-
-          {currentTab === 'context' && state && (
-            <EventTimeline events={state.events} />
+          {currentTab === 'governance' && state && (
+            <GovernanceDashboard
+              approvals={state.approvals || []}
+              delegations={state.delegations || []}
+              identity={identity}
+              onRefresh={refresh}
+            />
           )}
 
           {currentTab === 'github' && state && (
@@ -171,6 +202,18 @@ export function App() {
             />
           )}
         </main>
+
+        {/* Right Collapsible Collaboration Panel */}
+        <RightCollaborationPanel
+          agentRuns={state?.agent_runs || []}
+          onlineMembers={state?.online_members || []}
+          identity={identity}
+          onRestartAgent={handleRestartAgent}
+          onNavigateTab={setCurrentTab}
+          isOpen={isCollaboratorsPanelOpen}
+          onClose={() => setIsCollaboratorsPanelOpen(false)}
+          restartingAgent={restartingAgent}
+        />
       </div>
     </div>
   );

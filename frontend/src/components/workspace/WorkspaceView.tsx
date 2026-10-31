@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   FullProjectState,
   HumanIdentity,
@@ -15,15 +15,20 @@ import {
   RotateCcw,
   ArrowRight,
   Shield,
+  ShieldAlert,
   ShieldCheck,
-  GitFork,
   Layers,
   Activity,
   Play,
   AlertTriangle,
   FileCode2,
+  Radio,
+  FileText,
+  CornerUpRight,
+  Eye,
 } from 'lucide-react';
 import { restartAgent, startCollaboration } from '../../lib/api';
+import { StartCollaborationModal } from './StartCollaborationModal';
 
 interface WorkspaceViewProps {
   state: FullProjectState;
@@ -38,19 +43,19 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
   onRefresh,
   onNavigateTab,
 }) => {
-  const [starting, setStarting] = React.useState(false);
-  const [restartingAgent, setRestartingAgent] = React.useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
+  const [showStartModal, setShowStartModal] = useState(false);
+  const [restartingAgent, setRestartingAgent] = useState<string | null>(null);
 
   const novaRun = state.agent_runs.find((r) => r.agent_id === 'nova');
   const pixelRun = state.agent_runs.find((r) => r.agent_id === 'pixel');
 
   const pendingProposals = state.proposals.filter((p) => p.status === 'pending_review');
-  const attentionProposals = state.proposals.filter(
-    (p) => p.status === 'stale' || p.status === 'conflict'
-  );
-  const totalNeedingAttention = pendingProposals.length + attentionProposals.length;
+  const staleProposals = state.proposals.filter((p) => p.status === 'stale');
+  const conflictProposals = state.proposals.filter((p) => p.status === 'conflict');
+  const attentionItems = [...conflictProposals, ...staleProposals, ...pendingProposals];
 
-  const handleStartCollab = async () => {
+  const handleStartCollab = async (objective?: string) => {
     setStarting(true);
     try {
       await startCollaboration('demo-ledgerflow');
@@ -80,340 +85,441 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     switch (s) {
       case 'working':
         return (
-          <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200 flex items-center gap-1">
+          <span className="font-semibold text-blue-700 bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-200 flex items-center gap-1 text-[11px]">
             <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />
             Working
           </span>
         );
       case 'waiting_for_approval':
         return (
-          <span className="font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+          <span className="font-semibold text-amber-800 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200 text-[11px]">
             Awaiting Sign-off
           </span>
         );
       case 'recovering_context':
         return (
-          <span className="font-semibold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200">
+          <span className="font-semibold text-violet-700 bg-violet-50 px-2.5 py-0.5 rounded-full border border-violet-200 text-[11px]">
             Recovering Context
           </span>
         );
       case 'failed':
         return (
-          <span className="font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+          <span className="font-semibold text-red-700 bg-red-50 px-2.5 py-0.5 rounded-full border border-red-200 text-[11px]">
             Failed
           </span>
         );
       default:
         return (
-          <span className="font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+          <span className="font-medium text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200 text-[11px]">
             Idle / Ready
           </span>
         );
     }
   };
 
-  const pendingApprovalsCount = (state.approvals || []).filter((a) => a.status === 'pending').length;
-  const delegationsCount = (state.delegations || []).length;
-  const resourcesCount = (state.resources || []).length;
   const humanName = identity === 'alex' ? 'Alex' : 'Maya';
+  const summary = state.observer_summary;
 
   return (
     <div className="space-y-6">
-      {/* 1. Welcoming Hero Banner */}
-      <div className="bg-white border border-[#E5EAF0] rounded-2xl p-6 lg:p-8 shadow-[0_1px_3px_rgba(0,0,0,0.03)] relative overflow-hidden">
-        <div className="max-w-3xl relative z-10">
-          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-700 text-xs font-semibold mb-3">
+      {/* 1. Welcoming Header */}
+      <div className="bg-white border border-[#E7ECF2] rounded-2xl p-6 lg:p-8 shadow-xs relative overflow-hidden">
+        <div className="max-w-3xl">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold mb-3">
             <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
             <span>Shared Workspace Active</span>
           </div>
 
           <h1 className="text-2xl lg:text-3xl font-bold text-[#172033] tracking-tight">
-            Good afternoon, {humanName}
+            Good afternoon, {humanName}.
           </h1>
-          <p className="text-sm text-[#657189] mt-2 leading-relaxed">
-            Your team is building <span className="font-semibold text-[#172033]">LedgerFlow</span> together. NOVA formulates product strategy, PIXEL implements interactive UI components, and human decisions guide the outcome.
+          <p className="text-sm font-medium text-[#172033] mt-1">
+            Here's what's happening with LedgerFlow.
+          </p>
+          <p className="text-xs text-[#657189] mt-1 leading-relaxed">
+            Enterprise expense management platform built collaboratively by your team and AI agents.
           </p>
 
           <div className="mt-6 flex flex-wrap items-center gap-3">
             <button
-              onClick={handleStartCollab}
+              onClick={() => handleStartCollab()}
               disabled={starting}
-              className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs flex items-center space-x-2 shadow-sm transition cursor-pointer disabled:opacity-50"
+              className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs flex items-center gap-2 shadow-xs transition cursor-pointer disabled:opacity-50"
             >
               <Play className={`w-3.5 h-3.5 fill-current ${starting ? 'animate-spin' : ''}`} />
               <span>{starting ? 'Running NOVA & PIXEL...' : 'Start Collaboration (Run Agents)'}</span>
             </button>
 
             <button
-              onClick={() => onNavigateTab('canvas')}
-              className="px-5 py-2.5 rounded-xl bg-slate-50 hover:bg-slate-100 text-[#172033] border border-[#E5EAF0] font-medium text-xs flex items-center space-x-1.5 transition cursor-pointer"
+              onClick={() => onNavigateTab('preview')}
+              className="px-4 py-2.5 rounded-xl bg-white hover:bg-[#F8FAFC] text-[#172033] border border-[#E7ECF2] font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
             >
-              <span>Inspect LedgerFlow Canvas</span>
-              <ArrowRight className="w-3.5 h-3.5 text-[#657189]" />
+              <Eye className="w-3.5 h-3.5 text-teal-600" />
+              <span>View Product Preview</span>
             </button>
           </div>
         </div>
       </div>
 
-      {/* 2. Key Status Strip */}
+      {/* 2. Latest Collaboration Update (Observer Summary) */}
+      <div className="bg-white border border-[#E7ECF2] rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#F0F3F7]">
+          <div className="flex items-center gap-2">
+            <span className="p-1 rounded-lg bg-teal-50 border border-teal-100">
+              <Activity className="w-4 h-4 text-teal-700" />
+            </span>
+            <h2 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
+              Latest collaboration update
+            </h2>
+          </div>
+          <span className="text-[11px] text-[#657189] font-medium">
+            Derived from persisted event audit trail
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* WHAT CHANGED */}
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] flex flex-col justify-between">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-teal-700 block mb-1">
+                What Changed
+              </span>
+              <p className="text-xs text-[#172033] font-medium leading-relaxed">
+                {summary?.what_changed ||
+                  'The project audience was changed from small businesses to enterprise finance teams.'}
+              </p>
+            </div>
+            <span className="text-[10px] text-[#657189] mt-3 font-mono">
+              Context v{summary?.context_version || state.project.context_version}
+            </span>
+          </div>
+
+          {/* WHY */}
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] flex flex-col justify-between">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-blue-700 block mb-1">
+                Why
+              </span>
+              <p className="text-xs text-[#172033] font-medium leading-relaxed">
+                {summary?.why ||
+                  'Alex updated the product direction to support enterprise approval workflows.'}
+              </p>
+            </div>
+            <span className="text-[10px] text-[#657189] mt-3 font-mono">
+              Strategic Rationale
+            </span>
+          </div>
+
+          {/* WHAT HAPPENS NEXT */}
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] flex flex-col justify-between">
+            <div>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-violet-700 block mb-1">
+                What Happens Next
+              </span>
+              <p className="text-xs text-[#172033] font-medium leading-relaxed">
+                {summary?.what_happens_next ||
+                  "PIXEL's updated approval-queue proposal is ready for review."}
+              </p>
+            </div>
+            <span className="text-[10px] text-[#657189] mt-3 font-mono">
+              Next Action
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* 3. Attention Required — The Most Prominent Actionable Section */}
+      <div className="bg-white border border-[#E7ECF2] rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#F0F3F7]">
+          <div className="flex items-center gap-2">
+            <span className="p-1 rounded-lg bg-amber-50 border border-amber-200">
+              <ShieldAlert className="w-4 h-4 text-amber-700" />
+            </span>
+            <h2 className="text-sm font-bold text-[#172033]">
+              Attention Required ({attentionItems.length})
+            </h2>
+          </div>
+          {attentionItems.length > 0 && (
+            <button
+              onClick={() => onNavigateTab('proposals')}
+              className="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1"
+            >
+              <span>View all proposals</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        {attentionItems.length === 0 ? (
+          <div className="text-center py-10 px-4 rounded-xl border border-dashed border-[#E7ECF2] bg-[#F8FAFC]">
+            <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-80" />
+            <p className="text-xs font-bold text-[#172033]">All caught up!</p>
+            <p className="text-xs text-[#657189] mt-1 max-w-sm mx-auto">
+              No contributions currently require review or conflict reconciliation.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {attentionItems.slice(0, 4).map((p) => {
+              const isConflict = p.status === 'conflict';
+              const isStale = p.status === 'stale';
+              const isPending = p.status === 'pending_review';
+              const isNova = p.agent_id === 'nova';
+
+              let what = p.summary;
+              let why = p.reasoning;
+              let who = p.assigned_decider_id ? `${p.assigned_decider_id.toUpperCase()} (Founder)` : 'Any Collaborator';
+              let actionLabel = 'Review Proposal';
+
+              if (isConflict) {
+                actionLabel = 'Resolve Conflict';
+                why = p.conflict_reason || 'Maya edited this section concurrently.';
+              } else if (isStale) {
+                actionLabel = 'Inspect Staleness';
+                why = p.stale_reason || 'Outdated requirements detected.';
+              } else if (p.requires_decision) {
+                actionLabel = 'Sign-off Required';
+                who = 'Alex (Exclusive Authority)';
+              }
+
+              return (
+                <div
+                  key={p.proposal_id}
+                  onClick={() => onNavigateTab('proposals')}
+                  className="p-4 rounded-xl border border-[#E7ECF2] hover:border-teal-300 hover:shadow-xs bg-[#F8FAFC] cursor-pointer transition flex flex-col md:flex-row md:items-center justify-between gap-3 group"
+                >
+                  <div className="space-y-1.5 flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          isNova
+                            ? 'bg-violet-50 text-violet-700 border border-violet-200'
+                            : 'bg-teal-50 text-teal-700 border border-teal-200'
+                        }`}
+                      >
+                        {p.agent_id.toUpperCase()}
+                      </span>
+                      <h4 className="font-bold text-xs text-[#172033] group-hover:text-teal-700 transition truncate">
+                        {what}
+                      </h4>
+                      {isConflict && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
+                          CONFLICT
+                        </span>
+                      )}
+                      {isStale && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+                          STALE
+                        </span>
+                      )}
+                      {p.requires_decision && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                          HIGH IMPACT
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-[#657189] line-clamp-1">
+                      <strong className="text-[#172033]">Trigger: </strong>
+                      {why}
+                    </p>
+                    <p className="text-[11px] text-[#657189]">
+                      Responsible: <span className="font-semibold text-[#172033]">{who}</span>
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-xs font-semibold text-teal-700 group-hover:translate-x-0.5 transition flex items-center gap-1">
+                      {actionLabel} <ArrowRight className="w-3.5 h-3.5" />
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* 4. Project Overview Metrics Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white border border-[#E5EAF0] rounded-xl p-4 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+        <div className="bg-white border border-[#E7ECF2] rounded-xl p-4 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-[#657189]">Team Members</span>
-            <Users className="w-4 h-4 text-blue-500" />
-          </div>
-          <div className="mt-2 flex items-baseline space-x-1">
-            <span className="text-2xl font-bold text-[#172033]">4</span>
-            <span className="text-xs text-[#657189]">Active</span>
-          </div>
-          <div className="mt-1 text-[11px] text-[#657189]">2 Humans · 2 AI Agents</div>
-        </div>
-
-        <div className="bg-white border border-[#E5EAF0] rounded-xl p-4 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-[#657189]">Needs Review</span>
-            <GitPullRequest className="w-4 h-4 text-amber-500" />
-          </div>
-          <div className="mt-2 flex items-baseline space-x-1">
-            <span className="text-2xl font-bold text-[#172033]">{pendingProposals.length}</span>
-            <span className="text-xs text-[#657189]">Pending</span>
-          </div>
-          <div className="mt-1 text-[11px] text-[#657189]">
-            {attentionProposals.length} conflict/stale alerts
-          </div>
-        </div>
-
-        <div className="bg-white border border-[#E5EAF0] rounded-xl p-4 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-[#657189]">Product Version</span>
+            <span className="text-xs font-medium text-[#657189]">Artifact Version</span>
             <Layers className="w-4 h-4 text-teal-600" />
           </div>
-          <div className="mt-2 flex items-baseline space-x-2">
+          <div className="mt-2 flex items-baseline gap-1.5">
             <span className="text-2xl font-bold text-[#172033] font-mono">
               v{state.project.artifact_version}
             </span>
-            <span className="text-xs text-[#657189] font-mono">
-              (Ctx v{state.project.context_version})
-            </span>
           </div>
-          <div className="mt-1 text-[11px] text-[#657189]">Immutable LedgerFlow state</div>
+          <p className="text-[11px] text-[#657189] mt-1">Compiled LedgerFlow state</p>
         </div>
 
-        <div className="bg-white border border-[#E5EAF0] rounded-xl p-4 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+        <div className="bg-white border border-[#E7ECF2] rounded-xl p-4 shadow-2xs">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-[#657189]">Event Log</span>
-            <Activity className="w-4 h-4 text-violet-500" />
+            <span className="text-xs font-medium text-[#657189]">Context Version</span>
+            <Radio className="w-4 h-4 text-blue-600" />
           </div>
-          <div className="mt-2 flex items-baseline space-x-1">
+          <div className="mt-2 flex items-baseline gap-1.5">
             <span className="text-2xl font-bold text-[#172033] font-mono">
-              {state.events.length}
+              v{state.project.context_version}
             </span>
-            <span className="text-xs text-[#657189]">Events</span>
           </div>
-          <div className="mt-1 text-[11px] text-[#657189]">Append-only audit trail</div>
+          <p className="text-[11px] text-[#657189] mt-1">Verified requirements state</p>
+        </div>
+
+        <div className="bg-white border border-[#E7ECF2] rounded-xl p-4 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-[#657189]">Proposals Pending</span>
+            <GitPullRequest className="w-4 h-4 text-amber-500" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl font-bold text-[#172033]">{pendingProposals.length}</span>
+            <span className="text-xs text-[#657189]">for review</span>
+          </div>
+          <p className="text-[11px] text-[#657189] mt-1">
+            {staleProposals.length + conflictProposals.length} stale/conflict alerts
+          </p>
+        </div>
+
+        <div className="bg-white border border-[#E7ECF2] rounded-xl p-4 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-medium text-[#657189]">Collaborators</span>
+            <Users className="w-4 h-4 text-purple-600" />
+          </div>
+          <div className="mt-2 flex items-baseline gap-1.5">
+            <span className="text-2xl font-bold text-[#172033]">4</span>
+            <span className="text-xs text-[#657189]">Active</span>
+          </div>
+          <p className="text-[11px] text-[#657189] mt-1">2 Humans · 2 AI Agents</p>
         </div>
       </div>
 
-      {/* 3. Two-Column Workspace Layout */}
+      {/* 5. Two-Column Lower Workspace Area */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column (2 Cols): Needs Your Attention */}
+        {/* Left (2 cols): Current Collaboration Activity */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="bg-white border border-[#E5EAF0] rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)]">
-            <div className="flex items-center justify-between mb-5">
-              <div className="flex items-center space-x-2">
-                <GitPullRequest className="w-4 h-4 text-teal-600" />
-                <h2 className="font-bold text-sm text-[#172033] tracking-tight">
-                  Needs Your Attention ({totalNeedingAttention})
-                </h2>
+          <div className="bg-white border border-[#E7ECF2] rounded-2xl p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#F0F3F7]">
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 text-teal-600" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
+                  Current Collaboration Activity
+                </h3>
               </div>
               <button
-                onClick={() => onNavigateTab('proposals')}
-                className="text-xs font-semibold text-teal-600 hover:text-teal-700 transition"
+                onClick={() => onNavigateTab('activity')}
+                className="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1"
               >
-                View all proposals →
+                <span>Full history</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {totalNeedingAttention === 0 ? (
-              <div className="text-center py-12 px-4 rounded-xl border border-dashed border-[#E5EAF0] bg-slate-50/50">
-                <CheckCircle2 className="w-8 h-8 text-teal-500 mx-auto mb-2 opacity-80" />
-                <p className="text-sm font-semibold text-[#172033]">All caught up!</p>
-                <p className="text-xs text-[#657189] mt-1 max-w-sm mx-auto">
-                  No proposals require your attention right now. Click "Start Collaboration (Run Agents)" to trigger NOVA and PIXEL.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {[...attentionProposals, ...pendingProposals].slice(0, 4).map((p) => {
-                  const isNova = p.agent_id === 'nova';
-                  const isConflict = p.status === 'conflict';
-                  const isStale = p.status === 'stale';
-
-                  return (
-                    <div
-                      key={p.proposal_id}
-                      onClick={() => onNavigateTab('proposals')}
-                      className="p-4 rounded-xl border border-[#E5EAF0] hover:border-teal-300 hover:shadow-sm bg-white cursor-pointer transition flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+            <div className="space-y-3">
+              {state.events.slice(0, 5).map((evt) => (
+                <div
+                  key={evt.id}
+                  className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] flex items-center justify-between text-xs"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className={`w-6 h-6 rounded-lg text-[10px] font-bold flex items-center justify-center ${
+                        evt.actor_id === 'alex'
+                          ? 'bg-blue-100 text-blue-700'
+                          : evt.actor_id === 'maya'
+                          ? 'bg-purple-100 text-purple-700'
+                          : evt.actor_id === 'nova'
+                          ? 'bg-violet-100 text-violet-700'
+                          : 'bg-teal-100 text-teal-700'
+                      }`}
                     >
-                      <div className="space-y-1.5 flex-1 min-w-0">
-                        <div className="flex items-center space-x-2">
-                          <span
-                            className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                              isNova
-                                ? 'bg-violet-50 text-violet-700 border border-violet-200'
-                                : 'bg-teal-50 text-teal-700 border border-teal-200'
-                            }`}
-                          >
-                            {p.agent_id.toUpperCase()}
-                          </span>
-                          <span className="font-semibold text-xs text-[#172033] truncate">
-                            {p.summary}
-                          </span>
-                        </div>
-                        <p className="text-xs text-[#657189] line-clamp-1">
-                          {p.reasoning || 'Proposed enhancement to LedgerFlow.'}
-                        </p>
-                      </div>
-
-                      <div className="flex items-center space-x-2 shrink-0">
-                        {isConflict && (
-                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200">
-                            CONFLICT
-                          </span>
-                        )}
-                        {isStale && (
-                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                            STALE
-                          </span>
-                        )}
-                        {!isConflict && !isStale && (
-                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                            PENDING REVIEW
-                          </span>
-                        )}
-                        <ArrowRight className="w-4 h-4 text-[#657189]" />
-                      </div>
+                      {evt.actor_id.substring(0, 1).toUpperCase()}
+                    </span>
+                    <div>
+                      <p className="font-semibold text-[#172033]">
+                        {evt.actor_id.toUpperCase()} · <span className="font-mono text-[#657189]">{evt.event_type}</span>
+                      </p>
+                      <p className="text-[11px] text-[#657189]">
+                        {evt.payload?.summary || evt.payload?.title || evt.payload?.task || JSON.stringify(evt.payload).slice(0, 70)}
+                      </p>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  </div>
+                  <span className="text-[11px] font-mono text-slate-400">
+                    {new Date(evt.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
 
-        {/* Right Column (1 Col): Your AI Team */}
+        {/* Right (1 col): AI Collaborators Preview */}
         <div className="space-y-4">
-          <div className="bg-white border border-[#E5EAF0] rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.03)] space-y-4">
-            <div className="flex items-center space-x-2 pb-2 border-b border-[#E5EAF0]">
-              <Bot className="w-4 h-4 text-teal-600" />
-              <h2 className="font-bold text-sm text-[#172033] tracking-tight">Your AI Team</h2>
+          <div className="bg-white border border-[#E7ECF2] rounded-2xl p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#F0F3F7]">
+              <div className="flex items-center gap-2">
+                <Bot className="w-4 h-4 text-teal-600" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
+                  Your AI Team
+                </h3>
+              </div>
+              <button
+                onClick={() => onNavigateTab('agents')}
+                className="text-xs font-semibold text-teal-600 hover:text-teal-700 flex items-center gap-1"
+              >
+                <span>View AI team</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
             </div>
 
-            {/* Agent Card 1: NOVA */}
-            <div className="p-4 rounded-xl border border-violet-100 bg-violet-50/30 space-y-3">
+            {/* NOVA Preview */}
+            <div className="p-3.5 rounded-xl border border-violet-100 bg-violet-50/20 space-y-2.5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-violet-100 text-violet-700 flex items-center justify-center font-bold text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-violet-100 text-violet-700 font-bold text-xs flex items-center justify-center">
                     N
                   </div>
                   <div>
-                    <h4 className="font-bold text-xs text-[#172033]">NOVA</h4>
+                    <h4 className="text-xs font-bold text-[#172033]">NOVA</h4>
                     <p className="text-[11px] text-violet-600 font-medium">Product Strategist</p>
                   </div>
                 </div>
-
-                <button
-                  onClick={() => handleRestart('nova')}
-                  disabled={restartingAgent === 'nova'}
-                  className="p-1.5 rounded-lg bg-white border border-violet-200 hover:bg-violet-50 text-[#657189] hover:text-violet-700 transition shadow-xs cursor-pointer"
-                  title="Restart NOVA"
-                >
-                  <RotateCcw className={`w-3.5 h-3.5 ${restartingAgent === 'nova' ? 'animate-spin' : ''}`} />
-                </button>
+                {getLifecycleBadge(novaRun?.lifecycle_state, novaRun?.status)}
               </div>
-
-              <div className="text-xs space-y-2">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-[#657189]">Lifecycle State</span>
-                  {getLifecycleBadge(novaRun?.lifecycle_state, novaRun?.status)}
-                </div>
-                <div className="p-2.5 rounded-lg bg-white border border-violet-100 text-[11px] text-[#657189] leading-relaxed">
-                  <span className="font-semibold text-[#172033] block mb-0.5">Current Scope</span>
-                  {novaRun?.current_task || novaRun?.task_description || 'Analyze market positioning & requirement dependencies'}
-                </div>
-              </div>
+              <p className="text-xs text-[#657189] leading-relaxed bg-white p-2.5 rounded-lg border border-violet-100">
+                {novaRun?.current_task || novaRun?.task_description || 'Analyze market positioning & requirement dependencies'}
+              </p>
             </div>
 
-            {/* Agent Card 2: PIXEL */}
-            <div className="p-4 rounded-xl border border-teal-100 bg-teal-50/30 space-y-3">
+            {/* PIXEL Preview */}
+            <div className="p-3.5 rounded-xl border border-teal-100 bg-teal-50/20 space-y-2.5">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2.5">
-                  <div className="w-8 h-8 rounded-lg bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-teal-100 text-teal-700 font-bold text-xs flex items-center justify-center">
                     P
                   </div>
                   <div>
-                    <h4 className="font-bold text-xs text-[#172033]">PIXEL</h4>
+                    <h4 className="text-xs font-bold text-[#172033]">PIXEL</h4>
                     <p className="text-[11px] text-teal-600 font-medium">Prototype Engineer</p>
                   </div>
                 </div>
-
-                <button
-                  onClick={() => handleRestart('pixel')}
-                  disabled={restartingAgent === 'pixel'}
-                  className="p-1.5 rounded-lg bg-white border border-teal-200 hover:bg-teal-50 text-[#657189] hover:text-teal-700 transition shadow-xs cursor-pointer"
-                  title="Restart PIXEL"
-                >
-                  <RotateCcw className={`w-3.5 h-3.5 ${restartingAgent === 'pixel' ? 'animate-spin' : ''}`} />
-                </button>
+                {getLifecycleBadge(pixelRun?.lifecycle_state, pixelRun?.status)}
               </div>
-
-              <div className="text-xs space-y-2">
-                <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-[#657189]">Lifecycle State</span>
-                  {getLifecycleBadge(pixelRun?.lifecycle_state, pixelRun?.status)}
-                </div>
-                <div className="p-2.5 rounded-lg bg-white border border-teal-100 text-[11px] text-[#657189] leading-relaxed">
-                  <span className="font-semibold text-[#172033] block mb-0.5">Current Scope</span>
-                  {pixelRun?.current_task || pixelRun?.task_description || 'Evolve LedgerFlow React components & approval queues'}
-                </div>
-              </div>
-            </div>
-
-            {/* OpenAgents Collaboration Quick Links */}
-            <div className="pt-2 border-t border-[#E5EAF0] space-y-2.5">
-              <button
-                onClick={() => onNavigateTab('governance')}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-amber-50/50 hover:bg-amber-50 border border-amber-100 transition text-left group"
-              >
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-amber-700" />
-                  <div>
-                    <h5 className="text-xs font-bold text-[#172033]">Governance & Handoffs</h5>
-                    <p className="text-[11px] text-[#657189]">
-                      {pendingApprovalsCount} pending sign-off · {delegationsCount} delegations
-                    </p>
-                  </div>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-[#657189] group-hover:text-[#172033] group-hover:translate-x-0.5 transition" />
-              </button>
-
-              <button
-                onClick={() => onNavigateTab('resources')}
-                className="w-full flex items-center justify-between p-3 rounded-xl bg-teal-50/50 hover:bg-teal-50 border border-teal-100 transition text-left group"
-              >
-                <div className="flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-teal-700" />
-                  <div>
-                    <h5 className="text-xs font-bold text-[#172033]">Shared Creation Shelf</h5>
-                    <p className="text-[11px] text-[#657189]">{resourcesCount} workspace resources</p>
-                  </div>
-                </div>
-                <ArrowRight className="w-3.5 h-3.5 text-[#657189] group-hover:text-[#172033] group-hover:translate-x-0.5 transition" />
-              </button>
+              <p className="text-xs text-[#657189] leading-relaxed bg-white p-2.5 rounded-lg border border-teal-100">
+                {pixelRun?.current_task || pixelRun?.task_description || 'Evolve LedgerFlow React components & approval queues'}
+              </p>
             </div>
           </div>
         </div>
       </div>
+
+      <StartCollaborationModal
+        isOpen={showStartModal}
+        onClose={() => setShowStartModal(false)}
+        onStart={handleStartCollab}
+        starting={starting}
+        identity={identity}
+      />
     </div>
   );
 };
