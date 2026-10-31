@@ -20,6 +20,9 @@ from backend.app.db.models import (
     ExpenseModel,
     PRDModel,
     ImplementationPlanModel,
+    ConversationModel,
+    ConversationParticipantModel,
+    ChatMessageModel,
     utcnow_str,
 )
 
@@ -75,6 +78,14 @@ def reset_demo_database(db: Session, project_id: str = DEMO_PROJECT_ID):
     db.query(GitHubSyncJobModel).filter(GitHubSyncJobModel.project_id == project_id).delete(synchronize_session=False)
     db.query(GitHubContributionModel).filter(GitHubContributionModel.project_id == project_id).delete(synchronize_session=False)
     db.query(GitHubConnectionModel).filter(GitHubConnectionModel.project_id == project_id).delete(synchronize_session=False)
+
+    db.query(ChatMessageModel).filter(ChatMessageModel.conversation_id.in_(
+        db.query(ConversationModel.id).filter(ConversationModel.project_id == project_id)
+    )).delete(synchronize_session=False)
+    db.query(ConversationParticipantModel).filter(ConversationParticipantModel.conversation_id.in_(
+        db.query(ConversationModel.id).filter(ConversationModel.project_id == project_id)
+    )).delete(synchronize_session=False)
+    db.query(ConversationModel).filter(ConversationModel.project_id == project_id).delete(synchronize_session=False)
 
     db.query(DelegationModel).filter(DelegationModel.project_id == project_id).delete(synchronize_session=False)
     db.query(ApprovalRequestModel).filter(ApprovalRequestModel.project_id == project_id).delete(synchronize_session=False)
@@ -351,6 +362,94 @@ def reset_demo_database(db: Session, project_id: str = DEMO_PROJECT_ID):
         created_at=now_str,
     )
     db.add(event)
+
+    # 8. Seed Default Shared Team Conversation
+    default_conv = ConversationModel(
+        id="conv_team_ledgerflow",
+        project_id=project_id,
+        title="LedgerFlow Team Room",
+        conversation_type="team_shared",
+        created_by="alex",
+        created_at=now_str,
+        updated_at=now_str,
+    )
+    db.add(default_conv)
+
+    conv_participants = [
+        ConversationParticipantModel(
+            id=f"part_{project_id}_alex",
+            conversation_id="conv_team_ledgerflow",
+            participant_id="alex",
+            participant_type="human",
+            joined_at=now_str,
+            last_read_at=now_str,
+        ),
+        ConversationParticipantModel(
+            id=f"part_{project_id}_maya",
+            conversation_id="conv_team_ledgerflow",
+            participant_id="maya",
+            participant_type="human",
+            joined_at=now_str,
+            last_read_at=now_str,
+        ),
+        ConversationParticipantModel(
+            id=f"part_{project_id}_nova",
+            conversation_id="conv_team_ledgerflow",
+            participant_id="nova",
+            participant_type="agent",
+            joined_at=now_str,
+            last_read_at=now_str,
+        ),
+        ConversationParticipantModel(
+            id=f"part_{project_id}_pixel",
+            conversation_id="conv_team_ledgerflow",
+            participant_id="pixel",
+            participant_type="agent",
+            joined_at=now_str,
+            last_read_at=now_str,
+        ),
+    ]
+    db.add_all(conv_participants)
+
+    init_messages = [
+        ChatMessageModel(
+            id="msg_init_alex",
+            conversation_id="conv_team_ledgerflow",
+            sender_id="alex",
+            sender_type="human",
+            recipient_id="team",
+            recipient_type="team",
+            message_content="Welcome to LedgerFlow. NOVA and PIXEL, our initial focus is small business spend management, moving towards enterprise governance.",
+            message_type="human_message",
+            status="delivered",
+            created_at=now_str,
+        ),
+        ChatMessageModel(
+            id="msg_init_nova",
+            conversation_id="conv_team_ledgerflow",
+            sender_id="nova",
+            sender_type="agent",
+            recipient_id="team",
+            recipient_type="team",
+            message_content="Understood Alex. I've formulated our baseline audience positioning and core metrics requirements. Ready to explore new product ideas or expand enterprise requirements.",
+            message_type="agent_message",
+            status="delivered",
+            created_at=now_str,
+        ),
+        ChatMessageModel(
+            id="msg_init_pixel",
+            conversation_id="conv_team_ledgerflow",
+            sender_id="pixel",
+            sender_type="agent",
+            recipient_id="team",
+            recipient_type="team",
+            message_content="LedgerFlow prototype canvas initialized. Ready to implement UI sections and approval workflows upon confirmed requirements.",
+            message_type="agent_message",
+            status="delivered",
+            created_at=now_str,
+        ),
+    ]
+    db.add_all(init_messages)
 
     db.commit()
     return project

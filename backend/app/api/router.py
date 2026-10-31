@@ -15,6 +15,7 @@ from backend.app.api.routes import (
     resources,
     expenses,
     prd,
+    chat,
 )
 
 api_router = APIRouter(prefix="/api")
@@ -34,3 +35,4 @@ api_router.include_router(approvals.router)
 api_router.include_router(resources.router)
 api_router.include_router(expenses.router)
 api_router.include_router(prd.router)
+api_router.include_router(chat.router)

@@ -451,3 +451,59 @@ class ImplementationPlanModel(Base):
 
 
 
+
+
+class ConversationModel(Base):
+    __tablename__ = "conversations"
+
+    id = Column(String(64), primary_key=True, default=lambda: f"conv_{uuid.uuid4().hex[:10]}")
+    project_id = Column(String(64), ForeignKey("projects.id"), index=True, nullable=False)
+    title = Column(String(256), nullable=False)
+    conversation_type = Column(String(32), default="team_shared", index=True, nullable=False)  # "team_shared", "direct_nova", "direct_pixel"
+    associated_task_id = Column(String(64), nullable=True)
+    created_by = Column(String(64), default="alex", nullable=False)
+    created_at = Column(String(64), default=utcnow_str, nullable=False)
+    updated_at = Column(String(64), default=utcnow_str, nullable=False)
+    archived_at = Column(String(64), nullable=True)
+
+    __table_args__ = (
+        Index("idx_conv_proj_type", "project_id", "conversation_type"),
+    )
+
+
+class ConversationParticipantModel(Base):
+    __tablename__ = "conversation_participants"
+
+    id = Column(String(64), primary_key=True, default=lambda: f"part_{uuid.uuid4().hex[:10]}")
+    conversation_id = Column(String(64), ForeignKey("conversations.id"), index=True, nullable=False)
+    participant_id = Column(String(64), nullable=False)   # "alex", "maya", "nova", "pixel"
+    participant_type = Column(String(32), default="human", nullable=False) # "human", "agent"
+    joined_at = Column(String(64), default=utcnow_str, nullable=False)
+    last_read_at = Column(String(64), default=utcnow_str, nullable=False)
+
+    __table_args__ = (
+        Index("idx_part_conv_user", "conversation_id", "participant_id"),
+    )
+
+
+class ChatMessageModel(Base):
+    __tablename__ = "chat_messages"
+
+    id = Column(String(64), primary_key=True, default=lambda: f"msg_{uuid.uuid4().hex[:10]}")
+    conversation_id = Column(String(64), ForeignKey("conversations.id"), index=True, nullable=False)
+    sender_id = Column(String(64), nullable=False)         # "alex", "maya", "nova", "pixel", "system"
+    sender_type = Column(String(32), default="human", nullable=False)       # "human", "agent", "system"
+    recipient_id = Column(String(64), default="team", nullable=True)        # "nova", "pixel", "team", "alex"
+    recipient_type = Column(String(32), default="team", nullable=False)     # "agent", "team", "human"
+    message_content = Column(Text, nullable=False)
+    message_type = Column(String(32), default="human_message", nullable=False) # "human_message", "agent_message", "system_notification", "task_update", "proposal_notification", "decision_notification"
+    status = Column(String(32), default="delivered", nullable=False)        # "sent", "delivered", "read"
+    related_task_id = Column(String(64), nullable=True)
+    related_proposal_id = Column(String(64), nullable=True)
+    msg_metadata = Column(JSON, default=dict, nullable=False)
+    created_at = Column(String(64), default=utcnow_str, nullable=False)
+
+    __table_args__ = (
+        Index("idx_msg_conv_created", "conversation_id", "created_at"),
+        Index("idx_msg_proposal", "related_proposal_id"),
+    )

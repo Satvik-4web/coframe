@@ -16,6 +16,7 @@ import { GitHubDashboard } from './components/github/GitHubDashboard';
 import { GovernanceDashboard } from './components/governance/GovernanceDashboard';
 import { SharedCreationShelf } from './components/resources/SharedCreationShelf';
 import { resetDemo, restartAgent } from './lib/api';
+import { WorkspaceChatView } from './components/chat/WorkspaceChatView';
 
 export function App() {
   const {
@@ -117,7 +118,16 @@ export function App() {
         />
 
         {/* Central Content Panel */}
-        <main className="flex-1 overflow-y-auto p-6 lg:p-8 max-w-7xl mx-auto w-full relative">
+        <main className={`flex-1 relative ${currentTab === 'chat' ? 'overflow-hidden p-0' : 'overflow-y-auto p-6 lg:p-8 max-w-7xl mx-auto w-full'}`}>
+          {currentTab === 'chat' && state && (
+            <WorkspaceChatView
+              projectId={projectId}
+              identity={identity}
+              onNavigateTab={(tab) => setCurrentTab(tab)}
+              proposals={state.proposals}
+              onRefresh={refresh}
+            />
+          )}
           {/* Interactive Demo Walkthrough Stepper (Slide-over drawer) */}
           <DemoGuide
             currentStep={demoStep}

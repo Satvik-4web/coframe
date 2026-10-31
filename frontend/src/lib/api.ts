@@ -16,6 +16,8 @@ import {
   PruneStatus,
   PruneDemoTrace,
   PruneMetadata,
+  Conversation,
+  ChatMessage,
 } from '../types';
 
 const API_BASE = '/api';
@@ -662,5 +664,88 @@ export async function loadDemoScenario(): Promise<any> {
     method: 'POST',
   });
   if (!res.ok) throw new Error('Failed to load demo scenario');
+  return res.json();
+}
+
+export async function fetchConversations(projectId: string = 'demo-ledgerflow'): Promise<Conversation[]> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/conversations`);
+  if (!res.ok) throw new Error('Failed to fetch conversations');
+  return res.json();
+}
+
+export async function createConversation(
+  projectId: string = 'demo-ledgerflow',
+  payload: {
+    title: string;
+    conversation_type?: string;
+    created_by: string;
+    participants?: string[];
+    associated_task_id?: string;
+  }
+): Promise<Conversation> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/conversations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to create conversation');
+  }
+  return res.json();
+}
+
+export async function fetchConversation(
+  projectId: string = 'demo-ledgerflow',
+  conversationId: string
+): Promise<Conversation> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/conversations/${conversationId}`);
+  if (!res.ok) throw new Error('Failed to fetch conversation');
+  return res.json();
+}
+
+export async function fetchConversationMessages(
+  projectId: string = 'demo-ledgerflow',
+  conversationId: string,
+  limit: number = 50
+): Promise<ChatMessage[]> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/conversations/${conversationId}/messages?limit=${limit}`);
+  if (!res.ok) throw new Error('Failed to fetch conversation messages');
+  return res.json();
+}
+
+export async function sendChatMessage(
+  projectId: string = 'demo-ledgerflow',
+  conversationId: string,
+  payload: {
+    sender_id: string;
+    message_content: string;
+    recipient: string;
+    related_task_id?: string;
+  }
+): Promise<{ status: string; human_message: ChatMessage; agent_responses: ChatMessage[] }> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/conversations/${conversationId}/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to send chat message');
+  }
+  return res.json();
+}
+
+export async function markConversationRead(
+  projectId: string = 'demo-ledgerflow',
+  conversationId: string,
+  participantId: string
+): Promise<{ status: string }> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/conversations/${conversationId}/read`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ participant_id: participantId }),
+  });
+  if (!res.ok) throw new Error('Failed to mark conversation read');
   return res.json();
 }

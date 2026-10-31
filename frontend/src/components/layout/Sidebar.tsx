@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  MessageSquare,
   LayoutDashboard,
   Palette,
   GitPullRequest,
@@ -10,6 +11,7 @@ import {
 import { HumanIdentity } from '../../types';
 
 export type NavigationTab =
+  | 'chat'
   | 'overview'
   | 'preview'
   | 'proposals'
@@ -38,6 +40,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   conflictedProposalsCount,
 }) => {
   const mainNavItems = [
+    {
+      id: 'chat',
+      label: 'Chat',
+      altText: 'Workspace Chat',
+      icon: MessageSquare,
+    },
     {
       id: 'overview',
       label: 'Overview',
@@ -94,7 +102,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        {/* Primary Navigation — Exactly 6 Sections (Requirement 1.F) */}
+        {/* Primary Navigation — 7 Core Sections with Chat at the Top */}
         <nav className="space-y-1 px-3">
           <p className="px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-[#657189]">
             Workspace

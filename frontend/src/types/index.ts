@@ -478,3 +478,54 @@ export interface PublishProposalResult {
   message: string;
 }
 
+
+
+export interface ConversationParticipant {
+  participant_id: string;
+  participant_type: 'human' | 'agent' | string;
+  joined_at: string;
+  last_read_at?: string | null;
+}
+
+export interface LinkedProposalSummary {
+  id: string;
+  proposal_id?: string;
+  summary: string;
+  status: string;
+  author?: string;
+}
+
+export interface ChatMessage {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  sender_key?: string;
+  sender_name: string;
+  sender_role: string;
+  sender_type: 'human' | 'agent' | 'system' | string;
+  recipient_id: string;
+  recipient_type: 'human' | 'agent' | 'team' | string;
+  message_content: string;
+  content?: string;
+  message_type: 'human_message' | 'agent_message' | 'system_notification' | string;
+  status: string;
+  related_task_id?: string | null;
+  related_proposal_id?: string | null;
+  related_proposal?: LinkedProposalSummary | null;
+  metadata?: Record<string, any>;
+  created_at: string;
+}
+
+export interface Conversation {
+  id: string;
+  project_id: string;
+  title: string;
+  conversation_type: string;
+  associated_task_id?: string | null;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+  last_message?: ChatMessage | null;
+  participants: ConversationParticipant[];
+}

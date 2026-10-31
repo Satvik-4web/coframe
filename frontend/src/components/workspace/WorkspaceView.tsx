@@ -36,6 +36,7 @@ import { WorkflowStageIndicator } from './WorkflowStageIndicator';
 import { ProductPromptModal } from './ProductPromptModal';
 import { PRDReviewModal } from './PRDReviewModal';
 import { ImplementationPlanCard } from './ImplementationPlanCard';
+import { OverviewQuickChat } from '../chat/OverviewQuickChat';
 
 interface WorkspaceViewProps {
   state: FullProjectState;
@@ -230,6 +231,9 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Quick Chat: What would you like to build today? */}
+      <OverviewQuickChat identity={identity} onNavigateTab={onNavigateTab} />
 
       {/* 2. Current Workflow Stage (Requirement 2 & Section 1.B: Staged Development Workflow) */}
       <WorkflowStageIndicator
