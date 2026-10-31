@@ -2,24 +2,26 @@
 
 @layer base {
   :root {
-    --bg-base: #0B1020;
-    --bg-surface-1: #151B29;
-    --bg-surface-2: #1B2433;
-    --border-subtle: #263244;
-    --text-primary: #F4F7FB;
-    --text-secondary: #98A5B7;
-    --accent-human: #60A5FA;
-    --accent-nova: #8B5CF6;
-    --accent-pixel: #14B8A6;
-    --accent-decision: #F59E0B;
-    --accent-approved: #22C55E;
-    --accent-conflict: #EF4444;
+    --bg-base: #F6F8FB;
+    --bg-surface-1: #FFFFFF;
+    --bg-surface-2: #F0F3F7;
+    --border-subtle: #E5EAF0;
+    --text-primary: #172033;
+    --text-secondary: #657189;
+    --accent-teal: #0D9488;
+    --accent-nova: #7C3AED;
+    --accent-pixel: #0D9488;
+    --accent-alex: #2563EB;
+    --accent-maya: #7C3AED;
+    --accent-warning: #D97706;
+    --accent-danger: #DC2626;
+    --accent-success: #16A34A;
   }
 
   body {
     background-color: var(--bg-base);
     color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
@@ -27,18 +29,18 @@
   }
 }
 
-/* Custom scrollbars */
+/* Custom subtle scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #0B1020;
+  background: #F1F4F8;
 }
 ::-webkit-scrollbar-thumb {
-  background: #263244;
+  background: #CBD5E1;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3B4D66;
+  background: #94A3B8;
 }

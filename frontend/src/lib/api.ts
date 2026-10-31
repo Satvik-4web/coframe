@@ -9,6 +9,9 @@ import {
   GitHubPullRequest,
   GitHubContribution,
   PublishProposalResult,
+  PruneStatus,
+  PruneDemoTrace,
+  PruneMetadata,
 } from '../types';
 
 const API_BASE = '/api';
@@ -287,3 +290,43 @@ export async function retryGitHubContribution(
   return res.json();
 }
 
+
+
+// ==============================================================================
+// PRUNE SEATBELT & WORKSHOP DEMO API CLIENTS (BIOS V2)
+// ==============================================================================
+
+export async function fetchPruneStatus(): Promise<PruneStatus> {
+  const res = await fetch(`${API_BASE}/prune/status`);
+  if (!res.ok) throw new Error('Failed to fetch Prune status');
+  return res.json();
+}
+
+export async function runPruneWorkshopDemo(): Promise<PruneDemoTrace> {
+  const res = await fetch(`${API_BASE}/prune/demo-receipt`, { method: 'POST' });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to execute Prune workshop demo');
+  }
+  return res.json();
+}
+
+export async function fetchPruneReceipts(limit: number = 25): Promise<PruneMetadata[]> {
+  const res = await fetch(`${API_BASE}/prune/receipts?limit=${limit}`);
+  if (!res.ok) throw new Error('Failed to fetch Prune receipts');
+  return res.json();
+}
+
+export async function verifyPruneReceipt(
+  receipt: any,
+  signature: string,
+  publicKey: string
+): Promise<{ verified: boolean; algorithm: string; public_key: string }> {
+  const res = await fetch(`${API_BASE}/prune/verify-receipt`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ receipt, signature, public_key: publicKey }),
+  });
+  if (!res.ok) throw new Error('Failed to verify Prune receipt');
+  return res.json();
+}

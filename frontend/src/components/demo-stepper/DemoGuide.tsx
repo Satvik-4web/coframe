@@ -2,16 +2,13 @@ import React, { useState } from 'react';
 import {
   Play,
   CheckCircle2,
-  Users,
-  Bot,
-  Edit3,
-  AlertTriangle,
-  RotateCcw,
-  Shield,
-  Layers,
-  Sparkles,
+  X,
+  Compass,
   ChevronRight,
+  Sparkles,
+  Layers,
   ArrowRight,
+  Shield,
 } from 'lucide-react';
 import {
   startCollaboration,
@@ -19,9 +16,6 @@ import {
   editArtifactSection,
   restartAgent,
   triggerPolicyProposal,
-  reconcileProposal,
-  redirectProposal,
-  approveProposal,
 } from '../../lib/api';
 import { HumanIdentity, Proposal } from '../../types';
 
@@ -32,6 +26,8 @@ interface DemoGuideProps {
   proposals: Proposal[];
   onRefresh: () => void;
   onNavigateTab: (tab: any) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export const DemoGuide: React.FC<DemoGuideProps> = ({
@@ -41,14 +37,16 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
   proposals,
   onRefresh,
   onNavigateTab,
+  isOpen,
+  onClose,
 }) => {
   const [loadingStep, setLoadingStep] = useState<number | null>(null);
 
   const steps = [
     {
       step: 1,
-      title: 'Step 1: Two Humans + Two AI Agents',
-      description: 'Open a second browser session to see Alex & Maya presence in real-time.',
+      title: 'Step 1: Multi-User Collaboration & Presence',
+      description: 'Open two browser windows (Alex and Maya) to see realtime presence and synchronization.',
       buttonLabel: 'Verify Step 1 Presence',
       action: async () => {
         onNavigateTab('workspace');
@@ -57,7 +55,7 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
     {
       step: 2,
       title: 'Step 2: Start Parallel Agent Runs',
-      description: 'Dispatch NOVA (Strategist) & PIXEL (Engineer) to create initial proposals A, B, C.',
+      description: 'Dispatch NOVA (Strategist) and PIXEL (Engineer) to generate initial proposals in parallel.',
       buttonLabel: 'Run Start Collaboration',
       action: async () => {
         setLoadingStep(2);
@@ -75,7 +73,7 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
       step: 3,
       title: 'Step 3: Mid-flight Requirement Change',
       description: "Alex updates REQ_AUDIENCE to 'Enterprise finance teams', advancing context_version.",
-      buttonLabel: "Update REQ_AUDIENCE (Alex)",
+      buttonLabel: 'Update REQ_AUDIENCE (Alex)',
       action: async () => {
         setLoadingStep(3);
         try {
@@ -95,8 +93,8 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
     },
     {
       step: 4,
-      title: 'Step 4: Outdated & Conflicted Handling',
-      description: 'Proposal A stales selectively. Maya edits Hero to demonstrate human-vs-agent conflict.',
+      title: 'Step 4: Selective Staleness & Section Conflict',
+      description: 'Proposal A stales selectively; Maya edits the Hero section, creating a visual conflict.',
       buttonLabel: 'Simulate Maya Hero Edit',
       action: async () => {
         setLoadingStep(4);
@@ -106,10 +104,10 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
             'hero',
             1,
             {
-              headline: "Enterprise Spend Governance by Maya",
-              subheadline: "Direct human refinement with custom corporate policy",
-              cta_text: "Request Enterprise Access",
-              secondary_cta: "Contact Sales",
+              headline: 'Enterprise Spend Governance by Maya',
+              subheadline: 'Direct human refinement with custom corporate policy',
+              cta_text: 'Request Enterprise Access',
+              secondary_cta: 'Contact Sales',
               badge: "Maya's Custom Edition",
             },
             'maya'
@@ -125,14 +123,14 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
     {
       step: 5,
       title: 'Step 5: Agent Restart & Context Recovery',
-      description: 'Restart NOVA; backend builds an authentic Context Pack from database state.',
+      description: 'Restart NOVA; backend builds an authentic Context Pack from persisted database state.',
       buttonLabel: 'Restart NOVA & Recover',
       action: async () => {
         setLoadingStep(5);
         try {
           await restartAgent('demo-ledgerflow', 'nova');
           onRefresh();
-          onNavigateTab('context');
+          onNavigateTab('agents');
           onSetStep(6);
         } finally {
           setLoadingStep(null);
@@ -167,68 +165,112 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
     },
   ];
 
+  if (!isOpen) return null;
+
+  const currentStepData = steps[currentStep - 1] || steps[0];
+  const progressPercent = Math.round((currentStep / 7) * 100);
+  const isLoading = loadingStep === currentStepData.step;
+
   return (
-    <div className="bg-[#151B29] border border-[#263244] rounded-xl p-4 shadow-lg mb-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 mb-3 border-b border-[#263244]">
-        <div className="flex items-center space-x-2">
-          <div className="w-5 h-5 rounded-full bg-teal-500/20 text-teal-400 flex items-center justify-center font-bold text-xs">
-            ★
+    <div className="bg-white border border-[#E5EAF0] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.03)] mb-6 transition-all duration-200">
+      {/* Top Header Row */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 mb-4 border-b border-[#E5EAF0]">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center font-bold">
+            <Compass className="w-4 h-4 text-teal-700" />
           </div>
           <div>
-            <h3 className="font-bold text-xs text-[#F4F7FB] uppercase tracking-wider">
-              BIOS FORGE Demo Walkthrough Stepper
-            </h3>
-            <p className="text-[11px] text-[#98A5B7]">
-              Execute the 7 required demo steps deterministically in sequence.
+            <div className="flex items-center space-x-2">
+              <h3 className="font-bold text-sm text-[#172033]">
+                Guided Demo Assistant
+              </h3>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                Phase {currentStep} of 7
+              </span>
+            </div>
+            <p className="text-xs text-[#657189] mt-0.5">
+              Follow the 7-step deterministic BIOS FORGE judging sequence
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-1">
-          {steps.map((s) => (
-            <button
-              key={s.step}
-              onClick={() => onSetStep(s.step)}
-              className={`w-6 h-6 rounded-md font-mono text-[11px] font-bold flex items-center justify-center transition ${
-                currentStep === s.step
-                  ? 'bg-teal-500 text-black shadow-md shadow-teal-500/30'
-                  : currentStep > s.step
-                  ? 'bg-emerald-950 text-emerald-400 border border-emerald-700/50'
-                  : 'bg-[#1B2433] text-[#98A5B7] hover:text-[#F4F7FB]'
-              }`}
-            >
-              {s.step}
-            </button>
-          ))}
+        {/* Step Selector Chips (1 through 7) */}
+        <div className="flex items-center space-x-1.5 self-start sm:self-center">
+          <div className="flex items-center space-x-1 bg-slate-50 p-1 rounded-xl border border-[#E5EAF0]">
+            {steps.map((s) => {
+              const isCompleted = currentStep > s.step;
+              const isCurrent = currentStep === s.step;
+
+              return (
+                <button
+                  key={s.step}
+                  onClick={() => onSetStep(s.step)}
+                  className={`w-7 h-7 rounded-lg font-mono text-xs font-bold flex items-center justify-center transition cursor-pointer ${
+                    isCurrent
+                      ? 'bg-teal-600 text-white shadow-xs'
+                      : isCompleted
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'text-[#657189] hover:text-[#172033] hover:bg-slate-200'
+                  }`}
+                  title={s.title}
+                >
+                  {s.step}
+                </button>
+              );
+            })}
+          </div>
+
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-[#657189] hover:text-[#172033] hover:bg-slate-100 transition cursor-pointer"
+            title="Minimize Guide"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
       </div>
 
-      {/* Current Step Highlighted Box */}
-      {(() => {
-        const s = steps[currentStep - 1] || steps[0];
-        const isLoading = loadingStep === s.step;
-        return (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#1B2433] p-3 rounded-lg border border-teal-500/30">
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xs font-bold text-teal-400">{s.title}</span>
-                <span className="text-[10px] text-[#98A5B7]">Step {s.step} of 7</span>
-              </div>
-              <p className="text-xs text-[#F4F7FB] mt-0.5">{s.description}</p>
-            </div>
+      {/* Progress Line */}
+      <div className="w-full h-1 bg-slate-100 rounded-full overflow-hidden mb-3">
+        <div
+          className="h-full bg-teal-600 rounded-full transition-all duration-300"
+          style={{ width: `${progressPercent}%` }}
+        />
+      </div>
 
-            <button
-              onClick={s.action}
-              disabled={isLoading}
-              className="px-4 py-2 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs flex items-center space-x-1.5 shadow-md shadow-teal-600/20 transition cursor-pointer self-start sm:self-center disabled:opacity-50"
-            >
-              <Play className={`w-3.5 h-3.5 fill-current ${isLoading ? 'animate-spin' : ''}`} />
-              <span>{isLoading ? 'Executing...' : s.buttonLabel}</span>
-              <ChevronRight className="w-3.5 h-3.5" />
-            </button>
+      {/* Prune Seatbelt Callout Banner */}
+      <div className="mb-3 px-3 py-2 rounded-lg bg-emerald-50/70 border border-emerald-200 flex items-center justify-between text-xs">
+        <div className="flex items-center space-x-2 text-emerald-900">
+          <span className="text-sm">🛡️</span>
+          <span className="font-medium">
+            <strong>Prune Seatbelt Active:</strong> All NOVA & PIXEL proposals are guarded against prompt injection, cached at $0 repeat cost, and stamped with Ed25519 receipts.
+          </span>
+        </div>
+      </div>
+
+      {/* Active Step Action Card */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-slate-50/70 border border-[#E5EAF0]">
+        <div className="space-y-1">
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-bold text-[#172033]">
+              {currentStepData.title}
+            </span>
           </div>
-        );
-      })()}
+          <p className="text-xs text-[#657189] leading-relaxed">
+            {currentStepData.description}
+          </p>
+        </div>
+
+        <button
+          onClick={currentStepData.action}
+          disabled={isLoading}
+          className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs flex items-center space-x-2 shadow-xs transition cursor-pointer shrink-0 disabled:opacity-50"
+        >
+          <Play className={`w-3.5 h-3.5 fill-current ${isLoading ? 'animate-spin' : ''}`} />
+          <span>{isLoading ? 'Executing...' : currentStepData.buttonLabel}</span>
+          <ChevronRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   );
 };

@@ -33,6 +33,16 @@ from backend.app.agents.fallback import (
 def db_engine():
     engine = create_engine("sqlite:///./test_concurrency.db", connect_args={"check_same_thread": False})
     Base.metadata.create_all(bind=engine)
+    try:
+        from sqlalchemy import text
+        with engine.connect() as conn:
+            for table, col in [("proposals", "prune_metadata"), ("agent_runs", "prune_metadata")]:
+                cols = [r[1] for r in conn.execute(text(f"PRAGMA table_info({table})")).fetchall()]
+                if col not in cols:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} JSON"))
+                    conn.commit()
+    except Exception:
+        pass
     return engine
 
 

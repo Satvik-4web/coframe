@@ -1,4 +1,5 @@
 import datetime
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 from backend.app.db.database import Base, engine
 from backend.app.db.models import (
@@ -21,6 +22,15 @@ DEMO_PROJECT_ID = "demo-ledgerflow"
 
 def init_db():
     Base.metadata.create_all(bind=engine)
+    try:
+        with engine.connect() as conn:
+            for table, col in [("proposals", "prune_metadata"), ("agent_runs", "prune_metadata")]:
+                cols = [r[1] for r in conn.execute(text(f"PRAGMA table_info({table})")).fetchall()]
+                if col not in cols:
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} JSON"))
+                    conn.commit()
+    except Exception:
+        pass
 
 
 def reset_demo_database(db: Session, project_id: str = DEMO_PROJECT_ID):

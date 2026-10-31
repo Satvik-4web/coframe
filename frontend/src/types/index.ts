@@ -64,8 +64,95 @@ export interface Proposal {
   conflict_reason?: string | null;
   source: 'live_llm' | 'cached_fallback';
   is_simulated: boolean;
+  prune_metadata?: PruneMetadata | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface PruneMetadata {
+  receipt_id: string;
+  timestamp: string;
+  model: string;
+  cache_hit: boolean;
+  tokens_prompt: number;
+  tokens_completion: number;
+  tokens_cached: number;
+  cost_usd: number;
+  cost_saved_usd: number;
+  shield_status: 'passed' | 'blocked';
+  shield_violation?: string | null;
+  shield_reason?: string | null;
+  ed25519_signature: string;
+  public_key: string;
+  verified: boolean;
+  issuer?: string;
+  workshop?: string;
+}
+
+export interface PruneStatus {
+  status: string;
+  service: string;
+  base_url: string;
+  vault: {
+    enabled: boolean;
+    status: string;
+    encryption: string;
+    keys_out_of_code: boolean;
+  };
+  shield: {
+    status: string;
+    prompt_injection_defense: boolean;
+    secret_leak_defense: boolean;
+    pii_tokenization: boolean;
+    blocked_threats_count: number;
+  };
+  savings: {
+    exact_cache_enabled: boolean;
+    total_requests: number;
+    cache_hits: number;
+    cache_hit_rate_pct: number;
+    total_cost_usd: number;
+    total_saved_usd: number;
+    cheaper_vs_baseline_pct: number;
+  };
+  signatures: {
+    algorithm: string;
+    public_key: string;
+  };
+  recent_receipts: PruneMetadata[];
+}
+
+export interface PruneDemoStep {
+  step: number;
+  name: string;
+  prompt: string;
+  cache_hit?: boolean;
+  cost_usd?: number;
+  cost_saved_usd?: number;
+  receipt_id?: string;
+  signature?: string;
+  status: string;
+  result_preview?: string;
+  shield_blocked?: boolean;
+  blocked?: boolean;
+  reason?: string;
+  violation_type?: string;
+}
+
+export interface PruneDemoTrace {
+  title: string;
+  timestamp: string;
+  steps: PruneDemoStep[];
+  receipts: PruneMetadata[];
+  stats: {
+    total_requests: number;
+    cache_hits: number;
+    cache_hit_rate: number;
+    total_cost_usd: number;
+    total_saved_usd: number;
+    shield_blocks: number;
+  };
+  public_key: string;
 }
 
 export interface AgentRun {

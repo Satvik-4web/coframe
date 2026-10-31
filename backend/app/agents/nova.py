@@ -53,12 +53,15 @@ async def run_nova_initial(db: Session, project_id: str) -> List[ProposalModel]:
     raw_a = None
     source_a = "live_llm"
     sim_a = False
+    prune_meta_a = None
     try:
-        raw_a, source_a, sim_a = await call_llm_json(
+        res_a = await call_llm_json(
             system_prompt=NOVA_SYSTEM_PROMPT,
             user_prompt=user_prompt_a,
             timeout=8.0,
         )
+        raw_a, source_a, sim_a = res_a
+        prune_meta_a = getattr(res_a, "prune_metadata", None)
     except Exception as e:
         logger.info(f"NOVA Proposal A using deterministic fallback: {e}")
         raw_a = FALLBACK_NOVA_PROPOSAL_A
@@ -72,6 +75,7 @@ async def run_nova_initial(db: Session, project_id: str) -> List[ProposalModel]:
         raw_output=raw_a,
         source=source_a,
         is_simulated=sim_a,
+        prune_metadata=prune_meta_a,
     )
     created_proposals.append(prop_a)
 
@@ -83,12 +87,15 @@ async def run_nova_initial(db: Session, project_id: str) -> List[ProposalModel]:
     raw_b = None
     source_b = "live_llm"
     sim_b = False
+    prune_meta_b = None
     try:
-        raw_b, source_b, sim_b = await call_llm_json(
+        res_b = await call_llm_json(
             system_prompt=NOVA_SYSTEM_PROMPT,
             user_prompt=user_prompt_b,
             timeout=8.0,
         )
+        raw_b, source_b, sim_b = res_b
+        prune_meta_b = getattr(res_b, "prune_metadata", None)
     except Exception as e:
         logger.info(f"NOVA Proposal B using deterministic fallback: {e}")
         raw_b = FALLBACK_NOVA_PROPOSAL_B
@@ -102,6 +109,7 @@ async def run_nova_initial(db: Session, project_id: str) -> List[ProposalModel]:
         raw_output=raw_b,
         source=source_b,
         is_simulated=sim_b,
+        prune_metadata=prune_meta_b,
     )
     created_proposals.append(prop_b)
 
@@ -147,12 +155,15 @@ async def reconcile_nova_proposal(
     raw_output = None
     source = "live_llm"
     is_simulated = False
+    prune_meta = None
     try:
-        raw_output, source, is_simulated = await call_llm_json(
+        res = await call_llm_json(
             system_prompt=RECONCILE_SYSTEM_PROMPT,
             user_prompt=user_prompt,
             timeout=8.0,
         )
+        raw_output, source, is_simulated = res
+        prune_meta = getattr(res, "prune_metadata", None)
     except Exception:
         raw_output = FALLBACK_RECONCILED_PROPOSAL_A
         source = "cached_fallback"
@@ -166,6 +177,7 @@ async def reconcile_nova_proposal(
         source=source,
         is_simulated=is_simulated,
         supersedes_proposal_id=original_proposal_id,
+        prune_metadata=prune_meta,
     )
 
     # Mark original proposal superseded
@@ -228,12 +240,15 @@ async def redirect_nova_proposal(
     raw_output = None
     source = "live_llm"
     is_simulated = False
+    prune_meta = None
     try:
-        raw_output, source, is_simulated = await call_llm_json(
+        res = await call_llm_json(
             system_prompt=NOVA_SYSTEM_PROMPT,
             user_prompt=user_prompt,
             timeout=8.0,
         )
+        raw_output, source, is_simulated = res
+        prune_meta = getattr(res, "prune_metadata", None)
     except Exception:
         raw_output = FALLBACK_REDIRECTED_NOVA_PROPOSAL
         source = "cached_fallback"
@@ -247,6 +262,7 @@ async def redirect_nova_proposal(
         source=source,
         is_simulated=is_simulated,
         supersedes_proposal_id=original_proposal_id,
+        prune_metadata=prune_meta,
     )
 
     # Mark original proposal as superseded

@@ -8,6 +8,7 @@ from backend.app.api.routes import (
     events,
     observer_summary,
     github,
+    prune,
 )
 
 api_router = APIRouter(prefix="/api")
@@ -20,3 +21,4 @@ api_router.include_router(proposals.router)
 api_router.include_router(events.router)
 api_router.include_router(observer_summary.router)
 api_router.include_router(github.router)
+api_router.include_router(prune.router)

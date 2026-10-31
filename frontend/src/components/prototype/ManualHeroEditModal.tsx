@@ -55,80 +55,80 @@ export const ManualHeroEditModal: React.FC<ManualHeroEditModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-[#0B1020]/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-[#151B29] border border-[#263244] rounded-2xl max-w-lg w-full p-6 shadow-2xl relative">
-        <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#263244]">
-          <div className="flex items-center space-x-2">
-            <span className="w-6 h-6 rounded-full bg-purple-500/20 text-purple-400 font-bold text-xs flex items-center justify-center">
+    <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+      <div className="bg-white border border-[#E5EAF0] rounded-2xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in-50 duration-200">
+        <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#E5EAF0]">
+          <div className="flex items-center space-x-2.5">
+            <span className="w-8 h-8 rounded-lg bg-violet-100 text-violet-700 font-bold text-xs flex items-center justify-center">
               M
             </span>
             <div>
-              <h3 className="font-bold text-[#F4F7FB] text-sm">Direct Hero Edit (as Maya)</h3>
-              <p className="text-[11px] text-[#98A5B7]">Expected base section version: v{currentVersion}</p>
+              <h3 className="font-bold text-[#172033] text-sm">Direct Hero Edit (as Maya)</h3>
+              <p className="text-xs text-[#657189]">Expected base section version: v{currentVersion}</p>
             </div>
           </div>
-          <button onClick={onClose} className="text-[#98A5B7] hover:text-[#F4F7FB]">
+          <button onClick={onClose} className="text-[#657189] hover:text-[#172033] p-1 rounded-lg hover:bg-slate-100 transition cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-950/40 border border-red-800/40 text-red-200 text-xs flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <div className="mb-4 p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-center space-x-2">
+            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-[#98A5B7] mb-1">Headline</label>
+            <label className="block text-xs font-semibold text-[#172033] mb-1.5">Headline</label>
             <input
               type="text"
               value={headline}
               onChange={(e) => setHeadline(e.target.value)}
               required
-              className="w-full px-3 py-2 rounded-lg bg-[#1B2433] border border-[#263244] text-[#F4F7FB] text-xs focus:outline-none focus:border-teal-500"
+              className="w-full px-3 py-2 rounded-lg bg-white border border-[#E5EAF0] text-[#172033] text-xs focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-500"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#98A5B7] mb-1">Subheadline</label>
+            <label className="block text-xs font-semibold text-[#172033] mb-1.5">Subheadline</label>
             <textarea
               value={subheadline}
               onChange={(e) => setSubheadline(e.target.value)}
               rows={2}
               required
-              className="w-full px-3 py-2 rounded-lg bg-[#1B2433] border border-[#263244] text-[#F4F7FB] text-xs focus:outline-none focus:border-teal-500 resize-none"
+              className="w-full px-3 py-2 rounded-lg bg-white border border-[#E5EAF0] text-[#172033] text-xs focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-500 resize-none"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-[#98A5B7] mb-1">Primary CTA Button</label>
+            <label className="block text-xs font-semibold text-[#172033] mb-1.5">Primary CTA Button</label>
             <input
               type="text"
               value={ctaText}
               onChange={(e) => setCtaText(e.target.value)}
               required
-              className="w-full px-3 py-2 rounded-lg bg-[#1B2433] border border-[#263244] text-[#F4F7FB] text-xs focus:outline-none focus:border-teal-500"
+              className="w-full px-3 py-2 rounded-lg bg-white border border-[#E5EAF0] text-[#172033] text-xs focus:outline-none focus:ring-2 focus:ring-violet-200 focus:border-violet-500"
             />
           </div>
 
-          <div className="p-3 rounded-lg bg-[#1B2433] border border-[#263244] text-[11px] text-[#98A5B7]">
-            💡 <strong className="text-purple-300">Conflict Generation Demo:</strong> Saving this will increment hero to v{currentVersion + 1}. Any pending older proposal from PIXEL based on v{currentVersion} will automatically be detected as a conflict!
+          <div className="p-3.5 rounded-xl bg-violet-50/70 border border-violet-100 text-xs text-violet-900 leading-relaxed">
+            💡 <strong className="text-violet-800">Human vs. Agent Conflict Demonstration:</strong> Saving this directly advances the Hero section to v{currentVersion + 1}. Any older pending proposal from PIXEL based on v{currentVersion} will automatically trigger a section conflict.
           </div>
 
-          <div className="flex items-center justify-end space-x-3 pt-2">
+          <div className="flex items-center justify-end space-x-3 pt-3 border-t border-[#E5EAF0]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-xs font-medium text-[#98A5B7] hover:bg-[#1B2433]"
+              className="px-4 py-2 rounded-lg text-xs font-medium text-[#657189] hover:text-[#172033] hover:bg-slate-100 transition cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting}
-              className="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-medium text-xs shadow-md transition disabled:opacity-50"
+              className="px-4 py-2 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-semibold text-xs shadow-xs transition disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? 'Saving...' : 'Save Manual Edit'}
             </button>

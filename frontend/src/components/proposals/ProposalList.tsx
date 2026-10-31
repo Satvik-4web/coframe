@@ -7,7 +7,6 @@ import {
   approveProposal,
   rejectProposal,
   reconcileProposal,
-  editArtifactSection,
   publishApprovedProposal,
 } from '../../lib/api';
 import { GitPullRequest, Filter, Sparkles, AlertCircle } from 'lucide-react';
@@ -36,6 +35,10 @@ export const ProposalList: React.FC<ProposalListProps> = ({
     if (filter === 'approved') return p.status === 'approved';
     return true;
   });
+
+  const pendingCount = proposals.filter((p) => p.status === 'pending_review').length;
+  const attentionCount = proposals.filter((p) => p.status === 'stale' || p.status === 'conflict').length;
+  const approvedCount = proposals.filter((p) => p.status === 'approved').length;
 
   const handleApprove = async (proposalId: string) => {
     setActionError(null);
@@ -68,7 +71,6 @@ export const ProposalList: React.FC<ProposalListProps> = ({
   };
 
   const handleKeepHumanVersion = async (proposal: Proposal) => {
-    // Rejects conflicted proposal, keeping Maya's version intact
     await handleReject(proposal.proposal_id);
     setConflictedProposal(null);
   };
@@ -84,67 +86,74 @@ export const ProposalList: React.FC<ProposalListProps> = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* Top Filter Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#151B29] border border-[#263244] p-3 rounded-xl">
-        <div className="flex items-center space-x-2">
-          <GitPullRequest className="w-4 h-4 text-teal-400" />
-          <h2 className="text-xs font-bold text-[#F4F7FB] uppercase tracking-wider">
-            Agent Proposals ({proposals.length})
-          </h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white border border-[#E5EAF0] p-4 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+        <div className="flex items-center space-x-2.5">
+          <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 flex items-center justify-center">
+            <GitPullRequest className="w-4 h-4 text-teal-600" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-[#172033] tracking-tight">
+              Agent Proposals ({proposals.length})
+            </h2>
+            <p className="text-xs text-[#657189]">
+              Contributions created by NOVA and PIXEL awaiting human review
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center space-x-1.5 text-xs">
+        <div className="flex items-center space-x-1.5 text-xs overflow-x-auto pb-1 sm:pb-0">
           <button
             onClick={() => setFilter('all')}
-            className={`px-2.5 py-1 rounded-md transition ${
+            className={`px-3 py-1.5 rounded-lg transition font-medium cursor-pointer ${
               filter === 'all'
-                ? 'bg-[#1B2433] text-[#F4F7FB] border border-[#263244] font-semibold'
-                : 'text-[#98A5B7] hover:text-[#F4F7FB]'
+                ? 'bg-slate-100 text-[#172033] font-semibold'
+                : 'text-[#657189] hover:text-[#172033] hover:bg-slate-50'
             }`}
           >
             All ({proposals.length})
           </button>
           <button
             onClick={() => setFilter('pending')}
-            className={`px-2.5 py-1 rounded-md transition ${
+            className={`px-3 py-1.5 rounded-lg transition font-medium cursor-pointer ${
               filter === 'pending'
-                ? 'bg-amber-950/40 text-amber-300 border border-amber-800/40 font-semibold'
-                : 'text-[#98A5B7] hover:text-[#F4F7FB]'
+                ? 'bg-blue-50 text-blue-700 border border-blue-200 font-semibold'
+                : 'text-[#657189] hover:text-[#172033] hover:bg-slate-50'
             }`}
           >
-            Pending ({proposals.filter((p) => p.status === 'pending_review').length})
+            Needs Review ({pendingCount})
           </button>
           <button
             onClick={() => setFilter('attention')}
-            className={`px-2.5 py-1 rounded-md transition ${
+            className={`px-3 py-1.5 rounded-lg transition font-medium cursor-pointer ${
               filter === 'attention'
-                ? 'bg-red-950/40 text-red-300 border border-red-800/40 font-semibold'
-                : 'text-[#98A5B7] hover:text-[#F4F7FB]'
+                ? 'bg-amber-50 text-amber-800 border border-amber-200 font-semibold'
+                : 'text-[#657189] hover:text-[#172033] hover:bg-slate-50'
             }`}
           >
-            Stale & Conflict ({proposals.filter((p) => p.status === 'stale' || p.status === 'conflict').length})
+            Outdated & Conflicts ({attentionCount})
           </button>
           <button
             onClick={() => setFilter('approved')}
-            className={`px-2.5 py-1 rounded-md transition ${
+            className={`px-3 py-1.5 rounded-lg transition font-medium cursor-pointer ${
               filter === 'approved'
-                ? 'bg-emerald-950/40 text-emerald-300 border border-emerald-800/40 font-semibold'
-                : 'text-[#98A5B7] hover:text-[#F4F7FB]'
+                ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold'
+                : 'text-[#657189] hover:text-[#172033] hover:bg-slate-50'
             }`}
           >
-            Approved ({proposals.filter((p) => p.status === 'approved').length})
+            Approved ({approvedCount})
           </button>
         </div>
       </div>
 
       {actionError && (
-        <div className="p-3 rounded-lg bg-red-950/40 border border-red-800/50 text-red-200 text-xs flex items-center justify-between">
+        <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
+            <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
             <span>{actionError}</span>
           </div>
-          <button onClick={() => setActionError(null)} className="text-red-400 hover:text-red-200 text-xs font-bold">
+          <button onClick={() => setActionError(null)} className="text-red-600 hover:text-red-900 text-xs font-bold cursor-pointer">
             Dismiss
           </button>
         </div>
@@ -152,11 +161,11 @@ export const ProposalList: React.FC<ProposalListProps> = ({
 
       {/* Proposal Cards List */}
       {filteredProposals.length === 0 ? (
-        <div className="text-center py-12 bg-[#151B29] border border-[#263244] rounded-xl p-8">
-          <GitPullRequest className="w-8 h-8 text-[#98A5B7] mx-auto mb-2 opacity-50" />
-          <h3 className="text-sm font-bold text-[#F4F7FB]">No proposals in this filter</h3>
-          <p className="text-xs text-[#98A5B7] mt-1 max-w-sm mx-auto">
-            Click 'Start Collaboration' in the workspace or stepper to dispatch NOVA and PIXEL agent runs.
+        <div className="text-center py-16 bg-white border border-[#E5EAF0] rounded-2xl p-8 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+          <GitPullRequest className="w-10 h-10 text-[#657189] mx-auto mb-3 opacity-40" />
+          <h3 className="text-sm font-bold text-[#172033]">No proposals in this view</h3>
+          <p className="text-xs text-[#657189] mt-1 max-w-sm mx-auto">
+            Click 'Start Collaboration (Run Agents)' from the workspace or use the guided demo assistant to dispatch NOVA and PIXEL.
           </p>
         </div>
       ) : (

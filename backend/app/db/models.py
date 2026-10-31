@@ -10,6 +10,7 @@ from sqlalchemy import (
     JSON,
     ForeignKey,
     Index,
+    Float,
 )
 from backend.app.db.database import Base
 
@@ -105,6 +106,7 @@ class AgentRunModel(Base):
     base_artifact_version = Column(Integer, nullable=False)
     last_checkpoint = Column(JSON, nullable=True)
     source = Column(String(32), default="live_llm", nullable=False)
+    prune_metadata = Column(JSON, nullable=True)
     started_at = Column(String(64), default=utcnow_str, nullable=False)
     completed_at = Column(String(64), nullable=True)
 
@@ -132,6 +134,7 @@ class ProposalModel(Base):
     conflict_reason = Column(Text, nullable=True)
     source = Column(String(32), default="live_llm", nullable=False)
     is_simulated = Column(Boolean, default=False, nullable=False)
+    prune_metadata = Column(JSON, nullable=True)
     created_at = Column(String(64), default=utcnow_str, nullable=False)
     updated_at = Column(String(64), default=utcnow_str, nullable=False)
 
@@ -210,3 +213,30 @@ class GitHubSyncJobModel(Base):
     __table_args__ = (
         Index("idx_sync_proj_status", "project_id", "status"),
     )
+
+
+class PruneReceiptModel(Base):
+    __tablename__ = "prune_receipts"
+
+    id = Column(String(64), primary_key=True)
+    project_id = Column(String(64), nullable=True, index=True)
+    prompt_hash = Column(String(64), nullable=True, index=True)
+    cache_hit = Column(Boolean, default=False, nullable=False)
+    tokens_prompt = Column(Integer, default=0, nullable=False)
+    tokens_completion = Column(Integer, default=0, nullable=False)
+    tokens_cached = Column(Integer, default=0, nullable=False)
+    cost_usd = Column(Float, default=0.0, nullable=False)
+    cost_saved_usd = Column(Float, default=0.0, nullable=False)
+    model = Column(String(64), nullable=False)
+    shield_status = Column(String(32), default="passed", nullable=False)
+    shield_violation = Column(String(64), nullable=True)
+    shield_reason = Column(Text, nullable=True)
+    signature = Column(Text, nullable=False)
+    public_key = Column(Text, nullable=False)
+    receipt_data = Column(JSON, nullable=False)
+    created_at = Column(String(64), default=utcnow_str, nullable=False)
+
+    __table_args__ = (
+        Index("idx_prune_proj_created", "project_id", "created_at"),
+    )
+

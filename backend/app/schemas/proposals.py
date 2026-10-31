@@ -33,6 +33,7 @@ class ProposalRecord(BaseModel):
     conflict_reason: Optional[str] = None
     source: str = "live_llm"  # "live_llm" | "cached_fallback"
     is_simulated: bool = False
+    prune_metadata: Optional[Dict[str, Any]] = None
     created_at: str
     updated_at: str
 

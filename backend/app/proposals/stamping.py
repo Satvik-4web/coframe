@@ -20,6 +20,7 @@ def stamp_and_persist_proposal(
     source: str = "live_llm",
     is_simulated: bool = False,
     supersedes_proposal_id: Optional[str] = None,
+    prune_metadata: Optional[Dict[str, Any]] = None,
 ) -> ProposalModel:
     """
     Stamps authoritative backend metadata onto agent-produced content
@@ -56,6 +57,22 @@ def stamp_and_persist_proposal(
     # Generate stable backend ID
     proposal_id = f"prop_{uuid.uuid4().hex[:8]}"
 
+    # Ensure authentic Ed25519-signed Prune receipt is attached
+    if not prune_metadata:
+        try:
+            from backend.app.prune import create_prune_receipt
+            prune_metadata = create_prune_receipt(
+                system_prompt=f"System directive for {run.agent_id}",
+                user_prompt=run.task_description,
+                data=raw_output,
+                model="gemini-2.5-flash",
+                source=source,
+                is_simulated=is_simulated,
+                cache_hit=(source == "cached_fallback"),
+            )
+        except Exception:
+            prune_metadata = None
+
     # 8. Create proposal record
     proposal = ProposalModel(
         id=proposal_id,
@@ -78,13 +95,15 @@ def stamp_and_persist_proposal(
         conflict_reason=None,
         source=source,
         is_simulated=is_simulated,
+        prune_metadata=prune_metadata,
         created_at=utcnow_str(),
         updated_at=utcnow_str(),
     )
     db.add(proposal)
 
-    # Update run status
+    # Update run status & Prune receipt
     run.status = "waiting_for_review"
+    run.prune_metadata = prune_metadata
     run.completed_at = utcnow_str()
 
     db.commit()

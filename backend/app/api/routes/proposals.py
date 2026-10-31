@@ -48,6 +48,7 @@ async def list_proposals(project_id: str, db: Session = Depends(get_db)):
             "conflict_reason": p.conflict_reason,
             "source": p.source,
             "is_simulated": p.is_simulated,
+            "prune_metadata": getattr(p, "prune_metadata", None),
             "created_at": p.created_at,
             "updated_at": p.updated_at,
         }
@@ -85,6 +86,7 @@ async def get_proposal(project_id: str, proposal_id: str, db: Session = Depends(
         "conflict_reason": p.conflict_reason,
         "source": p.source,
         "is_simulated": p.is_simulated,
+        "prune_metadata": getattr(p, "prune_metadata", None),
         "created_at": p.created_at,
         "updated_at": p.updated_at,
     }

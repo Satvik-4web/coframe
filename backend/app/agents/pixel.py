@@ -45,12 +45,15 @@ async def run_pixel_initial(db: Session, project_id: str) -> List[ProposalModel]
     raw_c = None
     source_c = "live_llm"
     sim_c = False
+    prune_meta_c = None
     try:
-        raw_c, source_c, sim_c = await call_llm_json(
+        res_c = await call_llm_json(
             system_prompt=PIXEL_SYSTEM_PROMPT,
             user_prompt=user_prompt,
             timeout=8.0,
         )
+        raw_c, source_c, sim_c = res_c
+        prune_meta_c = getattr(res_c, "prune_metadata", None)
     except Exception as e:
         logger.info(f"PIXEL Proposal C using deterministic fallback: {e}")
         raw_c = FALLBACK_PIXEL_PROPOSAL_C
@@ -64,6 +67,7 @@ async def run_pixel_initial(db: Session, project_id: str) -> List[ProposalModel]
         raw_output=raw_c,
         source=source_c,
         is_simulated=sim_c,
+        prune_metadata=prune_meta_c,
     )
     return [prop_c]
 
@@ -94,12 +98,15 @@ async def run_pixel_approval_policy(db: Session, project_id: str) -> ProposalMod
     raw_output = None
     source = "live_llm"
     is_simulated = False
+    prune_meta = None
     try:
-        raw_output, source, is_simulated = await call_llm_json(
+        res = await call_llm_json(
             system_prompt=PIXEL_SYSTEM_PROMPT,
             user_prompt=user_prompt,
             timeout=8.0,
         )
+        raw_output, source, is_simulated = res
+        prune_meta = getattr(res, "prune_metadata", None)
     except Exception:
         raw_output = FALLBACK_HIGH_IMPACT_APPROVAL_POLICY
         source = "cached_fallback"
@@ -112,6 +119,7 @@ async def run_pixel_approval_policy(db: Session, project_id: str) -> ProposalMod
         raw_output=raw_output,
         source=source,
         is_simulated=is_simulated,
+        prune_metadata=prune_meta,
     )
     return proposal
 
@@ -155,12 +163,15 @@ async def redirect_pixel_proposal(
     raw_output = None
     source = "live_llm"
     is_simulated = False
+    prune_meta = None
     try:
-        raw_output, source, is_simulated = await call_llm_json(
+        res = await call_llm_json(
             system_prompt=PIXEL_SYSTEM_PROMPT,
             user_prompt=user_prompt,
             timeout=8.0,
         )
+        raw_output, source, is_simulated = res
+        prune_meta = getattr(res, "prune_metadata", None)
     except Exception:
         raw_output = FALLBACK_REDIRECTED_PROPOSAL_D
         source = "cached_fallback"
@@ -174,6 +185,7 @@ async def redirect_pixel_proposal(
         source=source,
         is_simulated=is_simulated,
         supersedes_proposal_id=original_proposal_id,
+        prune_metadata=prune_meta,
     )
 
     # Mark original proposal as superseded/redirected

@@ -1,6 +1,6 @@
 import React from 'react';
 import { HumanIdentity } from '../../types';
-import { Shield, Sparkles, User, CheckCircle2 } from 'lucide-react';
+import { Sparkles, ArrowRight, Users, Shield, Layers } from 'lucide-react';
 
 interface IdentityPickerProps {
   onSelect: (id: HumanIdentity) => void;
@@ -8,72 +8,94 @@ interface IdentityPickerProps {
 
 export const IdentityPicker: React.FC<IdentityPickerProps> = ({ onSelect }) => {
   return (
-    <div className="fixed inset-0 bg-[#0B1020]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-      <div className="bg-[#151B29] border border-[#263244] rounded-2xl max-w-lg w-full p-8 shadow-2xl relative overflow-hidden">
-        {/* Glow decoration */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-violet-600/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-teal-600/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="fixed inset-0 bg-[#F6F8FB] z-50 flex items-center justify-center p-6 overflow-y-auto">
+      <div className="bg-white border border-[#E5EAF0] rounded-2xl max-w-2xl w-full p-8 md:p-10 shadow-xl relative overflow-hidden">
+        {/* Subtle accent bar */}
+        <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-teal-500 via-blue-500 to-violet-500" />
 
-        <div className="text-center mb-6">
-          <div className="inline-flex p-3 rounded-xl bg-[#1B2433] border border-[#263244] text-teal-400 mb-3 shadow-inner">
-            <Sparkles className="w-6 h-6" />
+        {/* Heading */}
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold mb-3">
+            <Sparkles className="w-3.5 h-3.5 text-teal-600" />
+            <span>Human + AI Collaborative Workspace</span>
           </div>
-          <h2 className="text-xl font-bold text-[#F4F7FB]">Choose Your Demo Identity</h2>
-          <p className="text-xs text-[#98A5B7] mt-1 max-w-sm mx-auto">
-            COFRAME multiplayer session: Alex and Maya collaborate with AI agents NOVA and PIXEL on LedgerFlow.
+          <h1 className="text-2xl md:text-3xl font-bold text-[#172033] tracking-tight">
+            Welcome to COFRAME
+          </h1>
+          <p className="text-sm text-[#657189] mt-2 max-w-md mx-auto">
+            Choose Your Demo Identity to enter the shared LedgerFlow workspace alongside AI agents NOVA and PIXEL.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-          {/* Option 1: Alex */}
-          <button
-            onClick={() => onSelect('alex')}
-            className="group p-5 rounded-xl bg-[#1B2433] hover:bg-[#202B3D] border border-[#263244] hover:border-blue-500/60 text-left transition relative flex flex-col justify-between"
-          >
+        {/* Role Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
+          {/* Card 1: Alex */}
+          <div className="p-6 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-blue-400 hover:shadow-md transition-all duration-200 flex flex-col justify-between group">
             <div>
-              <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-blue-400 border border-blue-500/30 flex items-center justify-center font-bold text-lg mb-3">
+              <div className="w-12 h-12 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-lg mb-4 shadow-sm">
                 A
               </div>
-              <h3 className="font-bold text-[#F4F7FB] text-base group-hover:text-blue-400 transition">
-                Alex
-              </h3>
-              <p className="text-xs font-semibold text-blue-400/90 mt-0.5">Founder & Decision Owner</p>
-              <p className="text-[11px] text-[#98A5B7] mt-2 leading-relaxed">
-                Edits product strategy requirements, reviews enterprise policies, and holds exclusive authority over high-impact approvals.
+              <div className="flex items-center space-x-2">
+                <h3 className="font-bold text-[#172033] text-lg">Alex</h3>
+                <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                  Founder
+                </span>
+              </div>
+              <p className="text-xs font-medium text-[#657189] mt-1">Decision Owner</p>
+              <p className="text-sm text-[#475569] mt-3 leading-relaxed">
+                Owns high-level product strategy, refines enterprise requirements, and holds exclusive signoff authority on high-impact proposals.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-[#263244] flex items-center text-xs text-blue-400 font-medium">
-              <span>Join as Alex</span>
-              <span className="ml-1 group-hover:translate-x-1 transition">→</span>
-            </div>
-          </button>
 
-          {/* Option 2: Maya */}
-          <button
-            onClick={() => onSelect('maya')}
-            className="group p-5 rounded-xl bg-[#1B2433] hover:bg-[#202B3D] border border-[#263244] hover:border-purple-500/60 text-left transition relative flex flex-col justify-between"
-          >
+            <div className="mt-6 pt-4 border-t border-[#E2E8F0]">
+              <button
+                onClick={() => onSelect('alex')}
+                className="w-full py-2.5 px-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition flex items-center justify-center space-x-2 shadow-sm group-hover:shadow"
+              >
+                <span>Join as Alex</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+              </button>
+            </div>
+          </div>
+
+          {/* Card 2: Maya */}
+          <div className="p-6 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] hover:border-violet-400 hover:shadow-md transition-all duration-200 flex flex-col justify-between group">
             <div>
-              <div className="w-10 h-10 rounded-xl bg-purple-500/20 text-purple-400 border border-purple-500/30 flex items-center justify-center font-bold text-lg mb-3">
+              <div className="w-12 h-12 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center font-bold text-lg mb-4 shadow-sm">
                 M
               </div>
-              <h3 className="font-bold text-[#F4F7FB] text-base group-hover:text-purple-400 transition">
-                Maya
-              </h3>
-              <p className="text-xs font-semibold text-purple-400/90 mt-0.5">Product Designer</p>
-              <p className="text-[11px] text-[#98A5B7] mt-2 leading-relaxed">
-                Directly crafts prototype sections, reviews agent visual proposals, resolves conflicts, and redirects agent engineering runs.
+              <div className="flex items-center space-x-2">
+                <h3 className="font-bold text-[#172033] text-lg">Maya</h3>
+                <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-violet-50 text-violet-700 border border-violet-200">
+                  Designer
+                </span>
+              </div>
+              <p className="text-xs font-medium text-[#657189] mt-1">Product Designer</p>
+              <p className="text-sm text-[#475569] mt-3 leading-relaxed">
+                Directly crafts prototype sections, reviews agent proposals, resolves human-agent design conflicts, and redirects PIXEL runs.
               </p>
             </div>
-            <div className="mt-4 pt-3 border-t border-[#263244] flex items-center text-xs text-purple-400 font-medium">
-              <span>Join as Maya</span>
-              <span className="ml-1 group-hover:translate-x-1 transition">→</span>
+
+            <div className="mt-6 pt-4 border-t border-[#E2E8F0]">
+              <button
+                onClick={() => onSelect('maya')}
+                className="w-full py-2.5 px-4 rounded-lg bg-violet-600 hover:bg-violet-700 text-white font-semibold text-sm transition flex items-center justify-center space-x-2 shadow-sm group-hover:shadow"
+              >
+                <span>Join as Maya</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition" />
+              </button>
             </div>
-          </button>
+          </div>
         </div>
 
-        <div className="text-center text-[11px] text-[#98A5B7]">
-          💡 <span className="font-semibold text-[#F4F7FB]">Multiplayer Tip:</span> Open a second browser window (e.g. Incognito) and select the other identity to see live Realtime presence and synchronized state!
+        {/* Footer Note */}
+        <div className="text-center text-xs text-[#657189] bg-[#F1F5F9] p-3.5 rounded-xl border border-[#E2E8F0] space-y-1">
+          <p className="font-medium text-[#334155]">
+            <span className="font-bold text-teal-700">Multiplayer Demo Environment:</span> These identities simulate two real collaborators.
+          </p>
+          <p className="text-[11px] text-[#64748B]">
+            Open a second browser session (e.g., Chrome Incognito) to experience live synchronized collaboration and realtime presence.
+          </p>
         </div>
       </div>
     </div>

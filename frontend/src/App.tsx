@@ -28,6 +28,7 @@ export function App() {
   const [currentTab, setCurrentTab] = useState<NavigationTab>('workspace');
   const [demoStep, setDemoStep] = useState(1);
   const [isResetting, setIsResetting] = useState(false);
+  const [isDemoGuideOpen, setIsDemoGuideOpen] = useState(true);
 
   const handleReset = async () => {
     if (window.confirm('Reset demo project and LedgerFlow artifact to baseline seed state?')) {
@@ -51,7 +52,7 @@ export function App() {
 
   if (loading && !state) {
     return (
-      <div className="min-h-screen bg-[#0B1020] flex items-center justify-center text-teal-400 font-mono text-sm">
+      <div className="min-h-screen bg-[#F6F8FB] flex items-center justify-center text-teal-600 font-medium text-sm">
         Initializing COFRAME Multiplayer Engine...
       </div>
     );
@@ -64,7 +65,7 @@ export function App() {
   ).length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#0B1020] text-[#F4F7FB] selection:bg-teal-500 selection:text-black">
+    <div className="min-h-screen flex flex-col bg-[#F6F8FB] text-[#172033] font-sans antialiased selection:bg-teal-500 selection:text-white">
       {/* 1. Global Top Navigation */}
       <TopBar
         project={state?.project}
@@ -74,9 +75,11 @@ export function App() {
         onResetDemo={handleReset}
         onSwitchIdentity={() => selectIdentity(null)}
         isResetting={isResetting}
+        onToggleDemoGuide={() => setIsDemoGuideOpen(!isDemoGuideOpen)}
+        isDemoGuideOpen={isDemoGuideOpen}
       />
 
-      {/* 2. Observer Summary Banner (Visible P0 Priority) */}
+      {/* 2. Observer Summary Banner */}
       <ObserverSummaryBanner summary={state?.observer_summary} />
 
       {/* 3. Main Workspace Body (Sidebar + Content Area) */}
@@ -91,8 +94,8 @@ export function App() {
         />
 
         {/* Central Content Panel */}
-        <main className="flex-1 overflow-y-auto p-6 max-w-7xl mx-auto w-full">
-          {/* Interactive Demo Walkthrough Stepper */}
+        <main className="flex-1 overflow-y-auto p-6 lg:p-8 max-w-7xl mx-auto w-full relative">
+          {/* Interactive Demo Walkthrough Stepper (Slide-over drawer) */}
           <DemoGuide
             currentStep={demoStep}
             onSetStep={setDemoStep}
@@ -100,6 +103,8 @@ export function App() {
             proposals={proposals}
             onRefresh={refresh}
             onNavigateTab={setCurrentTab}
+            isOpen={isDemoGuideOpen}
+            onClose={() => setIsDemoGuideOpen(false)}
           />
 
           {/* Active View Tab */}
