@@ -111,3 +111,25 @@ class ProposalStatsResponse(BaseModel):
     recently_applied: int
     total: int
     by_contributor: Dict[str, int]
+
+
+class PlanApproveRequest(BaseModel):
+    decided_by: str = "alex"
+    note: Optional[str] = "Implementation plan approved. Proceed to execution environment selection."
+
+
+class PlanExecuteRequest(BaseModel):
+    execution_mode: str = "pixel_in_app"  # "connected_ide" | "pixel_in_app"
+    environment_id: str = "pixel_sandbox"  # "antigravity_ide" | "pixel_sandbox" | "cursor"
+    initiated_by: str = "alex"
+    instructions: Optional[str] = None
+
+
+class ExecutionEnvironmentResponse(BaseModel):
+    id: str
+    name: str
+    mode: str  # "connected_ide" | "pixel_in_app"
+    is_connected: bool
+    status: str
+    description: str
+    capabilities: List[str]

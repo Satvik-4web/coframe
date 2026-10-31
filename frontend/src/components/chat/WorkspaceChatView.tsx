@@ -573,38 +573,40 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
                     {/* Embedded Linked Proposal Card if attached */}
                     {(msg.related_proposal_id || msg.related_proposal) && (
-                      <div className="mt-3 p-3 rounded-xl bg-gradient-to-r from-slate-50 to-[#F8FAFC] border border-[#E2E8F0] shadow-2xs space-y-2">
+                      <div className="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-teal-950/40 via-[#0B1E28]/50 to-[#0A1626]/60 border border-teal-500/30 shadow-lg space-y-2.5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="p-1 rounded-lg bg-teal-100/70 border border-teal-200">
-                              <GitPullRequest className="w-3.5 h-3.5 text-teal-700" />
+                            <span className="p-1.5 rounded-lg bg-teal-500/20 border border-teal-500/40 animate-pulse">
+                              <Sparkles className="w-3.5 h-3.5 text-teal-400" />
                             </span>
-                            <span className="text-[11px] font-bold text-[#0F172A]">
-                              Actionable Proposal
+                            <span className="text-xs font-bold text-teal-200 tracking-wide uppercase">
+                              {msg.related_proposal?.proposal_type === 'prd_requirement'
+                                ? 'Formal Product Requirements Document (PRD)'
+                                : 'Actionable Proposal'}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
-                            {msg.related_proposal?.status || 'PENDING REVIEW'}
+                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            {msg.related_proposal?.status || 'AWAITING CONFIRMATION'}
                           </span>
                         </div>
 
-                        <p className="text-xs text-[#334155] font-medium">
+                        <p className="text-xs text-slate-200 font-semibold leading-relaxed">
                           {msg.related_proposal?.summary ||
                             `Proposal #${(msg.related_proposal_id || '').slice(-6)}`}
                         </p>
 
-                        <div className="flex items-center justify-between pt-1">
-                          <span className="text-[10px] text-[#64748B]">
-                            Author: <strong className="text-[#334155]">{msg.related_proposal?.author || msg.sender_name}</strong>
+                        <div className="flex items-center justify-between pt-1 border-t border-slate-700/50">
+                          <span className="text-[11px] text-slate-400">
+                            Author: <strong className="text-slate-200">{msg.related_proposal?.author || msg.sender_name}</strong>
                           </span>
                           <button
                             onClick={() =>
                               onNavigateTab('proposals', msg.related_proposal_id || msg.related_proposal?.id)
                             }
-                            className="text-xs font-bold text-teal-700 hover:text-teal-800 flex items-center gap-1 cursor-pointer hover:underline"
+                            className="px-3 py-1.5 rounded-lg bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition shadow-sm cursor-pointer"
                           >
-                            <span>View Proposal</span>
-                            <ArrowRight className="w-3 h-3" />
+                            <span>View PRD in Proposals</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
                           </button>
                         </div>
                       </div>

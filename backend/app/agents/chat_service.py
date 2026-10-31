@@ -196,45 +196,46 @@ def _detect_ambiguity(message: str) -> bool:
 
 def _should_create_proposal(user_message: str, raw_output: Dict[str, Any], agent_id: str) -> bool:
     """
-    Separates general conversational questions from explicit proposal actions.
-    Proposals are created if:
-    1. The user explicitly requests a proposal/PRD/implementation/improvement.
-    2. The LLM output provides complete PRD data or concrete operations
-       AND the user message is NOT a pure informational/exploratory question ('how should we', 'what do you think', etc.).
+    Determines whether a proposal (PRD for NOVA or Implementation Plan for PIXEL) should be created.
+    - If force_proposal is set by the agent intelligence, creates proposal.
+    - For NOVA: Any non-ambiguous product idea, feature request, or policy/functional question
+      creates a formal Product Requirements Document (PRD) proposal for human confirmation.
+      Only bare ambiguous acronyms without context (e.g. standalone 'SAI') remain in clarification mode.
+    - For PIXEL: Only creates proposal when operations/target_sections are provided and not blocked.
     """
     m_lower = user_message.lower().strip()
 
     if raw_output.get("force_proposal") is True:
         return True
 
-    # Ambiguity gate for NOVA
-    if agent_id == "nova" and _detect_ambiguity(user_message):
-        return False
-
-    # Pure conversational/exploratory questions should NOT create premature proposals
-    is_exploratory_question = any(
-        m_lower.startswith(q) or f" {q}" in m_lower
-        for q in [
-            "how should we", "how do we", "how would we", "what do you think",
-            "can you explain", "what are the options", "tell me about", "what is"
+    # Ambiguity gate for NOVA: If ambiguous acronym without definition, clarify first
+    if agent_id == "nova":
+        if _detect_ambiguity(user_message):
+            return False
+        # If NOVA output has proposal_intent or prd_data, or user introduced a feature/process request
+        if bool(raw_output.get("proposal_intent")) or bool(raw_output.get("prd_data")):
+            return True
+        # If user explicitly asks or introduces a concrete capability
+        explicit_triggers = [
+            "create proposal", "create a proposal", "submit proposal", "submit a proposal",
+            "generate proposal", "generate a proposal", "propose a change", "propose an update",
+            "create prd", "generate prd", "submit prd", "ocr", "receipt", "travel", "policy",
+            "approval", "invoicing", "workflow", "currency", "expense", "feature", "integrate",
+            "how should we", "how do we", "let's build", "let us add", "can we add", "i want"
         ]
-    )
+        if any(t in m_lower for t in explicit_triggers):
+            return True
+        return bool(raw_output.get("target_sections"))
 
-    # Explicit proposal triggers always create proposal if agent supports it
-    explicit_triggers = [
+    # For PIXEL:
+    explicit_pixel = [
         "create proposal", "create a proposal", "submit proposal", "submit a proposal",
         "generate proposal", "generate a proposal", "propose a change", "propose an update",
-        "create prd", "generate prd", "submit prd", "update hero", "update dashboard",
-        "implement this", "apply this change",
+        "update hero", "update dashboard", "implement this", "apply this change",
     ]
-    if any(t in m_lower for t in explicit_triggers):
+    if any(t in m_lower for t in explicit_pixel):
         return bool(raw_output.get("proposal_intent"))
 
-    if is_exploratory_question:
-        # Don't create a proposal for exploratory questions even if LLM defaulted to proposal_intent=True
-        return False
-
-    # Otherwise, if the agent returned proposal_intent with target sections or operations
     return bool(raw_output.get("proposal_intent")) and bool(raw_output.get("target_sections") or raw_output.get("operations"))
 
 
@@ -938,6 +939,7 @@ def serialize_chat_message(m: ChatMessageModel, proposal: Optional[ProposalModel
             "summary": proposal.summary,
             "status": proposal.status,
             "author": proposal.created_by,
+            "proposal_type": proposal.proposal_type,
         }
 
     return {
@@ -1110,17 +1112,78 @@ We should formalize a UX Improvement Brief. Once confirmed, PIXEL can map these 
             "proposal_intent": False,
         }
     else:
+        # Dynamically formulate a formal 11-section PRD for any product improvement / feature / policy request
+        import re
+        clean = message.strip()
+        clean = re.sub(r'^(team|nova|alex|hey|hi)[\s,:]+', '', clean, flags=re.IGNORECASE).strip()
+        clean = re.sub(r'^(how should we handle|how do we handle|how should we structure|can we add|let us add|let\'s add|we need to add|we need|i want to integrate|i want to add|i want to introduce|please add|please build)\s+', '', clean, flags=re.IGNORECASE).strip(' ?.')
+        title_words = [w.capitalize() for w in clean.split()]
+        feature_name = ' '.join(title_words) or 'Product Feature'
+        if len(feature_name) > 60:
+            feature_name = feature_name[:57] + '...'
+
+        prd_title = f"{feature_name} Specification"
+        summary = f"PRD: {feature_name}"
+
         return {
-            "message": f"""### Product Guidance · NOVA
+            "message": f"""### Formal Product Requirements Document · {feature_name}
 
-I've reviewed your request: *"{message}"*.
+I have analyzed your product request: *"{message}"*.
 
-From a product strategy perspective:
-- We should ensure alignment with our current **small business to enterprise** roadmap.
-- Any change that modifies high-level approval limits requires **Alex's approval** to prevent unauthorized context drift.
+I have formulated a comprehensive 11-section PRD for **{feature_name}** in LedgerFlow and created a formal proposal awaiting human confirmation.
 
-Ready to assist you with PRD documentation or requirements synthesis. If you'd like a formal proposal, reply `Create proposal`.""",
-            "proposal_intent": False,
+**Key Strategic Specifications:**
+- **Objective:** Integrate {feature_name.lower()} to enhance financial workflow efficiency and eliminate manual operational bottlenecks.
+- **Target Audience:** Finance Controllers, Operational Managers, and Accounts Payable Specialists.
+- **Core Capabilities:** Automated ingestion, intelligent validation, and tiered policy escalation.
+- **Acceptance Criteria:** Seamless integration into LedgerFlow approval queue with sub-2-second sync and automated executive escalation for amounts > $500.
+
+I have submitted this PRD proposal for review. **PIXEL is waiting for your confirmation in the Proposals tab** before technical implementation begins.""",
+            "proposal_intent": True,
+            "force_proposal": True,
+            "proposal_summary": summary,
+            "target_sections": ["approval_queue", "dashboard", "product_brief"],
+            "affected_requirements": ["REQ_AUDIENCE", "REQ_ROLES"],
+            "prd_data": {
+                "title": prd_title,
+                "objective": f"Formulate, validate, and integrate {feature_name.lower()} into LedgerFlow.",
+                "executive_summary": {
+                    "what_proposed": f"Deploy a production-grade {feature_name.lower()} engine within LedgerFlow.",
+                    "problem_addressed": f"Lack of automated {feature_name.lower()} leads to operational friction, compliance risks, and delayed approvals.",
+                    "target_outcomes": "Reduce manual processing overhead by 80% and enforce real-time governance."
+                },
+                "problem_statement": f"Teams currently face manual processing bottlenecks and policy ambiguities around {feature_name.lower()}.",
+                "target_audience": "Finance Directors, Department Managers, and Expense Submitters",
+                "proposed_solution": f"Automated LedgerFlow integration for {feature_name.lower()} with tiered policy thresholds and executive approval escalation.",
+                "functional_requirements": [
+                    {"id": "FR-1", "title": f"Automated {feature_name} Processing", "description": f"Intelligently process and validate {feature_name.lower()} data entries.", "priority": "High"},
+                    {"id": "FR-2", "title": "Tiered Governance Escalation", "description": "High-value or out-of-policy items route directly to Alex for final approval.", "priority": "High"},
+                    {"id": "FR-3", "title": "Real-Time Metric Synchronization", "description": "Reflect transaction state instantly in LedgerFlow dashboard metrics.", "priority": "Medium"}
+                ],
+                "non_functional_requirements": [
+                    {"id": "NFR-1", "category": "Performance", "requirement": "Processing and verification executes under 2 seconds per item."},
+                    {"id": "NFR-2", "category": "Security & Compliance", "requirement": "Cryptographically auditable and compliant with corporate spend governance standards."}
+                ],
+                "user_stories": [
+                    {"role": "Operational Manager", "action": f"utilize {feature_name.lower()}", "benefit": "my team saves hours of manual entry each cycle.", "text": f"As a Manager, I want {feature_name.lower()} so that expense cycles move faster."},
+                    {"role": "Finance Director", "action": "enforce approval policies", "benefit": "all high-value expenditures are validated before disbursement.", "text": "As a Finance Director, I want high-value items escalated to Alex so that capital is protected."}
+                ],
+                "acceptance_criteria": [
+                    {"id": "AC-1", "req_id": "FR-1", "criterion": f"{feature_name} processes valid inputs with zero schema error.", "measurable": True},
+                    {"id": "AC-2", "req_id": "FR-2", "criterion": "Transactions exceeding $500 ceiling route to Alex with flagged review badge.", "measurable": True}
+                ],
+                "constraints_and_assumptions": [
+                    "Assumes modern browser compatibility and secure REST/WebSocket connectivity.",
+                    "Assumes multi-currency support adhering to LedgerFlow ISO currency standards."
+                ],
+                "dependencies_and_risks": [
+                    "Dependency on LedgerFlow approval queue state machine.",
+                    "Risk: Non-standard formats may require fallback manual verification."
+                ],
+                "open_questions": [
+                    f"Are there department-specific exemption policies for {feature_name.lower()}?"
+                ]
+            }
         }
 
 

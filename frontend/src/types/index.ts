@@ -563,6 +563,7 @@ export interface LinkedProposalSummary {
   summary: string;
   status: string;
   author?: string;
+  proposal_type?: string;
 }
 
 export interface ChatMessage {
