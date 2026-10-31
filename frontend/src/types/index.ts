@@ -661,3 +661,43 @@ export interface ImplementationData {
   known_limitations: string[];
   base_requirements_version?: number;
 }
+
+
+export interface ContextProvenance {
+  source_id: string;
+  source_type: string;
+  project_id: string;
+  version: number;
+  timestamp: string;
+  approval_status: string;
+  retrieval_reason: string;
+  relevance_score: number;
+  scoring_breakdown?: {
+    keyword_score?: number;
+    semantic_score?: number;
+    task_dependency_score?: number;
+    freshness_score?: number;
+    source_reliability?: number;
+    approval_multiplier?: number;
+  };
+}
+
+export interface HistoricalContextItem {
+  source_id: string;
+  source_type: string;
+  key: string;
+  title?: string;
+  value: any;
+  version: number;
+  status: string;
+  timestamp: string;
+  reason_archived?: string;
+  superseded_by_version?: number;
+}
+
+export interface ContextRetrievalMetrics {
+  retrieval_latency_ms: number;
+  estimated_token_count: number;
+  total_candidates_evaluated: number;
+  items_retrieved: number;
+}

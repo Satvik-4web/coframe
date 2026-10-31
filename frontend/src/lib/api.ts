@@ -768,3 +768,40 @@ export async function confirmProposalRequirements(
   }
   return res.json();
 }
+
+
+export async function getRequirementHistory(
+  projectId: string,
+  requirementKey: string
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/requirements/${requirementKey}/history`);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to fetch requirement history');
+  }
+  return res.json();
+}
+
+export async function retrieveContextAdhoc(
+  projectId: string,
+  agentId: string,
+  taskDescription: string,
+  targetSections?: string[],
+  affectedRequirements?: string[]
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/context/retrieve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      agent_id: agentId,
+      task_description: taskDescription,
+      target_sections: targetSections,
+      affected_requirements: affectedRequirements,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to retrieve context');
+  }
+  return res.json();
+}
