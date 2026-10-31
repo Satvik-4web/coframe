@@ -23,6 +23,7 @@ Per the BIOS FORGE Hackathon rules, this matrix transparently details the implem
 | **Trusted Prototype Renderer** | **Functional Fixed React Component Suite** | **100% Functional:** Fixed, secure React components (`LedgerFlowHero`, `LedgerFlowMetricGrid`, `LedgerFlowApprovalQueue`) render approved JSON. No `eval()`, dynamic scripts, or unvetted code execution. | Live interactive rendering on the Product Canvas tab. |
 | **Deterministic Demo Reset** | **Functional Seed Database Reset** | **100% Functional:** `POST /api/demo/reset` wipes and restores baseline requirements, LedgerFlow sections, versions, and events to Step 0 state. | 1-click Reset Demo button in TopBar. |
 | **GitHub Repository Integration** | **Functional Outbox Pattern & Git Database API** | **100% Functional:** Connects to real GitHub repositories via backend Personal Access Token. Exports approved JSON artifacts to isolated branches (`coframe/{agent}-proposal-{id}`), generates atomic commits via Git Database API, and opens reviewable Pull Requests. Failed GitHub operations never roll back approved COFRAME artifact states. | Verified by `backend/tests/test_github_integration.py` (12 tests) and `backend/tests/test_github_api_endpoints.py` (3 tests). |
+| **Prune AI Seatbelt & Cryptographic Receipts** | **Functional Gateway, Exact Caching & Ed25519 Signatures** | **100% Functional:** Direct integration with Prune ([`app.withprune.com`](https://app.withprune.com)) presented at the BIOS V2 Workshop. Enforces Key Vault isolation, Shield prompt injection defense, exact cache with \$0 repeat token cost (~94% cost reduction), and signs every agent proposal with an Ed25519 digital signature. Includes full Slide 4 prompt-to-receipt interactive demo. | Verified by `backend/tests/test_prune_integration.py` (6 tests) and `scripts/prune_workshop_demo.py`. |
 
 ---
 
@@ -44,7 +45,7 @@ COFRAME's target in the 24-hour BIOS FORGE Hackathon scope is the multi-collabor
 
 ## 4. Test Verification Summary
 All capabilities listed above are backed by automated tests:
-- **Pytest Suite:** 32 unit and integration tests passing (`backend/tests/test_backend.py`, `backend/tests/test_api_endpoints.py`, `backend/tests/test_concurrency_and_redirect.py`, `backend/tests/test_github_integration.py`, `backend/tests/test_github_api_endpoints.py`).
+- **Pytest Suite:** 38 unit and integration tests passing (`backend/tests/test_backend.py`, `backend/tests/test_api_endpoints.py`, `backend/tests/test_concurrency_and_redirect.py`, `backend/tests/test_github_integration.py`, `backend/tests/test_github_api_endpoints.py`, `backend/tests/test_prune_integration.py`).
 - **Playwright E2E Suite:** Full 11-stage, two-browser session test (`backend/tests/test_playwright_e2e.py`) executing all 7 demo steps via actual DOM clicks, form fills, and modal interactions.
 - **Verification Runner:** `scripts/verify.ps1` runs dependency checks, frontend build, backend health verification, Pytest, and headless Playwright in an automated pipeline.
 

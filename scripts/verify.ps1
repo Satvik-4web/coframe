@@ -83,10 +83,15 @@ try {
     }
 
     # 5. Run Pytest Test Suite
-    Write-Host "`n[5/6] Running Pytest Unit & Integration Suite (32 tests including GitHub)..." -ForegroundColor Yellow
-    python -m pytest backend/tests/test_backend.py backend/tests/test_api_endpoints.py backend/tests/test_concurrency_and_redirect.py backend/tests/test_github_integration.py backend/tests/test_github_api_endpoints.py -v
+    Write-Host "`n[5/6] Running Pytest Unit & Integration Suite (38 tests including GitHub and Prune)..." -ForegroundColor Yellow
+    python -m pytest backend/tests/test_backend.py backend/tests/test_api_endpoints.py backend/tests/test_concurrency_and_redirect.py backend/tests/test_github_integration.py backend/tests/test_github_api_endpoints.py backend/tests/test_prune_integration.py -v
     if ($LASTEXITCODE -ne 0) { throw "Pytest suite failed." }
-    Write-Host "All 32 Pytest tests PASSED." -ForegroundColor Green
+    Write-Host "All 38 Pytest tests PASSED." -ForegroundColor Green
+
+    # 5b. Run Prune Workshop Prompt-to-Receipt Live Verification
+    Write-Host "`nRunning Prune Workshop Prompt-to-Receipt Verification (BIOS V2)..." -ForegroundColor Yellow
+    python scripts/prune_workshop_demo.py
+    if ($LASTEXITCODE -ne 0) { throw "Prune workshop demo failed." }
 
     # 6. Run Playwright Two-Session Browser E2E Test
     Write-Host "`n[6/6] Running Playwright Headless Two-Session E2E Workflow..." -ForegroundColor Yellow

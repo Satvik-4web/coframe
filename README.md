@@ -46,6 +46,7 @@ Per competition standards, every capability's implementation status is disclosed
 | **Prototype Renderer** | Functional React Components| Fixed React suite (`LedgerFlowHero`, `MetricGrid`, `ApprovalQueue`). No arbitrary eval. |
 | **Deterministic Reset** | Functional Database Seed | `POST /api/demo/reset` restores baseline LedgerFlow artifact in 1 click. |
 | **GitHub Integration** | Functional Outbox & Git DB API | Connects real repositories, creates isolated branches, creates atomic commits via Git Database API, and opens reviewable Pull Requests. |
+| **Prune AI Seatbelt** | Functional Gateway & Ed25519 Receipts | Official BIOS V2 workshop integration: Key Vault (AES-256-GCM), Shield prompt injection defense, exact cache ($0 repeat billing), and Ed25519 signed receipts. |
 
 ---
 
@@ -153,7 +154,27 @@ For full architecture diagrams, token permission requirements, and live demo cho
 
 ---
 
-## 7. Technology Stack
+## 7. Prune AI Seatbelt Integration (Official BIOS V2 Workshop)
+
+COFRAME natively integrates **Prune** ([`app.withprune.com`](https://app.withprune.com)), the AI seatbelt presented by Karanbir Rattan Bhardwaj at BIOS V2:
+
+- **Key Vault (AES-256-GCM):** Upstream provider keys are kept securely out of source code and Git.
+- **Shield Guardrails:** Automatically intercepts prompt injections (`"Ignore previous instructions"`), leaks of API keys, and unredacted PII before requests reach LLMs.
+- **Exact Prompt Caching:** Repeat queries hit the cache at **$0.000000 cost** (100% token savings), achieving up to **~94% cost reduction** vs raw GPT-4o.
+- **Automatic Fallback:** Gracefully retries on backup models (`PRUNE_BACKUP_MODEL`) when primary models face timeouts or rate limits.
+- **Ed25519 Cryptographic Signed Receipts:** Every agent run and proposal is stamped with a verifiable digital signature inspectable directly in the UI.
+
+For complete details and architecture diagrams, see:  
+**[`docs/PRUNE_INTEGRATION.md`](./docs/PRUNE_INTEGRATION.md)**
+
+To run the Slide 4 Prompt-to-Receipt live demo in your terminal:
+```powershell
+python scripts/prune_workshop_demo.py
+```
+
+---
+
+## 8. Technology Stack
 
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS v4, Lucide Icons
 - **Backend:** FastAPI, Python 3.10+, SQLAlchemy 2.0, Pydantic v2

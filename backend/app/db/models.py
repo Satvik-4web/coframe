@@ -4,6 +4,7 @@ from sqlalchemy import (
     Column,
     String,
     Integer,
+    BigInteger,
     Boolean,
     DateTime,
     Text,
@@ -80,17 +81,52 @@ class EventModel(Base):
     id = Column(String(64), primary_key=True, default=lambda: str(uuid.uuid4()))
     sequence_no = Column(Integer, nullable=False, index=True)
     project_id = Column(String(64), ForeignKey("projects.id"), index=True, nullable=False)
+    workspace_id = Column(String(64), nullable=True, index=True)
     actor_type = Column(String(32), nullable=False)  # "human", "agent", "system"
     actor_id = Column(String(64), nullable=False)    # "alex", "maya", "nova", "pixel"
     event_type = Column(String(64), index=True, nullable=False)
+    entity_type = Column(String(64), nullable=True, index=True)
+    entity_id = Column(String(64), nullable=True, index=True)
     context_version = Column(Integer, nullable=False)
     artifact_version = Column(Integer, nullable=False)
     payload = Column(JSON, default=dict, nullable=False)
+    correlation_id = Column(String(64), nullable=True, index=True)
+    causation_id = Column(String(64), nullable=True, index=True)
+    timestamp = Column(BigInteger, nullable=True, index=True)
     created_at = Column(String(64), default=utcnow_str, nullable=False)
 
     __table_args__ = (
         Index("idx_event_proj_seq", "project_id", "sequence_no"),
+        Index("idx_event_corr", "project_id", "correlation_id"),
+        Index("idx_event_entity", "entity_type", "entity_id"),
+        Index("idx_event_type", "project_id", "event_type"),
     )
+
+    def to_envelope(self) -> dict:
+        import datetime
+        ts = self.timestamp
+        if not ts:
+            try:
+                ts = int(datetime.datetime.fromisoformat(self.created_at).timestamp() * 1000)
+            except Exception:
+                ts = int(datetime.datetime.now(datetime.timezone.utc).timestamp() * 1000)
+        return {
+            "event_id": self.id,
+            "workspace_id": self.workspace_id or self.project_id,
+            "event_type": self.event_type,
+            "actor_type": self.actor_type,
+            "actor_id": self.actor_id,
+            "entity_type": self.entity_type,
+            "entity_id": self.entity_id,
+            "payload": self.payload,
+            "context_version": self.context_version,
+            "artifact_version": self.artifact_version,
+            "timestamp": ts,
+            "correlation_id": self.correlation_id,
+            "causation_id": self.causation_id,
+            "created_at": self.created_at,
+            "sequence_no": self.sequence_no,
+        }
 
 
 class AgentRunModel(Base):
@@ -100,6 +136,7 @@ class AgentRunModel(Base):
     project_id = Column(String(64), ForeignKey("projects.id"), index=True, nullable=False)
     agent_id = Column(String(32), index=True, nullable=False)  # "nova", "pixel"
     status = Column(String(32), default="idle", nullable=False)  # "idle", "working", "waiting_for_review", "failed", "offline"
+    lifecycle_state = Column(String(32), default="idle", nullable=False)  # "offline", "idle", "working", "waiting_for_approval", "recovering_context", "failed"
     task_description = Column(Text, nullable=False)
     context_pack = Column(JSON, nullable=False)
     base_context_version = Column(Integer, nullable=False)
@@ -107,6 +144,11 @@ class AgentRunModel(Base):
     last_checkpoint = Column(JSON, nullable=True)
     source = Column(String(32), default="live_llm", nullable=False)
     prune_metadata = Column(JSON, nullable=True)
+    last_heartbeat = Column(String(64), nullable=True)
+    current_task = Column(Text, nullable=True)
+    current_proposal_id = Column(String(64), nullable=True)
+    task_start_time = Column(String(64), nullable=True)
+    last_completed_task = Column(Text, nullable=True)
     started_at = Column(String(64), default=utcnow_str, nullable=False)
     completed_at = Column(String(64), nullable=True)
 
@@ -152,6 +194,83 @@ class DecisionModel(Base):
     decided_by = Column(String(32), nullable=False)  # "alex", "maya"
     note = Column(Text, nullable=True)
     created_at = Column(String(64), default=utcnow_str, nullable=False)
+
+
+class DelegationModel(Base):
+    __tablename__ = "delegations"
+
+    id = Column(String(64), primary_key=True, default=lambda: f"del_{uuid.uuid4().hex[:10]}")
+    project_id = Column(String(64), ForeignKey("projects.id"), index=True, nullable=False)
+    source_agent = Column(String(32), nullable=False, index=True)   # "nova", "pixel"
+    target_agent = Column(String(32), nullable=False, index=True)   # "pixel", "nova"
+    task = Column(Text, nullable=False)
+    scope = Column(Text, nullable=True)
+    acceptance_criteria = Column(JSON, default=list, nullable=False)
+    context_version = Column(Integer, default=1, nullable=False)
+    artifact_version = Column(Integer, default=1, nullable=False)
+    dependencies = Column(JSON, default=list, nullable=False)
+    status = Column(String(32), default="pending", index=True, nullable=False)  # "pending", "in_progress", "completed", "failed", "cancelled"
+    result_proposal_id = Column(String(64), ForeignKey("proposals.id"), nullable=True)
+    feedback = Column(Text, nullable=True)
+    correlation_id = Column(String(64), nullable=True, index=True)
+    created_at = Column(String(64), default=utcnow_str, nullable=False)
+    updated_at = Column(String(64), default=utcnow_str, nullable=False)
+
+    __table_args__ = (
+        Index("idx_del_proj_status", "project_id", "status"),
+        Index("idx_del_agents", "source_agent", "target_agent"),
+    )
+
+
+class ApprovalRequestModel(Base):
+    __tablename__ = "approvals"
+
+    id = Column(String(64), primary_key=True, default=lambda: f"appr_{uuid.uuid4().hex[:10]}")
+    project_id = Column(String(64), ForeignKey("projects.id"), index=True, nullable=False)
+    requested_by = Column(String(64), nullable=False, index=True)   # "nova", "pixel"
+    title = Column(String(255), nullable=False)
+    explanation = Column(Text, nullable=False)
+    escalation_reason = Column(Text, nullable=False)
+    affected_requirements = Column(JSON, default=list, nullable=False)
+    affected_sections = Column(JSON, default=list, nullable=False)
+    expected_impact = Column(String(64), default="high", nullable=False)  # "low", "medium", "high", "critical"
+    assigned_decider_id = Column(String(32), default="alex", nullable=False)  # "alex"
+    proposal_id = Column(String(64), ForeignKey("proposals.id"), nullable=True)
+    status = Column(String(32), default="pending", index=True, nullable=False)  # "pending", "approved", "rejected", "redirected", "clarification_requested"
+    resolved_by = Column(String(32), nullable=True)
+    resolution_note = Column(Text, nullable=True)
+    resolved_at = Column(String(64), nullable=True)
+    correlation_id = Column(String(64), nullable=True, index=True)
+    created_at = Column(String(64), default=utcnow_str, nullable=False)
+    updated_at = Column(String(64), default=utcnow_str, nullable=False)
+
+    __table_args__ = (
+        Index("idx_appr_proj_status", "project_id", "status"),
+        Index("idx_appr_decider", "project_id", "assigned_decider_id"),
+    )
+
+
+class SharedResourceModel(Base):
+    __tablename__ = "resources"
+
+    id = Column(String(64), primary_key=True, default=lambda: f"res_{uuid.uuid4().hex[:10]}")
+    project_id = Column(String(64), ForeignKey("projects.id"), index=True, nullable=False)
+    resource_type = Column(String(64), index=True, nullable=False)  # "prototype", "requirement", "proposal", "event", "file", "version_snapshot"
+    title = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    creator_type = Column(String(32), default="system", nullable=False)  # "human", "agent", "system"
+    creator_id = Column(String(64), nullable=False)
+    data = Column(JSON, default=dict, nullable=False)
+    related_proposal_id = Column(String(64), nullable=True)
+    related_event_id = Column(String(64), nullable=True)
+    artifact_version = Column(Integer, default=1, nullable=False)
+    visibility = Column(String(32), default="workspace", nullable=False)  # "workspace", "restricted"
+    created_at = Column(String(64), default=utcnow_str, nullable=False)
+    updated_at = Column(String(64), default=utcnow_str, nullable=False)
+
+    __table_args__ = (
+        Index("idx_res_proj_type", "project_id", "resource_type"),
+    )
 
 
 class GitHubConnectionModel(Base):

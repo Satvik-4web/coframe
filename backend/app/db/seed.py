@@ -11,6 +11,9 @@ from backend.app.db.models import (
     AgentRunModel,
     ProposalModel,
     DecisionModel,
+    DelegationModel,
+    ApprovalRequestModel,
+    SharedResourceModel,
     GitHubConnectionModel,
     GitHubContributionModel,
     GitHubSyncJobModel,
@@ -20,14 +23,31 @@ from backend.app.db.models import (
 DEMO_PROJECT_ID = "demo-ledgerflow"
 
 
-def init_db():
-    Base.metadata.create_all(bind=engine)
+def init_db(target_engine=None):
+    use_engine = target_engine or engine
+    Base.metadata.create_all(bind=use_engine)
     try:
-        with engine.connect() as conn:
-            for table, col in [("proposals", "prune_metadata"), ("agent_runs", "prune_metadata")]:
+        with use_engine.connect() as conn:
+            columns_to_add = [
+                ("proposals", "prune_metadata", "JSON"),
+                ("agent_runs", "prune_metadata", "JSON"),
+                ("agent_runs", "lifecycle_state", "VARCHAR(32) DEFAULT 'idle'"),
+                ("agent_runs", "last_heartbeat", "VARCHAR(64)"),
+                ("agent_runs", "current_task", "TEXT"),
+                ("agent_runs", "current_proposal_id", "VARCHAR(64)"),
+                ("agent_runs", "task_start_time", "VARCHAR(64)"),
+                ("agent_runs", "last_completed_task", "TEXT"),
+                ("events", "workspace_id", "VARCHAR(64)"),
+                ("events", "entity_type", "VARCHAR(64)"),
+                ("events", "entity_id", "VARCHAR(64)"),
+                ("events", "correlation_id", "VARCHAR(64)"),
+                ("events", "causation_id", "VARCHAR(64)"),
+                ("events", "timestamp", "BIGINT"),
+            ]
+            for table, col, col_type in columns_to_add:
                 cols = [r[1] for r in conn.execute(text(f"PRAGMA table_info({table})")).fetchall()]
                 if col not in cols:
-                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} JSON"))
+                    conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {col} {col_type}"))
                     conn.commit()
     except Exception:
         pass
@@ -35,12 +55,16 @@ def init_db():
 
 def reset_demo_database(db: Session, project_id: str = DEMO_PROJECT_ID):
     """Deterministically wipes and resets the project to the exact baseline defined in the specification."""
-    init_db()
+    init_db(db.get_bind())
 
     # Clear existing demo records
     db.query(GitHubSyncJobModel).filter(GitHubSyncJobModel.project_id == project_id).delete(synchronize_session=False)
     db.query(GitHubContributionModel).filter(GitHubContributionModel.project_id == project_id).delete(synchronize_session=False)
     db.query(GitHubConnectionModel).filter(GitHubConnectionModel.project_id == project_id).delete(synchronize_session=False)
+
+    db.query(DelegationModel).filter(DelegationModel.project_id == project_id).delete(synchronize_session=False)
+    db.query(ApprovalRequestModel).filter(ApprovalRequestModel.project_id == project_id).delete(synchronize_session=False)
+    db.query(SharedResourceModel).filter(SharedResourceModel.project_id == project_id).delete(synchronize_session=False)
 
     db.query(DecisionModel).filter(DecisionModel.proposal_id.in_(
         db.query(ProposalModel.id).filter(ProposalModel.project_id == project_id)
@@ -214,18 +238,100 @@ def reset_demo_database(db: Session, project_id: str = DEMO_PROJECT_ID):
     ]
     db.add_all(sections)
 
-    # 5. Baseline Event
+    # 5. Baseline Agent Presence Runs (NOVA & PIXEL)
+    now_str = utcnow_str()
+    initial_runs = [
+        AgentRunModel(
+            id=f"{project_id}-run-nova-init",
+            project_id=project_id,
+            agent_id="nova",
+            status="idle",
+            lifecycle_state="idle",
+            task_description="Analyze market positioning & requirement dependencies",
+            context_pack={"requirements": [], "sections": {}},
+            base_context_version=1,
+            base_artifact_version=1,
+            source="system_seed",
+            last_heartbeat=now_str,
+            current_task="Awaiting collaborative workflow dispatch",
+            started_at=now_str,
+        ),
+        AgentRunModel(
+            id=f"{project_id}-run-pixel-init",
+            project_id=project_id,
+            agent_id="pixel",
+            status="idle",
+            lifecycle_state="idle",
+            task_description="Evolve LedgerFlow React components & approval queues",
+            context_pack={"requirements": [], "sections": {}},
+            base_context_version=1,
+            base_artifact_version=1,
+            source="system_seed",
+            last_heartbeat=now_str,
+            current_task="Awaiting collaborative workflow dispatch",
+            started_at=now_str,
+        ),
+    ]
+    db.add_all(initial_runs)
+
+    # 6. Baseline Shared Creation Resources
+    resources = [
+        SharedResourceModel(
+            id=f"res-{project_id}-proto-hero",
+            project_id=project_id,
+            resource_type="prototype",
+            title="LedgerFlow Hero Prototype Section",
+            description="Initial customer value proposition and high-converting CTA",
+            creator_type="system",
+            creator_id="system",
+            data=sections[1].data,
+            artifact_version=1,
+            visibility="workspace",
+        ),
+        SharedResourceModel(
+            id=f"res-{project_id}-proto-dashboard",
+            project_id=project_id,
+            resource_type="prototype",
+            title="LedgerFlow Real-time Spend Dashboard",
+            description="Operational telemetry and departmental breakdown matrix",
+            creator_type="system",
+            creator_id="system",
+            data=sections[2].data,
+            artifact_version=1,
+            visibility="workspace",
+        ),
+        SharedResourceModel(
+            id=f"res-{project_id}-proto-queue",
+            project_id=project_id,
+            resource_type="prototype",
+            title="LedgerFlow Governance Approval Queue",
+            description="Spend policy evaluation engine and multi-level manager queue",
+            creator_type="system",
+            creator_id="system",
+            data=sections[3].data,
+            artifact_version=1,
+            visibility="workspace",
+        ),
+    ]
+    db.add_all(resources)
+
+    # 7. Baseline Event
+    now_ms = int(datetime.datetime.now(datetime.timezone.utc).timestamp() * 1000)
     event = EventModel(
-        id=f"evt-{datetime.datetime.now(datetime.timezone.utc).timestamp():.0f}-init",
+        id=f"evt-{now_ms}-init",
         sequence_no=1,
         project_id=project_id,
+        workspace_id=project_id,
         actor_type="system",
         actor_id="system",
-        event_type="PROJECT_INITIALIZED",
+        event_type="workspace.initialized",
+        entity_type="workspace",
+        entity_id=project_id,
         context_version=1,
         artifact_version=1,
-        payload={"message": "COFRAME workspace initialized with LedgerFlow baseline artifact."},
-        created_at=utcnow_str(),
+        payload={"message": "COFRAME workspace initialized with LedgerFlow baseline artifact and OpenAgents architecture capabilities."},
+        timestamp=now_ms,
+        created_at=now_str,
     )
     db.add(event)
 
