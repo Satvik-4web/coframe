@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { AgentRun } from '../../types';
+import { AgentRun, HumanIdentity } from '../../types';
 import { getAgentContextPack, restartAgent } from '../../lib/api';
+import { MCPToolExplorer } from '../mcp/MCPToolExplorer';
 import {
   RotateCcw,
   Cpu,
@@ -15,10 +16,11 @@ import {
 
 interface ContextInspectorProps {
   agentRuns: AgentRun[];
+  identity?: HumanIdentity;
   onRefresh: () => void;
 }
 
-export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, onRefresh }) => {
+export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, identity, onRefresh }) => {
   const [selectedAgent, setSelectedAgent] = useState<'nova' | 'pixel'>('nova');
   const [packData, setPackData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -243,6 +245,11 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ agentRuns, o
           </div>
         </div>
       )}
+
+      {/* 4. OpenAgents Model Context Protocol (MCP) Tools Explorer */}
+      <div className="pt-2">
+        <MCPToolExplorer identity={identity || null} />
+      </div>
     </div>
   );
 };

@@ -2,6 +2,10 @@ import {
   FullProjectState,
   Proposal,
   ObserverSummary,
+  Delegation,
+  ApprovalRequest,
+  SharedResource,
+  MCPToolManifest,
   GitHubConnectionStatus,
   GitHubRepository,
   GitHubBranch,
@@ -329,4 +333,160 @@ export async function verifyPruneReceipt(
   });
   if (!res.ok) throw new Error('Failed to verify Prune receipt');
   return res.json();
+}
+
+
+// ==============================================================================
+// OPENAGENTS CAPABILITIES: DELEGATIONS, APPROVALS, RESOURCES, MCP
+// ==============================================================================
+
+export async function fetchDelegations(projectId: string = 'demo-ledgerflow'): Promise<Delegation[]> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/delegations`);
+  if (!res.ok) throw new Error('Failed to fetch delegations');
+  const data = await res.json();
+  return Array.isArray(data) ? data : (data.delegations || []);
+}
+
+export async function createDelegation(
+  projectId: string,
+  payload: {
+    source_agent: string;
+    target_agent: string;
+    task: string;
+    scope?: string;
+    acceptance_criteria?: string[];
+    dependencies?: string[];
+  }
+): Promise<Delegation> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/delegations`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to create delegation');
+  }
+  const data = await res.json();
+  return data.delegation || data;
+}
+
+export async function triggerDemoDelegation(projectId: string = 'demo-ledgerflow'): Promise<{
+  delegation?: Delegation;
+  pixel_proposal?: any;
+  status: string;
+}> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/delegations/demo-nova-to-pixel`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to trigger agent delegation');
+  }
+  return res.json();
+}
+
+export async function fetchApprovals(projectId: string = 'demo-ledgerflow', status?: string): Promise<ApprovalRequest[]> {
+  const url = status
+    ? `${API_BASE}/projects/${projectId}/approvals?status=${encodeURIComponent(status)}`
+    : `${API_BASE}/projects/${projectId}/approvals`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch approvals');
+  const data = await res.json();
+  return Array.isArray(data) ? data : (data.approvals || []);
+}
+
+export async function resolveApproval(
+  projectId: string,
+  approvalId: string,
+  payload: {
+    decision: 'approved' | 'rejected' | 'redirected';
+    decided_by: string;
+    note?: string;
+  }
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/approvals/${approvalId}/resolve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: payload.decision,
+      decision: payload.decision,
+      decided_by: payload.decided_by,
+      note: payload.note,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to resolve approval request');
+  }
+  return res.json();
+}
+
+export async function fetchResources(
+  projectId: string = 'demo-ledgerflow',
+  resourceType?: string
+): Promise<SharedResource[]> {
+  const url = resourceType
+    ? `${API_BASE}/projects/${projectId}/resources?resource_type=${encodeURIComponent(resourceType)}`
+    : `${API_BASE}/projects/${projectId}/resources`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch resources');
+  const data = await res.json();
+  return Array.isArray(data) ? data : (data.resources || []);
+}
+
+export async function createResource(
+  projectId: string,
+  payload: {
+    resource_type: string;
+    title: string;
+    description?: string;
+    data: Record<string, any>;
+    creator_id: string;
+    creator_type?: 'human' | 'agent' | 'system';
+  }
+): Promise<SharedResource> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/resources`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to create resource');
+  }
+  const data = await res.json();
+  return data.resource || data;
+}
+
+export async function fetchMCPTools(): Promise<MCPToolManifest[]> {
+  const res = await fetch(`${API_BASE}/mcp/tools`);
+  if (!res.ok) throw new Error('Failed to fetch MCP tools');
+  const data = await res.json();
+  return Array.isArray(data) ? data : (data.tools || []);
+}
+
+export async function callMCPTool(
+  toolName: string,
+  toolArgs: Record<string, any>,
+  callerIdentity: string = 'alex',
+  callerType: 'human' | 'agent' | 'system' = 'human',
+  projectId: string = 'demo-ledgerflow'
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/mcp/call`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      project_id: projectId,
+      agent_id: callerIdentity,
+      tool_name: toolName,
+      arguments: toolArgs,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Failed to execute MCP tool ${toolName}`);
+  }
+  const data = await res.json();
+  return data.result !== undefined ? data.result : data;
 }

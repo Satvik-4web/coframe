@@ -106,6 +106,24 @@ def stamp_and_persist_proposal(
     run.prune_metadata = prune_metadata
     run.completed_at = utcnow_str()
 
+    # If proposal requires human decision, create ApprovalRequest escalation
+    if requires_decision and assigned_decider_id:
+        from backend.app.db.models import ApprovalRequestModel
+        approval = ApprovalRequestModel(
+            project_id=project_id,
+            requested_by=run.agent_id,
+            title=f"Sign-off Required: {proposal.summary}",
+            explanation=proposal.reasoning,
+            escalation_reason=f"Proposal targets critical changes ({', '.join(proposal.target_sections)}) and requires owner approval.",
+            affected_requirements=proposal.affected_requirements,
+            affected_sections=proposal.target_sections,
+            expected_impact="high",
+            assigned_decider_id=assigned_decider_id,
+            proposal_id=proposal.id,
+            status="pending",
+        )
+        db.add(approval)
+
     db.commit()
     db.refresh(proposal)
 

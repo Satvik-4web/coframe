@@ -15,6 +15,8 @@ import {
   RotateCcw,
   ArrowRight,
   Shield,
+  ShieldCheck,
+  GitFork,
   Layers,
   Activity,
   Play,
@@ -73,6 +75,46 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     }
   };
 
+  const getLifecycleBadge = (lifecycle?: string, status?: string) => {
+    const s = lifecycle || status || 'idle';
+    switch (s) {
+      case 'working':
+        return (
+          <span className="font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200 flex items-center gap-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-ping" />
+            Working
+          </span>
+        );
+      case 'waiting_for_approval':
+        return (
+          <span className="font-semibold text-amber-800 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+            Awaiting Sign-off
+          </span>
+        );
+      case 'recovering_context':
+        return (
+          <span className="font-semibold text-violet-700 bg-violet-50 px-2 py-0.5 rounded-full border border-violet-200">
+            Recovering Context
+          </span>
+        );
+      case 'failed':
+        return (
+          <span className="font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded-full border border-red-200">
+            Failed
+          </span>
+        );
+      default:
+        return (
+          <span className="font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+            Idle / Ready
+          </span>
+        );
+    }
+  };
+
+  const pendingApprovalsCount = (state.approvals || []).filter((a) => a.status === 'pending').length;
+  const delegationsCount = (state.delegations || []).length;
+  const resourcesCount = (state.resources || []).length;
   const humanName = identity === 'alex' ? 'Alex' : 'Maya';
 
   return (
@@ -290,16 +332,14 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                 </button>
               </div>
 
-              <div className="text-xs space-y-1.5">
+              <div className="text-xs space-y-2">
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-[#657189]">Status</span>
-                  <span className="font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    {novaRun?.status || 'idle'}
-                  </span>
+                  <span className="text-[#657189]">Lifecycle State</span>
+                  {getLifecycleBadge(novaRun?.lifecycle_state, novaRun?.status)}
                 </div>
                 <div className="p-2.5 rounded-lg bg-white border border-violet-100 text-[11px] text-[#657189] leading-relaxed">
                   <span className="font-semibold text-[#172033] block mb-0.5">Current Scope</span>
-                  {novaRun?.task_description || 'Analyze market positioning & requirement dependencies'}
+                  {novaRun?.current_task || novaRun?.task_description || 'Analyze market positioning & requirement dependencies'}
                 </div>
               </div>
             </div>
@@ -327,18 +367,49 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                 </button>
               </div>
 
-              <div className="text-xs space-y-1.5">
+              <div className="text-xs space-y-2">
                 <div className="flex items-center justify-between text-[11px]">
-                  <span className="text-[#657189]">Status</span>
-                  <span className="font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                    {pixelRun?.status || 'idle'}
-                  </span>
+                  <span className="text-[#657189]">Lifecycle State</span>
+                  {getLifecycleBadge(pixelRun?.lifecycle_state, pixelRun?.status)}
                 </div>
                 <div className="p-2.5 rounded-lg bg-white border border-teal-100 text-[11px] text-[#657189] leading-relaxed">
                   <span className="font-semibold text-[#172033] block mb-0.5">Current Scope</span>
-                  {pixelRun?.task_description || 'Evolve LedgerFlow React components & approval queues'}
+                  {pixelRun?.current_task || pixelRun?.task_description || 'Evolve LedgerFlow React components & approval queues'}
                 </div>
               </div>
+            </div>
+
+            {/* OpenAgents Collaboration Quick Links */}
+            <div className="pt-2 border-t border-[#E5EAF0] space-y-2.5">
+              <button
+                onClick={() => onNavigateTab('governance')}
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-amber-50/50 hover:bg-amber-50 border border-amber-100 transition text-left group"
+              >
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-amber-700" />
+                  <div>
+                    <h5 className="text-xs font-bold text-[#172033]">Governance & Handoffs</h5>
+                    <p className="text-[11px] text-[#657189]">
+                      {pendingApprovalsCount} pending sign-off · {delegationsCount} delegations
+                    </p>
+                  </div>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-[#657189] group-hover:text-[#172033] group-hover:translate-x-0.5 transition" />
+              </button>
+
+              <button
+                onClick={() => onNavigateTab('resources')}
+                className="w-full flex items-center justify-between p-3 rounded-xl bg-teal-50/50 hover:bg-teal-50 border border-teal-100 transition text-left group"
+              >
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-teal-700" />
+                  <div>
+                    <h5 className="text-xs font-bold text-[#172033]">Shared Creation Shelf</h5>
+                    <p className="text-[11px] text-[#657189]">{resourcesCount} workspace resources</p>
+                  </div>
+                </div>
+                <ArrowRight className="w-3.5 h-3.5 text-[#657189] group-hover:text-[#172033] group-hover:translate-x-0.5 transition" />
+              </button>
             </div>
           </div>
         </div>

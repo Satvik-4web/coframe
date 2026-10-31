@@ -77,25 +77,25 @@ async def generate_observer_summary(
         etype = latest_event.event_type
         payload = latest_event.payload or {}
 
-        if etype == "PROJECT_INITIALIZED":
+        if etype in ["PROJECT_INITIALIZED", "workspace.initialized"]:
             what_changed = "Demo project reset to clean baseline."
             why = "Reset button triggered deterministic seed state."
             what_happens_next = "Click 'Start Collaboration' to launch NOVA and PIXEL parallel runs."
 
-        elif etype == "HUMAN_REQUIREMENT_EDITED":
+        elif etype in ["HUMAN_REQUIREMENT_EDITED", "requirement.updated"]:
             req_key = payload.get("requirement_key", "REQ_AUDIENCE")
             new_val = payload.get("new_value", "Enterprise finance teams")
             what_changed = f"Requirement '{req_key}' updated to '{new_val}'."
             why = f"{latest_event.actor_id.capitalize()} shifted focus to enterprise workflows."
             what_happens_next = "Dependent proposals marked stale; NOVA will reconcile positioning."
 
-        elif etype == "HUMAN_SECTION_EDITED":
+        elif etype in ["HUMAN_SECTION_EDITED", "artifact.updated"]:
             sec_key = payload.get("section_key", "hero")
             what_changed = f"Manual direct update made to '{sec_key}' section (now v{payload.get('new_version')})."
             why = f"{latest_event.actor_id.capitalize()} refined the prototype directly."
             what_happens_next = "Older agent proposals for this section now show a conflict badge."
 
-        elif etype == "PROPOSAL_SUBMITTED":
+        elif etype in ["PROPOSAL_SUBMITTED", "proposal.created"]:
             summary = payload.get("summary", "")
             agent = payload.get("agent_id", "agent").upper()
             what_changed = f"{agent} submitted proposal: '{summary}'."
@@ -105,26 +105,46 @@ async def generate_observer_summary(
             else:
                 what_happens_next = "Awaiting review and approval by Alex or Maya."
 
-        elif etype == "PROPOSAL_APPROVED":
+        elif etype in ["PROPOSAL_APPROVED", "proposal.approved"]:
             what_changed = f"Approved: '{payload.get('summary', 'Proposal')}'."
             why = f"Reviewed and approved by {payload.get('decided_by', 'human').capitalize()}."
             what_happens_next = f"Artifact advanced to v{payload.get('new_artifact_version')}. Prototype updated."
 
-        elif etype == "PROPOSAL_REDIRECTED":
+        elif etype in ["PROPOSAL_REDIRECTED", "proposal.redirected"]:
             what_changed = f"Human redirected agent: '{payload.get('instruction', '')}'."
             why = f"{payload.get('decided_by', 'Alex').capitalize()} requested modifications before approval."
             what_happens_next = "Agent is generating a linked revised proposal with updated context."
 
-        elif etype == "PROPOSAL_RECONCILED":
+        elif etype in ["PROPOSAL_RECONCILED", "proposal.reconciled"]:
             what_changed = "Stale proposal reconciled with fresh enterprise context."
             why = "Human initiated Reconcile action to adapt to new requirements."
             what_happens_next = "A new linked proposal has been created for review."
 
-        elif etype == "AGENT_RECOVERED":
+        elif etype in ["AGENT_RECOVERED", "context.recovered"]:
             agent = payload.get("agent_id", "NOVA").upper()
             what_changed = f"{agent} restarted and recovered context from persisted state."
             why = "Agent recovered from process restart using the fresh backend Context Pack."
             what_happens_next = f"{agent} resumed idle task stream ready for new assignments."
+
+        elif etype in ["APPROVAL_REQUESTED", "approval.requested"]:
+            what_changed = f"Approval requested: '{payload.get('title', 'High-impact decision')}'."
+            why = payload.get("escalation_reason", "Important product policy change requires owner sign-off.")
+            what_happens_next = f"Awaiting review by {payload.get('assigned_decider_id', 'Alex').capitalize()}."
+
+        elif etype in ["APPROVAL_RESOLVED", "approval.resolved"]:
+            what_changed = f"Approval resolved ({payload.get('status', 'resolved')}): '{payload.get('title', '')}'."
+            why = f"Actioned by {payload.get('resolved_by', 'human').capitalize()}."
+            what_happens_next = "Associated proposal and tasks can proceed."
+
+        elif etype in ["DELEGATION_CREATED", "delegation.created"]:
+            what_changed = f"Agent delegation: {payload.get('source_agent', 'NOVA').upper()} → {payload.get('target_agent', 'PIXEL').upper()}."
+            why = payload.get("task", "Cross-agent task delegation.")
+            what_happens_next = f"{payload.get('target_agent', 'PIXEL').upper()} will engineer proposal."
+
+        elif etype in ["DELEGATION_COMPLETED", "delegation.completed"]:
+            what_changed = f"Delegation completed by {payload.get('target_agent', 'PIXEL').upper()}."
+            why = "Implementation submitted for human review."
+            what_happens_next = "Resulting proposal is ready for approval in workspace."
 
     # Try live LLM summary if provider is configured
     try:

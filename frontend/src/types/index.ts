@@ -159,9 +159,15 @@ export interface AgentRun {
   id: string;
   agent_id: 'nova' | 'pixel';
   status: 'idle' | 'working' | 'waiting_for_review' | 'failed' | 'offline';
+  lifecycle_state?: 'offline' | 'idle' | 'working' | 'waiting_for_approval' | 'recovering_context' | 'failed';
   task_description: string;
   base_context_version: number;
   base_artifact_version: number;
+  current_task?: string | null;
+  current_proposal_id?: string | null;
+  task_start_time?: string | null;
+  last_completed_task?: string | null;
+  last_heartbeat?: string | null;
   source: string;
   started_at: string;
   completed_at?: string | null;
@@ -169,14 +175,76 @@ export interface AgentRun {
 
 export interface EventRecord {
   id: string;
+  event_id?: string;
   sequence_no: number;
+  workspace_id?: string;
   actor_type: 'human' | 'agent' | 'system';
   actor_id: string;
   event_type: string;
+  entity_type?: string;
+  entity_id?: string;
   context_version: number;
   artifact_version: number;
   payload: Record<string, any>;
+  correlation_id?: string | null;
+  causation_id?: string | null;
+  timestamp?: number;
   created_at: string;
+}
+
+export interface Delegation {
+  id: string;
+  source_agent: 'nova' | 'pixel';
+  target_agent: 'nova' | 'pixel';
+  task: string;
+  scope?: string | null;
+  acceptance_criteria: string[];
+  status: 'pending' | 'in_progress' | 'completed' | 'failed' | 'cancelled';
+  result_proposal_id?: string | null;
+  created_at: string;
+}
+
+export interface ApprovalRequest {
+  id: string;
+  requested_by: string;
+  title: string;
+  explanation: string;
+  escalation_reason: string;
+  affected_requirements: string[];
+  affected_sections: string[];
+  expected_impact: 'low' | 'medium' | 'high' | 'critical';
+  assigned_decider_id: string;
+  proposal_id?: string | null;
+  status: 'pending' | 'approved' | 'rejected' | 'redirected' | 'clarification_requested';
+  resolved_by?: string | null;
+  created_at: string;
+}
+
+export interface SharedResource {
+  id: string;
+  resource_type: 'prototype' | 'requirement' | 'proposal' | 'event' | 'file' | 'version_snapshot';
+  title: string;
+  description?: string | null;
+  creator_type: 'human' | 'agent' | 'system';
+  creator_id: string;
+  data: Record<string, any>;
+  related_proposal_id?: string | null;
+  related_event_id?: string | null;
+  artifact_version: number;
+  visibility: 'workspace' | 'restricted';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MCPToolManifest {
+  name: string;
+  description: string;
+  allowed_callers: string[];
+  parameters: {
+    type: string;
+    properties: Record<string, any>;
+    required?: string[];
+  };
 }
 
 export interface ObserverSummary {
@@ -198,6 +266,9 @@ export interface FullProjectState {
   proposals: Proposal[];
   agent_runs: AgentRun[];
   events: EventRecord[];
+  delegations?: Delegation[];
+  approvals?: ApprovalRequest[];
+  resources?: SharedResource[];
   observer_summary: ObserverSummary;
   online_members: string[];
 }

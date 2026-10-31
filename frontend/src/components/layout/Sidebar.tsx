@@ -5,17 +5,28 @@ import {
   Bot,
   GitPullRequest,
   History,
+  ShieldCheck,
+  Layers,
 } from 'lucide-react';
 import { GitHubIcon } from '../github/GitHubIcon';
 import { HumanIdentity } from '../../types';
 
-export type NavigationTab = 'workspace' | 'canvas' | 'proposals' | 'agents' | 'context' | 'github';
+export type NavigationTab =
+  | 'workspace'
+  | 'canvas'
+  | 'proposals'
+  | 'governance'
+  | 'resources'
+  | 'agents'
+  | 'context'
+  | 'github';
 
 interface SidebarProps {
   currentTab: NavigationTab;
   onSelectTab: (tab: NavigationTab) => void;
   pendingProposalsCount: number;
   conflictedProposalsCount: number;
+  pendingApprovalsCount?: number;
   identity: HumanIdentity;
 }
 
@@ -24,6 +35,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectTab,
   pendingProposalsCount,
   conflictedProposalsCount,
+  pendingApprovalsCount = 0,
 }) => {
   const navItems = [
     { id: 'workspace', label: 'Workspace', icon: LayoutDashboard },
@@ -38,7 +50,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ? 'bg-red-100 text-red-800 border border-red-200'
           : 'bg-amber-100 text-amber-800 border border-amber-200',
     },
-    { id: 'agents', label: 'Agent Activity', icon: Bot },
+    {
+      id: 'governance',
+      label: 'Decisions & Delegation',
+      icon: ShieldCheck,
+      badge: pendingApprovalsCount,
+      badgeColor: 'bg-amber-100 text-amber-800 border border-amber-200',
+    },
+    { id: 'resources', label: 'Shared Resources', icon: Layers },
+    { id: 'agents', label: 'Agent Activity & MCP', icon: Bot },
     { id: 'context', label: 'Activity & History', icon: History },
     { id: 'github', label: 'GitHub', icon: GitHubIcon },
   ];

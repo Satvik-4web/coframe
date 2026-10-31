@@ -83,10 +83,10 @@ try {
     }
 
     # 5. Run Pytest Test Suite
-    Write-Host "`n[5/6] Running Pytest Unit & Integration Suite (38 tests including GitHub and Prune)..." -ForegroundColor Yellow
-    python -m pytest backend/tests/test_backend.py backend/tests/test_api_endpoints.py backend/tests/test_concurrency_and_redirect.py backend/tests/test_github_integration.py backend/tests/test_github_api_endpoints.py backend/tests/test_prune_integration.py -v
+    Write-Host "`n[5/6] Running Pytest Unit & Integration Suite (53 tests including OpenAgents, GitHub, and Prune)..." -ForegroundColor Yellow
+    python -m pytest backend/tests/ -v -k "not test_playwright_e2e"
     if ($LASTEXITCODE -ne 0) { throw "Pytest suite failed." }
-    Write-Host "All 38 Pytest tests PASSED." -ForegroundColor Green
+    Write-Host "All 53 Pytest tests PASSED." -ForegroundColor Green
 
     # 5b. Run Prune Workshop Prompt-to-Receipt Live Verification
     Write-Host "`nRunning Prune Workshop Prompt-to-Receipt Verification (BIOS V2)..." -ForegroundColor Yellow

@@ -13,7 +13,11 @@ from backend.app.db.models import (
     ProposalModel,
     AgentRunModel,
     EventModel,
+    DelegationModel,
+    ApprovalRequestModel,
+    SharedResourceModel,
 )
+from backend.app.resources.manager import get_all_workspace_resources
 from backend.app.observer_summary.generator import generate_observer_summary
 from backend.app.websocket.manager import ws_manager
 
@@ -92,9 +96,22 @@ async def get_project_state(project_id: str, db: Session = Depends(get_db)):
         db.query(EventModel)
         .filter(EventModel.project_id == project_id)
         .order_by(EventModel.sequence_no.desc())
-        .limit(20)
+        .limit(30)
         .all()
     )
+    delegations = (
+        db.query(DelegationModel)
+        .filter(DelegationModel.project_id == project_id)
+        .order_by(DelegationModel.created_at.desc())
+        .all()
+    )
+    approvals = (
+        db.query(ApprovalRequestModel)
+        .filter(ApprovalRequestModel.project_id == project_id)
+        .order_by(ApprovalRequestModel.created_at.desc())
+        .all()
+    )
+    resources = get_all_workspace_resources(db, project_id)
     summary = await generate_observer_summary(db, project_id)
 
     return {
@@ -163,9 +180,15 @@ async def get_project_state(project_id: str, db: Session = Depends(get_db)):
                 "id": r.id,
                 "agent_id": r.agent_id,
                 "status": r.status,
+                "lifecycle_state": r.lifecycle_state or r.status or "idle",
                 "task_description": r.task_description,
                 "base_context_version": r.base_context_version,
                 "base_artifact_version": r.base_artifact_version,
+                "current_task": r.current_task,
+                "current_proposal_id": r.current_proposal_id,
+                "task_start_time": r.task_start_time or r.started_at,
+                "last_completed_task": r.last_completed_task,
+                "last_heartbeat": r.last_heartbeat or r.started_at,
                 "source": r.source,
                 "started_at": r.started_at,
                 "completed_at": r.completed_at,
@@ -173,19 +196,42 @@ async def get_project_state(project_id: str, db: Session = Depends(get_db)):
             for r in agent_runs
         ],
         "events": [
-            {
-                "id": e.id,
-                "sequence_no": e.sequence_no,
-                "actor_type": e.actor_type,
-                "actor_id": e.actor_id,
-                "event_type": e.event_type,
-                "context_version": e.context_version,
-                "artifact_version": e.artifact_version,
-                "payload": e.payload,
-                "created_at": e.created_at,
-            }
+            e.to_envelope()
             for e in reversed(events)
         ],
+        "delegations": [
+            {
+                "id": d.id,
+                "source_agent": d.source_agent,
+                "target_agent": d.target_agent,
+                "task": d.task,
+                "scope": d.scope,
+                "acceptance_criteria": d.acceptance_criteria,
+                "status": d.status,
+                "result_proposal_id": d.result_proposal_id,
+                "created_at": d.created_at,
+            }
+            for d in delegations
+        ],
+        "approvals": [
+            {
+                "id": a.id,
+                "requested_by": a.requested_by,
+                "title": a.title,
+                "explanation": a.explanation,
+                "escalation_reason": a.escalation_reason,
+                "affected_requirements": a.affected_requirements,
+                "affected_sections": a.affected_sections,
+                "expected_impact": a.expected_impact,
+                "assigned_decider_id": a.assigned_decider_id,
+                "proposal_id": a.proposal_id,
+                "status": a.status,
+                "resolved_by": a.resolved_by,
+                "created_at": a.created_at,
+            }
+            for a in approvals
+        ],
+        "resources": resources,
         "observer_summary": summary.model_dump(),
         "online_members": list(ws_manager.active_presence.get(project_id, set())),
     }

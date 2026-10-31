@@ -11,6 +11,8 @@ import { ContextInspector } from './components/context-inspector/ContextInspecto
 import { EventTimeline } from './components/event-timeline/EventTimeline';
 import { DemoGuide } from './components/demo-stepper/DemoGuide';
 import { GitHubDashboard } from './components/github/GitHubDashboard';
+import { GovernanceDashboard } from './components/governance/GovernanceDashboard';
+import { SharedCreationShelf } from './components/resources/SharedCreationShelf';
 import { resetDemo } from './lib/api';
 
 export function App() {
@@ -90,6 +92,7 @@ export function App() {
           onSelectTab={setCurrentTab}
           pendingProposalsCount={pendingCount}
           conflictedProposalsCount={conflictedCount}
+          pendingApprovalsCount={(state?.approvals || []).filter((a) => a.status === 'pending').length}
           identity={identity}
         />
 
@@ -136,8 +139,25 @@ export function App() {
             />
           )}
 
+          {currentTab === 'governance' && state && (
+            <GovernanceDashboard
+              approvals={state.approvals || []}
+              delegations={state.delegations || []}
+              identity={identity}
+              onRefresh={refresh}
+            />
+          )}
+
+          {currentTab === 'resources' && state && (
+            <SharedCreationShelf
+              initialResources={state.resources || []}
+              identity={identity}
+              onRefreshProject={refresh}
+            />
+          )}
+
           {currentTab === 'agents' && state && (
-            <ContextInspector agentRuns={state.agent_runs} onRefresh={refresh} />
+            <ContextInspector agentRuns={state.agent_runs} identity={identity} onRefresh={refresh} />
           )}
 
           {currentTab === 'context' && state && (
