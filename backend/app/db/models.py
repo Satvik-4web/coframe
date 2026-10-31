@@ -142,6 +142,10 @@ class AgentRunModel(Base):
     base_context_version = Column(Integer, nullable=False)
     base_artifact_version = Column(Integer, nullable=False)
     last_checkpoint = Column(JSON, nullable=True)
+    completed_work = Column(JSON, default=list, nullable=True)
+    pending_work = Column(JSON, default=list, nullable=True)
+    idempotency_key = Column(String(64), index=True, nullable=True)
+    last_processed_event_seq = Column(Integer, default=0, nullable=False)
     source = Column(String(32), default="live_llm", nullable=False)
     prune_metadata = Column(JSON, nullable=True)
     last_heartbeat = Column(String(64), nullable=True)
@@ -358,4 +362,31 @@ class PruneReceiptModel(Base):
     __table_args__ = (
         Index("idx_prune_proj_created", "project_id", "created_at"),
     )
+
+
+class ExpenseModel(Base):
+    __tablename__ = "expenses"
+
+    id = Column(String(64), primary_key=True, default=lambda: f"exp_{uuid.uuid4().hex[:10]}")
+    project_id = Column(String(64), ForeignKey("projects.id"), index=True, nullable=False)
+    submitted_by = Column(String(64), nullable=False)        # "alex", "maya", "employee"
+    amount = Column(Float, nullable=False)
+    currency = Column(String(8), default="USD", nullable=False)
+    category = Column(String(64), nullable=False)            # "Travel", "Meals", "Software", "Equipment", "Office"
+    description = Column(Text, nullable=False)
+    expense_date = Column(String(64), nullable=False)
+    reference = Column(String(128), nullable=True)
+    status = Column(String(32), default="pending_approval", index=True, nullable=False)  # "pending_approval", "approved", "rejected"
+    threshold_exceeded = Column(Boolean, default=False, nullable=False)
+    decided_by = Column(String(32), nullable=True)           # "alex", "maya"
+    decision_reason = Column(Text, nullable=True)
+    decided_at = Column(String(64), nullable=True)
+    created_at = Column(String(64), default=utcnow_str, nullable=False)
+    updated_at = Column(String(64), default=utcnow_str, nullable=False)
+
+    __table_args__ = (
+        Index("idx_expense_proj_status", "project_id", "status"),
+        Index("idx_expense_category", "project_id", "category"),
+    )
+
 

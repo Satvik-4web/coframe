@@ -138,6 +138,31 @@ async def generate_observer_summary(
 
         elif etype in ["DELEGATION_CREATED", "delegation.created"]:
             what_changed = f"Agent delegation: {payload.get('source_agent', 'NOVA').upper()} → {payload.get('target_agent', 'PIXEL').upper()}."
+            why = payload.get("task", "Multi-agent autonomous collaboration assignment.")
+            what_happens_next = f"{payload.get('target_agent', 'PIXEL').upper()} will generate an implementation proposal."
+
+        elif etype in ["expense.submitted", "EXPENSE_SUBMITTED"]:
+            amount = payload.get("amount", 0)
+            category = payload.get("category", "Expense")
+            what_changed = f"Expense submitted: ${amount:.2f} ({category}) by {latest_event.actor_id.capitalize()}."
+            why = payload.get("description", "Employee business expense submitted into LedgerFlow.")
+            if payload.get("threshold_exceeded"):
+                what_happens_next = "Amount exceeds $500 threshold; requires Alex approval."
+            else:
+                what_happens_next = "Awaiting review and approval by Alex or Maya."
+
+        elif etype in ["expense.approved", "EXPENSE_APPROVED"]:
+            amount = payload.get("amount", 0)
+            what_changed = f"Expense approved: ${amount:.2f} by {payload.get('decided_by', 'manager').capitalize()}."
+            why = payload.get("reason") or "Verified compliant with corporate spending policy."
+            what_happens_next = "Financial dashboard metrics and reimbursement ledger updated."
+
+        elif etype in ["impact.calculated", "IMPACT_ANALYSIS_COMPLETED"]:
+            stale_c = payload.get("stale_count", 0)
+            conflict_c = payload.get("conflict_count", 0)
+            what_changed = f"Smart Impact Engine analyzed {stale_c} stale and {conflict_c} conflicted proposal(s)."
+            why = f"Dependency registry detected updates to {len(payload.get('changed_requirements', []))} requirement(s)."
+            what_happens_next = "Review Attention Required cards or reconcile affected proposals."
             why = payload.get("task", "Cross-agent task delegation.")
             what_happens_next = f"{payload.get('target_agent', 'PIXEL').upper()} will engineer proposal."
 

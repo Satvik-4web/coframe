@@ -4,7 +4,8 @@ import { LedgerFlowHero } from './LedgerFlowHero';
 import { LedgerFlowMetricGrid } from './LedgerFlowMetricGrid';
 import { LedgerFlowApprovalQueue } from './LedgerFlowApprovalQueue';
 import { ManualHeroEditModal } from './ManualHeroEditModal';
-import { Edit3, CheckCircle, Target, Sparkles, AlertCircle, ArrowUpRight, Layers, Palette } from 'lucide-react';
+import { SubmitExpenseModal } from './SubmitExpenseModal';
+import { Edit3, CheckCircle, Target, Sparkles, AlertCircle, ArrowUpRight, Layers, Palette, Plus, Receipt } from 'lucide-react';
 import { updateRequirement } from '../../lib/api';
 
 interface LedgerFlowCanvasProps {
@@ -24,6 +25,7 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'prototype' | 'brief'>('prototype');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [editingAudience, setEditingAudience] = useState(false);
   const [newAudienceVal, setNewAudienceVal] = useState('Enterprise finance teams');
   const [isUpdatingReq, setIsUpdatingReq] = useState(false);
@@ -77,20 +79,31 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
           </button>
         </div>
 
-        <div className="flex items-center space-x-3">
+        <div className="flex items-center space-x-2.5">
           <span className="text-xs text-[#657189] font-medium bg-[#F8FAFC] px-3 py-1.5 rounded-xl border border-[#E7ECF2]">
             Artifact Version: <strong className="text-emerald-700 font-mono">v{artifactVersion}</strong>
           </span>
 
           {activeTab === 'prototype' && (
-            <button
-              onClick={() => setIsEditModalOpen(true)}
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 text-xs font-semibold transition cursor-pointer shadow-2xs"
-              title="Manually edit the Hero section as Maya to demonstrate human-vs-agent conflict"
-            >
-              <Edit3 className="w-3.5 h-3.5" />
-              <span>Manual Edit Hero (Maya)</span>
-            </button>
+            <>
+              <button
+                onClick={() => setIsExpenseModalOpen(true)}
+                className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-semibold transition cursor-pointer shadow-xs"
+                title="Submit a real employee expense into LedgerFlow"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Submit Expense</span>
+              </button>
+
+              <button
+                onClick={() => setIsEditModalOpen(true)}
+                className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 text-xs font-semibold transition cursor-pointer shadow-2xs"
+                title="Manually edit the Hero section as Maya to demonstrate human-vs-agent conflict"
+              >
+                <Edit3 className="w-3.5 h-3.5" />
+                <span>Manual Edit Hero (Maya)</span>
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -125,7 +138,11 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
           <LedgerFlowMetricGrid data={dashboardSection.data as any} version={dashboardSection.version} />
 
           {/* Section 3: Approval Queue */}
-          <LedgerFlowApprovalQueue data={queueSection.data as any} version={queueSection.version} />
+          <LedgerFlowApprovalQueue
+            data={queueSection.data as any}
+            version={queueSection.version}
+            identity={identity}
+          />
         </div>
       )}
 
@@ -219,6 +236,15 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
           currentVersion={heroSection.version}
           initialData={heroSection.data as any}
           onClose={() => setIsEditModalOpen(false)}
+          onSuccess={onRefresh}
+        />
+      )}
+
+      {/* Submit Expense Modal */}
+      {isExpenseModalOpen && (
+        <SubmitExpenseModal
+          identity={identity}
+          onClose={() => setIsExpenseModalOpen(false)}
           onSuccess={onRefresh}
         />
       )}

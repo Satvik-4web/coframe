@@ -490,3 +490,73 @@ export async function callMCPTool(
   const data = await res.json();
   return data.result !== undefined ? data.result : data;
 }
+
+
+// ---------------------------------------------------------------------------
+// LedgerFlow Functional Expense Workflow API
+// ---------------------------------------------------------------------------
+
+export async function fetchExpenses(
+  projectId: string = 'demo-ledgerflow',
+  status?: string,
+  category?: string
+): Promise<{ total: number; expenses: any[]; metrics: any }> {
+  let url = `${API_BASE}/projects/${projectId}/expenses`;
+  const params = new URLSearchParams();
+  if (status) params.append('status', status);
+  if (category) params.append('category', category);
+  if (params.toString()) url += `?${params.toString()}`;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error('Failed to fetch expenses');
+  return res.json();
+}
+
+export async function submitExpense(
+  projectId: string = 'demo-ledgerflow',
+  data: {
+    amount: number;
+    currency?: string;
+    category: string;
+    description: string;
+    expense_date: string;
+    reference?: string;
+    submitted_by?: string;
+  }
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/expenses`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to submit expense');
+  }
+  return res.json();
+}
+
+export async function decideExpense(
+  projectId: string = 'demo-ledgerflow',
+  expenseId: string,
+  decision: 'approved' | 'rejected',
+  decidedBy: string,
+  reason?: string
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/expenses/${expenseId}/decision`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ decision, decided_by: decidedBy, reason }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || `Failed to ${decision} expense`);
+  }
+  return res.json();
+}
+
+export async function fetchExpenseMetrics(projectId: string = 'demo-ledgerflow'): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/expenses/metrics`);
+  if (!res.ok) throw new Error('Failed to fetch expense metrics');
+  return res.json();
+}

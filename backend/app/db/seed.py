@@ -17,6 +17,7 @@ from backend.app.db.models import (
     GitHubConnectionModel,
     GitHubContributionModel,
     GitHubSyncJobModel,
+    ExpenseModel,
     utcnow_str,
 )
 
@@ -37,6 +38,10 @@ def init_db(target_engine=None):
                 ("agent_runs", "current_proposal_id", "VARCHAR(64)"),
                 ("agent_runs", "task_start_time", "VARCHAR(64)"),
                 ("agent_runs", "last_completed_task", "TEXT"),
+                ("agent_runs", "completed_work", "JSON DEFAULT '[]'"),
+                ("agent_runs", "pending_work", "JSON DEFAULT '[]'"),
+                ("agent_runs", "idempotency_key", "VARCHAR(64)"),
+                ("agent_runs", "last_processed_event_seq", "INTEGER DEFAULT 0"),
                 ("events", "workspace_id", "VARCHAR(64)"),
                 ("events", "entity_type", "VARCHAR(64)"),
                 ("events", "entity_id", "VARCHAR(64)"),
@@ -65,6 +70,7 @@ def reset_demo_database(db: Session, project_id: str = DEMO_PROJECT_ID):
     db.query(DelegationModel).filter(DelegationModel.project_id == project_id).delete(synchronize_session=False)
     db.query(ApprovalRequestModel).filter(ApprovalRequestModel.project_id == project_id).delete(synchronize_session=False)
     db.query(SharedResourceModel).filter(SharedResourceModel.project_id == project_id).delete(synchronize_session=False)
+    db.query(ExpenseModel).filter(ExpenseModel.project_id == project_id).delete(synchronize_session=False)
 
     db.query(DecisionModel).filter(DecisionModel.proposal_id.in_(
         db.query(ProposalModel.id).filter(ProposalModel.project_id == project_id)

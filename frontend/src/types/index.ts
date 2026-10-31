@@ -236,6 +236,32 @@ export interface SharedResource {
   updated_at: string;
 }
 
+export interface Expense {
+  id: string;
+  amount: number;
+  currency: string;
+  category: string;
+  description: string;
+  expense_date: string;
+  reference?: string | null;
+  status: 'pending_approval' | 'approved' | 'rejected';
+  threshold_exceeded: boolean;
+  submitted_by: string;
+  decided_by?: string | null;
+  decision_reason?: string | null;
+  decided_at?: string | null;
+  created_at: string;
+}
+
+export interface ExpenseMetrics {
+  total_submitted: number;
+  pending_count: number;
+  approved_count: number;
+  rejected_count: number;
+  total_approved_amount: number;
+  spending_by_category: Record<string, number>;
+}
+
 export interface MCPToolManifest {
   name: string;
   description: string;
