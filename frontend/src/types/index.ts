@@ -72,6 +72,9 @@ export interface Proposal {
   status: 'pending_review' | 'stale' | 'conflict' | 'approved' | 'rejected' | 'superseded';
   stale_reason?: string | null;
   conflict_reason?: string | null;
+  is_conflicted?: boolean;
+  conflicting_section?: string | null;
+  canonical_section_version?: number | null;
   proposal_type?: 'prototype_modification' | 'prd_requirement' | 'strategic_recommendation' | 'human_contribution' | string;
   source: 'live_llm' | 'cached_fallback' | 'human_entry' | string;
   is_simulated: boolean;
@@ -80,6 +83,42 @@ export interface Proposal {
   implementation_data?: ImplementationData | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ProposalStats {
+  awaiting_confirmation: number;
+  implementations_in_progress: number;
+  ready_for_review: number;
+  conflicted: number;
+  recently_applied: number;
+  total: number;
+  by_contributor: {
+    nova: number;
+    pixel: number;
+    human: number;
+  };
+}
+
+export interface ConflictingField {
+  field: string;
+  proposed: any;
+  canonical: any;
+}
+
+export interface ProposalConflictDetail {
+  is_conflicted: boolean;
+  proposal_id: string;
+  section_key: string;
+  base_version: number;
+  canonical_version: number;
+  intervening_user: string;
+  intervening_timestamp: string;
+  intervening_summary?: string | null;
+  conflict_reason: string;
+  proposed_content: Record<string, any>;
+  canonical_content: Record<string, any>;
+  conflicting_fields: ConflictingField[];
+  can_auto_reconcile: boolean;
 }
 
 export interface PruneMetadata {

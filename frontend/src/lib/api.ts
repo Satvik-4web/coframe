@@ -18,6 +18,8 @@ import {
   PruneMetadata,
   Conversation,
   ChatMessage,
+  ProposalStats,
+  ProposalConflictDetail,
 } from '../types';
 
 const API_BASE = '/api';
@@ -165,6 +167,46 @@ export async function reconcileProposal(projectId: string, proposalId: string, r
     body: JSON.stringify({ requested_by: requestedBy }),
   });
   if (!res.ok) throw new Error('Failed to reconcile proposal');
+  return res.json();
+}
+
+export async function fetchProposalStats(projectId: string = 'demo-ledgerflow'): Promise<ProposalStats> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/proposals/stats`);
+  if (!res.ok) throw new Error('Failed to fetch proposal statistics');
+  return res.json();
+}
+
+export async function fetchProposalConflictDetail(
+  projectId: string = 'demo-ledgerflow',
+  proposalId: string
+): Promise<ProposalConflictDetail> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/proposals/${proposalId}/conflict`);
+  if (!res.ok) throw new Error('Failed to fetch proposal conflict details');
+  return res.json();
+}
+
+export async function resolveProposalConflict(
+  projectId: string = 'demo-ledgerflow',
+  proposalId: string,
+  resolutionMode: 'reconcile_pixel' | 'keep_human' | 'custom_merge',
+  decidedBy: string = 'alex',
+  note?: string,
+  customChanges?: any
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/proposals/${proposalId}/resolve-conflict`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      resolution_mode: resolutionMode,
+      decided_by: decidedBy,
+      note,
+      custom_changes: customChanges,
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to resolve conflict');
+  }
   return res.json();
 }
 

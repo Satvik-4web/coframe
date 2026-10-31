@@ -9,6 +9,10 @@ from backend.app.db.models import (
     ProjectModel,
     AgentRunModel,
     RequirementModel,
+    ArtifactSectionModel,
+    ArtifactSectionVersionModel,
+    DelegationModel,
+    ImplementationPlanModel,
     utcnow_str,
 )
 from backend.app.schemas.proposals import (
@@ -18,11 +22,14 @@ from backend.app.schemas.proposals import (
     ProposalReconcileRequest,
     HumanProposalCreateRequest,
     ConfirmRequirementsRequest,
+    ConflictResolutionRequest,
+    ProposalConflictResponse,
+    ProposalStatsResponse,
 )
 from backend.app.proposals.apply import apply_proposal_atomically, ApplyValidationError
 from backend.app.proposals.serialization import serialize_proposal_for_api
 from backend.app.agents.nova import reconcile_nova_proposal, redirect_nova_proposal
-from backend.app.agents.pixel import redirect_pixel_proposal
+from backend.app.agents.pixel import redirect_pixel_proposal, reconcile_pixel_proposal
 from backend.app.events.logger import log_event
 from backend.app.websocket.manager import ws_manager
 
@@ -37,7 +44,92 @@ async def list_proposals(project_id: str, db: Session = Depends(get_db)):
         .order_by(ProposalModel.created_at.desc())
         .all()
     )
-    return [serialize_proposal_for_api(p) for p in props]
+    return [serialize_proposal_for_api(p, db=db) for p in props]
+
+
+@router.get("/projects/{project_id}/proposals/stats")
+async def get_proposal_stats(project_id: str, db: Session = Depends(get_db)):
+    props = db.query(ProposalModel).filter(ProposalModel.project_id == project_id).all()
+    sections = {
+        s.section_key: s.version
+        for s in db.query(ArtifactSectionModel).filter(ArtifactSectionModel.project_id == project_id).all()
+    }
+
+    awaiting_confirmation = 0
+    ready_for_review = 0
+    conflicted = 0
+    recently_applied = 0
+    by_contributor = {"nova": 0, "pixel": 0, "human": 0}
+
+    for p in props:
+        auth = (p.created_by or p.agent_id or "").lower()
+        if auth in ("alex", "maya") or p.author_type == "human" or p.proposal_type == "human_contribution":
+            by_contributor["human"] += 1
+        elif auth == "nova" or p.proposal_type in ("prd_requirement", "product_requirements", "requirements"):
+            by_contributor["nova"] += 1
+        elif auth == "pixel" or p.proposal_type in ("prototype_modification", "implementation"):
+            by_contributor["pixel"] += 1
+
+        is_prd = (
+            auth == "nova"
+            or p.proposal_type in ("prd_requirement", "product_requirements", "requirements")
+            or bool(p.prd_data and isinstance(p.prd_data, dict))
+        )
+
+        # Check section versions
+        is_conf = (p.status == "conflict")
+        if p.status == "pending_review":
+            base_sec_vers = p.base_section_versions or {}
+            for sec_k in (p.target_sections or []):
+                if sections.get(sec_k, 1) > base_sec_vers.get(sec_k, 1):
+                    is_conf = True
+                    break
+
+        if is_conf:
+            conflicted += 1
+        elif p.status == "pending_review":
+            if is_prd:
+                awaiting_confirmation += 1
+            else:
+                ready_for_review += 1
+        elif p.status == "approved":
+            recently_applied += 1
+
+    active_dels = (
+        db.query(DelegationModel)
+        .filter(
+            DelegationModel.project_id == project_id,
+            DelegationModel.status.in_(["in_progress", "executing"]),
+        )
+        .count()
+    )
+    active_plans = (
+        db.query(ImplementationPlanModel)
+        .filter(
+            ImplementationPlanModel.project_id == project_id,
+            ImplementationPlanModel.status == "executing",
+        )
+        .count()
+    )
+    active_runs = (
+        db.query(AgentRunModel)
+        .filter(
+            AgentRunModel.project_id == project_id,
+            AgentRunModel.status.in_(["working", "in_progress"]),
+        )
+        .count()
+    )
+    implementations_in_progress = max(active_dels, active_plans, active_runs)
+
+    return {
+        "awaiting_confirmation": awaiting_confirmation,
+        "implementations_in_progress": implementations_in_progress,
+        "ready_for_review": ready_for_review,
+        "conflicted": conflicted,
+        "recently_applied": recently_applied,
+        "total": len(props),
+        "by_contributor": by_contributor,
+    }
 
 
 @router.get("/projects/{project_id}/proposals/{proposal_id}")
@@ -49,7 +141,99 @@ async def get_proposal(project_id: str, proposal_id: str, db: Session = Depends(
     )
     if not p:
         raise HTTPException(status_code=404, detail="Proposal not found")
-    return serialize_proposal_for_api(p)
+    return serialize_proposal_for_api(p, db=db)
+
+
+@router.get("/projects/{project_id}/proposals/{proposal_id}/conflict")
+async def get_proposal_conflict_detail(
+    project_id: str,
+    proposal_id: str,
+    db: Session = Depends(get_db),
+):
+    p = (
+        db.query(ProposalModel)
+        .filter(ProposalModel.id == proposal_id, ProposalModel.project_id == project_id)
+        .first()
+    )
+    if not p:
+        raise HTTPException(status_code=404, detail="Proposal not found")
+
+    sec_key = p.target_sections[0] if p.target_sections else "hero"
+    curr_sec = (
+        db.query(ArtifactSectionModel)
+        .filter(
+            ArtifactSectionModel.project_id == project_id,
+            ArtifactSectionModel.section_key == sec_key,
+        )
+        .first()
+    )
+    base_ver = (p.base_section_versions or {}).get(sec_key, 1)
+    canonical_ver = curr_sec.version if curr_sec else 1
+    canonical_data = curr_sec.data if curr_sec else {}
+
+    is_conflicted = (canonical_ver > base_ver) or (p.status == "conflict")
+
+    intervening_sec_ver = (
+        db.query(ArtifactSectionVersionModel)
+        .filter(
+            ArtifactSectionVersionModel.project_id == project_id,
+            ArtifactSectionVersionModel.section_key == sec_key,
+            ArtifactSectionVersionModel.version == canonical_ver,
+        )
+        .first()
+    )
+    if intervening_sec_ver:
+        intervening_user = intervening_sec_ver.updated_by
+        intervening_timestamp = intervening_sec_ver.created_at
+    else:
+        intervening_user = curr_sec.updated_by if curr_sec else "maya"
+        intervening_timestamp = curr_sec.updated_at if curr_sec else utcnow_str()
+
+    intervening_summary = f"Manual {sec_key} update by {intervening_user.capitalize()} (saved as v{canonical_ver})"
+
+    ops = (p.changes or {}).get("operations", [])
+    target_op = next((op for op in ops if op.get("section") == sec_key), ops[0] if ops else {})
+    proposed_content = (
+        target_op.get("fields")
+        or target_op.get("config")
+        or target_op.get("metrics")
+        or target_op.get("content")
+        or target_op
+    )
+
+    conflicting_fields = []
+    if isinstance(proposed_content, dict) and isinstance(canonical_data, dict):
+        all_keys = set(proposed_content.keys()) | set(canonical_data.keys())
+        for k in all_keys:
+            prop_val = proposed_content.get(k)
+            canon_val = canonical_data.get(k)
+            if prop_val != canon_val:
+                conflicting_fields.append({
+                    "field": k,
+                    "proposed": prop_val,
+                    "canonical": canon_val,
+                })
+
+    conflict_reason = p.conflict_reason or (
+        f"{intervening_user.capitalize()} updated the '{sec_key}' section to v{canonical_ver} "
+        f"after {p.agent_id.upper() if p.agent_id else 'contributor'} submitted this proposal based on v{base_ver}."
+    )
+
+    return {
+        "is_conflicted": is_conflicted,
+        "proposal_id": p.id,
+        "section_key": sec_key,
+        "base_version": base_ver,
+        "canonical_version": canonical_ver,
+        "intervening_user": intervening_user,
+        "intervening_timestamp": intervening_timestamp,
+        "intervening_summary": intervening_summary,
+        "conflict_reason": conflict_reason,
+        "proposed_content": proposed_content if isinstance(proposed_content, dict) else {"raw": proposed_content},
+        "canonical_content": canonical_data,
+        "conflicting_fields": conflicting_fields,
+        "can_auto_reconcile": True,
+    }
 
 
 @router.post("/projects/{project_id}/proposals/human")
@@ -500,8 +684,8 @@ async def reconcile_proposal(
     db: Session = Depends(get_db),
 ):
     """
-    Step 4 Case A Reconcile: Human reconciles a stale proposal.
-    NOVA reads updated requirements & fresh Context Pack and produces a new linked proposal.
+    Step 4 Case A Reconcile: Human reconciles a stale or conflicted proposal.
+    Routes to PIXEL for engineering proposals or NOVA for PRD proposals.
     """
     p = (
         db.query(ProposalModel)
@@ -511,12 +695,25 @@ async def reconcile_proposal(
     if not p:
         raise HTTPException(status_code=404, detail="Proposal not found")
 
-    new_proposal = await reconcile_nova_proposal(
-        db=db,
-        project_id=project_id,
-        original_proposal_id=proposal_id,
-        requested_by=body.requested_by,
+    is_nova = (
+        p.agent_id == "nova"
+        or p.proposal_type in ("prd_requirement", "requirements", "product_requirements")
     )
+
+    if is_nova:
+        new_proposal = await reconcile_nova_proposal(
+            db=db,
+            project_id=project_id,
+            original_proposal_id=proposal_id,
+            requested_by=body.requested_by,
+        )
+    else:
+        new_proposal = await reconcile_pixel_proposal(
+            db=db,
+            project_id=project_id,
+            original_proposal_id=proposal_id,
+            requested_by=body.requested_by,
+        )
 
     await ws_manager.broadcast(project_id, {
         "type": "PROPOSAL_RECONCILED",
@@ -529,4 +726,154 @@ async def reconcile_proposal(
         "message": f"Proposal reconciled; created new proposal {new_proposal.id}.",
         "original_proposal_id": proposal_id,
         "new_proposal_id": new_proposal.id,
+        "new_proposal": serialize_proposal_for_api(new_proposal, db=db),
     }
+
+
+@router.post("/projects/{project_id}/proposals/{proposal_id}/resolve-conflict")
+async def resolve_proposal_conflict(
+    project_id: str,
+    proposal_id: str,
+    body: ConflictResolutionRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    First-class conflict resolution endpoint with three explicit paths:
+    1. 'reconcile_pixel': Asks PIXEL to synthesize a linked revision adapted to current canonical canvas.
+    2. 'keep_human': Preserves human canonical changes and dismisses/supersedes the conflicted proposal.
+    3. 'custom_merge': Authoritative custom resolution providing merged section changes.
+    """
+    if body.decided_by.lower() not in ("alex", "maya"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid decider identity '{body.decided_by}'. Must be 'alex' or 'maya'.",
+        )
+
+    p = (
+        db.query(ProposalModel)
+        .filter(ProposalModel.id == proposal_id, ProposalModel.project_id == project_id)
+        .first()
+    )
+    if not p:
+        raise HTTPException(status_code=404, detail="Proposal not found")
+
+    mode = body.resolution_mode.lower()
+
+    if mode == "reconcile_pixel":
+        new_proposal = await reconcile_pixel_proposal(
+            db=db,
+            project_id=project_id,
+            original_proposal_id=proposal_id,
+            requested_by=body.decided_by,
+        )
+        await ws_manager.broadcast(project_id, {
+            "type": "PROPOSAL_RECONCILED",
+            "original_proposal_id": proposal_id,
+            "new_proposal_id": new_proposal.id,
+        })
+        return {
+            "status": "success",
+            "resolution_mode": "reconcile_pixel",
+            "message": f"PIXEL synthesized reconciled proposal {new_proposal.id} adhering to current canonical canvas.",
+            "original_proposal_id": proposal_id,
+            "new_proposal_id": new_proposal.id,
+            "new_proposal": serialize_proposal_for_api(new_proposal, db=db),
+        }
+
+    elif mode == "keep_human":
+        p.status = "superseded"
+        p.updated_at = utcnow_str()
+        reason = body.note or f"Preserved human canonical changes; dismissed conflicted proposal per {body.decided_by.capitalize()}."
+        decision = DecisionModel(
+            id=f"dec_{uuid.uuid4().hex[:10]}",
+            proposal_id=p.id,
+            decision="superseded",
+            decided_by=body.decided_by,
+            note=reason,
+            created_at=utcnow_str(),
+        )
+        db.add(decision)
+        db.commit()
+
+        log_event(
+            db=db,
+            project_id=project_id,
+            actor_type="human",
+            actor_id=body.decided_by,
+            event_type="PROPOSAL_CONFLICT_DISMISSED",
+            payload={
+                "proposal_id": p.id,
+                "decided_by": body.decided_by,
+                "reason": reason,
+            },
+        )
+
+        await ws_manager.broadcast(project_id, {
+            "type": "PROPOSAL_SUPERSEDED",
+            "proposal_id": p.id,
+            "decided_by": body.decided_by,
+        })
+
+        return {
+            "status": "success",
+            "resolution_mode": "keep_human",
+            "message": f"Preserved human version. Proposal {proposal_id} dismissed.",
+            "proposal_id": p.id,
+        }
+
+    elif mode == "custom_merge":
+        if not body.custom_changes:
+            raise HTTPException(status_code=400, detail="custom_changes required for custom_merge resolution")
+        sec_key = p.target_sections[0] if p.target_sections else "hero"
+        curr_sec = (
+            db.query(ArtifactSectionModel)
+            .filter(
+                ArtifactSectionModel.project_id == project_id,
+                ArtifactSectionModel.section_key == sec_key,
+            )
+            .first()
+        )
+        curr_ver = curr_sec.version if curr_sec else 1
+        new_prop_id = f"prop_merged_{uuid.uuid4().hex[:8]}"
+        merged_prop = ProposalModel(
+            id=new_prop_id,
+            project_id=project_id,
+            agent_id="pixel",
+            created_by=body.decided_by,
+            author_type="human",
+            task_id=p.task_id or f"task_merge_{uuid.uuid4().hex[:6]}",
+            supersedes_proposal_id=p.id,
+            summary=f"Custom Merged Resolution by {body.decided_by.capitalize()}: {p.summary}",
+            reasoning=body.note or f"Manually resolved conflict with live canonical v{curr_ver}.",
+            affected_requirements=p.affected_requirements or [],
+            target_sections=p.target_sections or [sec_key],
+            changes=body.custom_changes,
+            base_context_version=p.base_context_version,
+            base_artifact_version=p.base_artifact_version,
+            base_section_versions={sec_key: curr_ver},
+            requires_decision=False,
+            status="pending_review",
+            proposal_type="prototype_modification",
+            source="human_entry",
+            is_simulated=False,
+            created_at=utcnow_str(),
+            updated_at=utcnow_str(),
+        )
+        db.add(merged_prop)
+        p.status = "superseded"
+        db.commit()
+        db.refresh(merged_prop)
+
+        return {
+            "status": "success",
+            "resolution_mode": "custom_merge",
+            "message": f"Custom merged proposal {merged_prop.id} created.",
+            "original_proposal_id": proposal_id,
+            "new_proposal_id": merged_prop.id,
+            "new_proposal": serialize_proposal_for_api(merged_prop, db=db),
+        }
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown resolution_mode '{mode}'. Allowed: 'reconcile_pixel', 'keep_human', 'custom_merge'.",
+        )

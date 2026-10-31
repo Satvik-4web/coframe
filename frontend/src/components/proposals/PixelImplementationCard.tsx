@@ -50,8 +50,8 @@ export const PixelImplementationCard: React.FC<PixelImplementationCardProps> = (
   const isApproved = proposal.status === 'approved';
   const isRejected = proposal.status === 'rejected';
   const isStale = proposal.status === 'stale';
-  const isConflict = proposal.status === 'conflict';
-  const isPending = proposal.status === 'pending_review';
+  const isConflict = proposal.status === 'conflict' || Boolean(proposal.is_conflicted);
+  const isPending = proposal.status === 'pending_review' || isConflict;
 
   const isCurrentAlex = identity === 'alex';
   const isRestrictedByAlex = proposal.requires_decision && !isCurrentAlex;
@@ -299,14 +299,14 @@ export const PixelImplementationCard: React.FC<PixelImplementationCardProps> = (
 
               <button
                 type="button"
-                disabled={isRestrictedByAlex}
+                disabled={isRestrictedByAlex || isConflict}
                 onClick={() => onApprove(proposal.proposal_id)}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs ${
                   isRestrictedByAlex
                     ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
                     : 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer'
                 }`}
-                title={isRestrictedByAlex ? 'High-impact policy change requires Alex authorization' : 'Approve implementation and apply to canvas'}
+                title={isConflict ? 'Approval strictly blocked: Proposal conflicts with canonical canvas' : isRestrictedByAlex ? 'High-impact policy change requires Alex authorization' : 'Approve implementation and apply to canvas'}
               >
                 <Check className="w-3.5 h-3.5" />
                 <span>Approve & Apply</span>

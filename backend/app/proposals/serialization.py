@@ -6,7 +6,7 @@ from backend.app.proposals.output_transformers import (
 )
 
 
-def serialize_proposal_for_api(p: ProposalModel) -> Dict[str, Any]:
+def serialize_proposal_for_api(p: ProposalModel, db: Optional[Any] = None) -> Dict[str, Any]:
     """
     Serializes a ProposalModel into the authoritative COFRAME API response format,
     strictly distinguishing AUTHOR, REVIEWER, and DECISION OWNER without fabrication.
@@ -91,6 +91,36 @@ def serialize_proposal_for_api(p: ProposalModel) -> Dict[str, Any]:
     if (author_key == "pixel" or contribution_type == "IMPLEMENTATION") and not impl_data:
         impl_data = build_pixel_implementation_data(p, p.project_id)
 
+    # 7. Dynamic Conflict Detection
+    is_conflicted = (p.status == "conflict")
+    conflict_reason = p.conflict_reason
+    conflicting_section = None
+    canonical_section_version = None
+
+    if db and p.status == "pending_review":
+        from backend.app.db.models import ArtifactSectionModel
+        base_sec_vers = p.base_section_versions or {}
+        for sec_key in (p.target_sections or []):
+            curr_sec = (
+                db.query(ArtifactSectionModel)
+                .filter(
+                    ArtifactSectionModel.project_id == p.project_id,
+                    ArtifactSectionModel.section_key == sec_key,
+                )
+                .first()
+            )
+            base_ver = base_sec_vers.get(sec_key, 1)
+            if curr_sec and curr_sec.version > base_ver:
+                is_conflicted = True
+                conflicting_section = sec_key
+                canonical_section_version = curr_sec.version
+                if not conflict_reason:
+                    conflict_reason = (
+                        f"Section '{sec_key}' has evolved to version {curr_sec.version} "
+                        f"(proposal was based on version {base_ver})."
+                    )
+                break
+
     return {
         "proposal_id": p.id,
         "project_id": p.project_id,
@@ -120,7 +150,10 @@ def serialize_proposal_for_api(p: ProposalModel) -> Dict[str, Any]:
         "review_findings": getattr(p, "review_findings", None) or [],
         "status": p.status,
         "stale_reason": p.stale_reason,
-        "conflict_reason": p.conflict_reason,
+        "conflict_reason": conflict_reason,
+        "is_conflicted": is_conflicted,
+        "conflicting_section": conflicting_section,
+        "canonical_section_version": canonical_section_version,
         "source": p.source,
         "is_simulated": p.is_simulated,
         "prune_metadata": getattr(p, "prune_metadata", None),

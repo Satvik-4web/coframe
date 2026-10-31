@@ -14,8 +14,16 @@ from backend.app.agents.fallback import (
     FALLBACK_HIGH_IMPACT_APPROVAL_POLICY,
     FALLBACK_REDIRECTED_PROPOSAL_D,
 )
-from backend.app.db.models import ProposalModel, AgentRunModel, utcnow_str
+from backend.app.db.models import (
+    ProposalModel,
+    AgentRunModel,
+    ArtifactSectionModel,
+    ProjectModel,
+    utcnow_str,
+)
 from backend.app.events.logger import log_event
+from backend.app.proposals.output_transformers import build_pixel_implementation_data
+from backend.app.agents.review import validate_agent_proposal_output
 
 logger = logging.getLogger(__name__)
 
@@ -258,5 +266,209 @@ async def redirect_pixel_proposal(
     run.lifecycle_state = "completed"
     run.completed_at = utcnow_str()
     db.commit()
+
+    return new_proposal
+
+
+async def reconcile_pixel_proposal(
+    db: Session,
+    project_id: str,
+    original_proposal_id: str,
+    requested_by: str = "maya",
+) -> ProposalModel:
+    """
+    Executes actual agent work for PIXEL Reconcile:
+    1. Loads conflicted/stale proposal.
+    2. Identifies target sections and queries their current canonical versions & data.
+    3. Builds fresh Context Pack and creates AgentRunModel for PIXEL.
+    4. Harmonizes proposed changes with the latest human canonical updates.
+    5. Stamps new proposal with supersedes_proposal_id set to original and updated base_section_versions.
+    6. Runs multi-layer NOVA review (verdict, findings).
+    7. Marks original proposal as 'superseded'.
+    8. Emits events and returns new proposal.
+    """
+    orig_prop = db.query(ProposalModel).filter(ProposalModel.id == original_proposal_id).first()
+    if not orig_prop:
+        raise ValueError(f"Original proposal {original_proposal_id} not found")
+
+    project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
+    if not project:
+        raise ValueError(f"Project {project_id} not found")
+
+    target_sections = orig_prop.target_sections or ["hero"]
+    sec_key = target_sections[0]
+
+    # Look up current canonical section
+    curr_sec = (
+        db.query(ArtifactSectionModel)
+        .filter(
+            ArtifactSectionModel.project_id == project_id,
+            ArtifactSectionModel.section_key == sec_key,
+        )
+        .first()
+    )
+    curr_version = curr_sec.version if curr_sec else 1
+    curr_data = curr_sec.data if curr_sec else {}
+
+    new_run_id = f"run_pixel_reconcile_{uuid.uuid4().hex[:6]}"
+    task_desc = f"Reconcile conflicted proposal {original_proposal_id} with updated canonical {sec_key} section (v{curr_version}) per {requested_by}'s request"
+
+    run = create_and_persist_agent_run(
+        db=db,
+        project_id=project_id,
+        agent_id="pixel",
+        run_id=new_run_id,
+        task_id=f"task_reconcile_{uuid.uuid4().hex[:4]}",
+        task_description=task_desc,
+        target_sections=target_sections,
+        affected_requirements=orig_prop.affected_requirements or ["REQ_BRAND"],
+    )
+
+    pack = run.context_pack
+    user_prompt = (
+        f"Original Conflicted Proposal:\n{json.dumps({'summary': orig_prop.summary, 'changes': orig_prop.changes}, indent=2)}\n\n"
+        f"Current Canonical Section '{sec_key}' (v{curr_version}):\n{json.dumps(curr_data, indent=2)}\n\n"
+        f"Reconcile Request by: {requested_by.capitalize()}\n"
+        f"Fresh Context Pack:\n{json.dumps(pack, indent=2)}\n"
+        f"Harmonize the proposed changes with the current canonical section. Preserve human updates while fulfilling confirmed requirements."
+    )
+
+    pixel_model = get_effective_model("pixel")
+    pixel_tools = get_agent_tools("pixel")
+
+    raw_output = None
+    source = "live_llm"
+    is_simulated = False
+    prune_meta = None
+
+    try:
+        res = await call_llm_json(
+            system_prompt=PIXEL_SYSTEM_PROMPT,
+            user_prompt=user_prompt,
+            timeout=12.0,
+            model=pixel_model,
+            agent_id="pixel",
+            tools=pixel_tools,
+        )
+        raw_output, source, is_simulated = res
+        prune_meta = getattr(res, "prune_metadata", None)
+    except Exception as e:
+        logger.info(f"PIXEL Reconcile using deterministic fallback: {e}")
+        # Build harmonized output based on current canonical section data
+        if sec_key == "hero":
+            headline = curr_data.get("headline", "Take control of company spending")
+            subheadline = curr_data.get("subheadline", "Real-time expense management for high-velocity teams")
+            cta_text = curr_data.get("cta_text", "Start Free Trial")
+            raw_output = {
+                "summary": f"Harmonized Hero: Unified {requested_by.capitalize()}'s Copy with Automated Approvals",
+                "reasoning": f"Preserves {requested_by.capitalize()}'s live hero messaging (v{curr_version}) while integrating enterprise approval badge and policy guardrails per confirmed requirements.",
+                "affected_requirements": orig_prop.affected_requirements or ["REQ_BRAND"],
+                "target_sections": ["hero"],
+                "changes": {
+                    "operations": [
+                        {
+                            "op": "set_hero_content",
+                            "section": "hero",
+                            "fields": {
+                                "headline": headline,
+                                "subheadline": f"{subheadline} — enhanced with automated enterprise policies.",
+                                "cta_text": cta_text,
+                                "badge": "Enterprise Ready",
+                            },
+                        }
+                    ]
+                },
+            }
+        elif sec_key == "approval_queue":
+            raw_output = {
+                "summary": f"Harmonized Approval Queue: Synchronized with Active Configuration (v{curr_version})",
+                "reasoning": f"Reconciled policy parameters with active canonical approval queue v{curr_version}.",
+                "affected_requirements": orig_prop.affected_requirements or ["REQ_APPROVAL_POLICY"],
+                "target_sections": ["approval_queue"],
+                "changes": orig_prop.changes or {},
+            }
+        else:
+            raw_output = {
+                "summary": f"Reconciled {sec_key} with canonical v{curr_version}",
+                "reasoning": f"Adapted proposal to canonical section state v{curr_version}.",
+                "affected_requirements": orig_prop.affected_requirements or [],
+                "target_sections": target_sections,
+                "changes": orig_prop.changes or {},
+            }
+        source = "cached_fallback"
+        is_simulated = True
+
+    # Stamp proposal with the NEW canonical section version
+    new_proposal = stamp_and_persist_proposal(
+        db=db,
+        project_id=project_id,
+        run_id=run.id,
+        raw_output=raw_output,
+        source=source,
+        is_simulated=is_simulated,
+        supersedes_proposal_id=original_proposal_id,
+        prune_metadata=prune_meta,
+        created_by="pixel",
+        author_type="agent",
+        proposal_type="prototype_modification",
+        implementation_data=build_pixel_implementation_data(raw_output, project_id),
+    )
+
+    # Explicitly ensure base_section_versions matches the CURRENT canonical version
+    new_base_sec_vers = dict(new_proposal.base_section_versions or {})
+    new_base_sec_vers[sec_key] = curr_version
+    new_proposal.base_section_versions = new_base_sec_vers
+    new_proposal.base_artifact_version = project.artifact_version
+    new_proposal.base_context_version = project.context_version
+    new_proposal.status = "pending_review"
+    new_proposal.requires_decision = True
+    new_proposal.assigned_decider_id = "alex"
+
+    # NOVA Review on reconciled proposal
+    review_dict = dict(raw_output)
+    review_dict["base_context_version"] = project.context_version
+    review_dict["base_section_versions"] = new_base_sec_vers
+    review_dict["target_sections"] = target_sections
+    review_dict["affected_requirements"] = new_proposal.affected_requirements
+
+    review_result = validate_agent_proposal_output(
+        db=db,
+        project_id=project_id,
+        proposal_dict=review_dict,
+        source_agent="pixel",
+    )
+    new_proposal.reviewed_by = "nova"
+    new_proposal.review_outcome = review_result.verdict
+    new_proposal.review_findings = [
+        {"code": f.code, "severity": f.severity, "message": f.message}
+        for f in review_result.findings
+    ]
+
+    # Mark original proposal as superseded
+    orig_prop.status = "superseded"
+    orig_prop.updated_at = utcnow_str()
+    db.commit()
+
+    log_event(
+        db=db,
+        project_id=project_id,
+        actor_type="agent",
+        actor_id="pixel",
+        event_type="PROPOSAL_RECONCILED",
+        payload={
+            "original_proposal_id": original_proposal_id,
+            "new_proposal_id": new_proposal.id,
+            "requested_by": requested_by,
+            "reconciled_section": sec_key,
+            "canonical_version": curr_version,
+        },
+    )
+
+    run.status = "completed"
+    run.lifecycle_state = "completed"
+    run.current_proposal_id = new_proposal.id
+    run.completed_at = utcnow_str()
+    db.commit()
+    db.refresh(new_proposal)
 
     return new_proposal

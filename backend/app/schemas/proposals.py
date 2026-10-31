@@ -72,3 +72,42 @@ class HumanProposalCreateRequest(BaseModel):
 class ConfirmRequirementsRequest(BaseModel):
     confirmed_by: str = "alex"
     note: Optional[str] = "Confirmed product requirements. Ready for engineering implementation."
+
+
+class ConflictResolutionRequest(BaseModel):
+    resolution_mode: str = "reconcile_pixel"  # "reconcile_pixel" | "keep_human" | "custom_merge"
+    decided_by: str = "alex"  # "alex" or "maya"
+    note: Optional[str] = None
+    custom_changes: Optional[Dict[str, Any]] = None
+
+
+class ConflictingField(BaseModel):
+    field: str
+    proposed: Any
+    canonical: Any
+
+
+class ProposalConflictResponse(BaseModel):
+    is_conflicted: bool
+    proposal_id: str
+    section_key: str
+    base_version: int
+    canonical_version: int
+    intervening_user: str
+    intervening_timestamp: str
+    intervening_summary: Optional[str] = None
+    conflict_reason: str
+    proposed_content: Dict[str, Any]
+    canonical_content: Dict[str, Any]
+    conflicting_fields: List[ConflictingField]
+    can_auto_reconcile: bool = True
+
+
+class ProposalStatsResponse(BaseModel):
+    awaiting_confirmation: int
+    implementations_in_progress: int
+    ready_for_review: int
+    conflicted: int
+    recently_applied: int
+    total: int
+    by_contributor: Dict[str, int]
