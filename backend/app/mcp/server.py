@@ -67,7 +67,7 @@ class COFRAMEMCPServer:
                 "schema": CreateProposalInput.model_json_schema(),
                 "executor": execute_create_proposal,
                 "input_cls": CreateProposalInput,
-                "allowed_callers": ["nova", "pixel", "system"],
+                "allowed_callers": ["nova", "pixel", "alex", "maya", "system"],
             },
             "send_workspace_message": {
                 "description": "Post a collaborative update or status notice to the team workspace.",
@@ -81,7 +81,7 @@ class COFRAMEMCPServer:
                 "schema": RequestHumanDecisionInput.model_json_schema(),
                 "executor": execute_request_human_decision,
                 "input_cls": RequestHumanDecisionInput,
-                "allowed_callers": ["nova", "pixel", "system"],
+                "allowed_callers": ["nova", "pixel", "alex", "maya", "system"],
             },
             "get_agent_status": {
                 "description": "Inspect live agent presence, lifecycle state, current tasks, and heartbeats.",
@@ -102,7 +102,7 @@ class COFRAMEMCPServer:
                 "schema": DelegateToAgentInput.model_json_schema(),
                 "executor": execute_delegate_to_agent,
                 "input_cls": DelegateToAgentInput,
-                "allowed_callers": ["nova", "pixel", "system"],
+                "allowed_callers": ["nova", "pixel", "alex", "maya", "system"],
             },
         }
 

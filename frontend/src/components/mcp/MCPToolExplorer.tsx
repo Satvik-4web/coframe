@@ -18,9 +18,10 @@ import { fetchMCPTools, callMCPTool } from '../../lib/api';
 
 interface MCPToolExplorerProps {
   identity: HumanIdentity;
+  onNavigateTab?: (tab: any, param?: string) => void;
 }
 
-export const MCPToolExplorer: React.FC<MCPToolExplorerProps> = ({ identity }) => {
+export const MCPToolExplorer: React.FC<MCPToolExplorerProps> = ({ identity, onNavigateTab }) => {
   const [tools, setTools] = useState<MCPToolManifest[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedTool, setSelectedTool] = useState<MCPToolManifest | null>(null);
@@ -239,10 +240,21 @@ export const MCPToolExplorer: React.FC<MCPToolExplorerProps> = ({ identity }) =>
 
               {/* Execution Output */}
               {executionResult && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Response Payload (200 OK)</span>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Response Payload (200 OK)</span>
+                    </div>
+                    {onNavigateTab && (executionResult?.result?.proposal_id || executionResult?.result?.proposal?.id) && (
+                      <button
+                        onClick={() => onNavigateTab('proposals', executionResult?.result?.proposal_id || executionResult?.result?.proposal?.id)}
+                        className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 flex items-center gap-1 transition cursor-pointer"
+                      >
+                        <span>View Created Proposal</span>
+                        <ChevronRight className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
                   <pre className="p-4 bg-slate-900 text-emerald-300 text-xs rounded-xl font-mono overflow-x-auto max-h-56 border border-slate-800">
                     {JSON.stringify(executionResult, null, 2)}

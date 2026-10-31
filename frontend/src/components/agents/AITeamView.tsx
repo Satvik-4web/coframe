@@ -3,6 +3,7 @@ import { AgentRun, HumanIdentity, Delegation } from '../../types';
 import { getAgentContextPack, restartAgent } from '../../lib/api';
 import { DelegationTimeline } from '../delegation/DelegationTimeline';
 import { MCPToolExplorer } from '../mcp/MCPToolExplorer';
+import { ContextInspector } from '../context-inspector/ContextInspector';
 import {
   Bot,
   RotateCcw,
@@ -17,6 +18,8 @@ import {
   Code2,
   Clock,
   Compass,
+  Radio,
+  ExternalLink,
 } from 'lucide-react';
 
 interface AITeamViewProps {
@@ -24,6 +27,7 @@ interface AITeamViewProps {
   delegations?: Delegation[];
   identity: HumanIdentity;
   onRefresh: () => void;
+  onNavigateTab?: (tab: any, param?: string) => void;
 }
 
 export const AITeamView: React.FC<AITeamViewProps> = ({
@@ -31,6 +35,7 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
   delegations = [],
   identity,
   onRefresh,
+  onNavigateTab,
 }) => {
   const [selectedAgent, setSelectedAgent] = useState<'nova' | 'pixel'>('nova');
   const [activeSubTab, setActiveSubTab] = useState<'context' | 'delegation' | 'mcp'>('context');
@@ -105,7 +110,18 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
         </div>
 
         {/* Global Agent Control Buttons */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('context')}
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100/70 border border-teal-200 text-xs font-semibold text-teal-900 shadow-xs transition cursor-pointer"
+            >
+              <Radio className="w-3.5 h-3.5 text-teal-700" />
+              <span>Full Context Inspector</span>
+              <ExternalLink className="w-3 h-3 text-teal-600 ml-0.5" />
+            </button>
+          )}
+
           <button
             onClick={() => handleRestart(selectedAgent)}
             disabled={restarting}
@@ -275,9 +291,20 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
               <div className="lg:col-span-2 space-y-4">
                 {/* Version Metadata Summary */}
                 <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#657189] block mb-3">
-                    Run Context Metadata
-                  </span>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#657189]">
+                      Run Context Metadata
+                    </span>
+                    {onNavigateTab && (
+                      <button
+                        onClick={() => onNavigateTab('context')}
+                        className="text-[11px] font-semibold text-teal-700 hover:text-teal-900 flex items-center gap-1 cursor-pointer"
+                      >
+                        <span>Open in Context Inspector</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                     <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
                       <span className="text-[11px] text-[#657189] block mb-0.5 font-medium">Run ID</span>
@@ -400,7 +427,7 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
 
       {/* Sub-tab 3: MCP Tool Explorer */}
       {activeSubTab === 'mcp' && (
-        <MCPToolExplorer identity={identity} />
+        <MCPToolExplorer identity={identity} onNavigateTab={onNavigateTab} />
       )}
     </div>
   );

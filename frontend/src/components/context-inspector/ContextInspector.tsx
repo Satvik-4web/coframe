@@ -46,9 +46,10 @@ interface ContextInspectorProps {
   agentRuns?: any[];
   identity?: HumanIdentity;
   onRefresh?: () => void;
+  onNavigateTab?: (tab: any, param?: string) => void;
 }
 
-export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, onRefresh }) => {
+export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, onRefresh, onNavigateTab }) => {
   const [selectedAgent, setSelectedAgent] = useState<'nova' | 'pixel'>('nova');
   const [runs, setRuns] = useState<any[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string>('');
@@ -242,6 +243,15 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
 
         {/* Action Controls */}
         <div className="flex flex-wrap items-center gap-2.5">
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('agents')}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-violet-50 hover:bg-violet-100 border border-violet-200 text-xs font-semibold text-violet-800 shadow-xs transition cursor-pointer"
+            >
+              <Cpu className="w-3.5 h-3.5 text-violet-600" />
+              <span>Back to AI Team</span>
+            </button>
+          )}
           {/* Agent Picker Pill */}
           <div className="flex items-center bg-[#F8FAFC] p-1 rounded-xl border border-[#E7ECF2]">
             <button

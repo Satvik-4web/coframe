@@ -175,6 +175,7 @@ export function App() {
               delegations={state.delegations || []}
               identity={identity}
               onRefresh={refresh}
+              onNavigateTab={setCurrentTab}
             />
           )}
 
@@ -187,6 +188,7 @@ export function App() {
               agentRuns={state.agent_runs}
               identity={identity}
               onRefresh={refresh}
+              onNavigateTab={setCurrentTab}
             />
           )}
 
