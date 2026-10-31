@@ -54,3 +54,16 @@ class ProposalRedirectRequest(BaseModel):
 
 class ProposalReconcileRequest(BaseModel):
     requested_by: str = "maya"
+
+
+class HumanProposalCreateRequest(BaseModel):
+    author: str  # must be "alex" or "maya"
+    summary: str
+    reasoning: str
+    target_sections: List[str]
+    changes: Dict[str, Any]
+    affected_requirements: Optional[List[str]] = None
+    task_id: Optional[str] = None
+    requires_decision: Optional[bool] = False
+    assigned_decider_id: Optional[str] = "alex"
+

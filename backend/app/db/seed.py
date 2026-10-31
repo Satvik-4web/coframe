@@ -34,6 +34,12 @@ def init_db(target_engine=None):
             columns_to_add = [
                 ("proposals", "prune_metadata", "JSON"),
                 ("proposals", "proposal_type", "VARCHAR(64) DEFAULT 'prototype_modification'"),
+                ("proposals", "created_by", "VARCHAR(64)"),
+                ("proposals", "author_type", "VARCHAR(32) DEFAULT 'agent'"),
+                ("proposals", "task_id", "VARCHAR(64)"),
+                ("proposals", "reviewed_by", "VARCHAR(64)"),
+                ("proposals", "review_outcome", "VARCHAR(32)"),
+                ("proposals", "review_findings", "JSON"),
                 ("agent_runs", "prune_metadata", "JSON"),
                 ("agent_runs", "lifecycle_state", "VARCHAR(32) DEFAULT 'idle'"),
                 ("agent_runs", "last_heartbeat", "VARCHAR(64)"),

@@ -82,6 +82,31 @@ export async function editArtifactSection(
   return res.json();
 }
 
+export async function createHumanProposal(
+  projectId: string,
+  payload: {
+    author: string;
+    summary: string;
+    reasoning: string;
+    target_sections: string[];
+    changes: Record<string, any>;
+    affected_requirements?: string[];
+    requires_decision?: boolean;
+    assigned_decider_id?: string;
+  }
+): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/proposals/human`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to submit human proposal');
+  }
+  return res.json();
+}
+
 export async function approveProposal(projectId: string, proposalId: string, decidedBy: string): Promise<any> {
   const res = await fetch(`${API_BASE}/projects/${projectId}/proposals/${proposalId}/approve`, {
     method: 'POST',

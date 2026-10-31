@@ -3,13 +3,25 @@ import { Proposal, HumanIdentity, ArtifactSection } from '../../types';
 import { ProposalCard } from './ProposalCard';
 import { RedirectModal } from './RedirectModal';
 import { ConflictCompareModal } from './ConflictCompareModal';
+import { CreateHumanProposalModal } from './CreateHumanProposalModal';
 import {
   approveProposal,
   rejectProposal,
   reconcileProposal,
   publishApprovedProposal,
 } from '../../lib/api';
-import { GitPullRequest, Filter, Sparkles, AlertCircle, Bot, Code2, Layers } from 'lucide-react';
+import {
+  GitPullRequest,
+  Filter,
+  Sparkles,
+  AlertCircle,
+  Bot,
+  Code2,
+  Layers,
+  User,
+  PlusCircle,
+  Brain,
+} from 'lucide-react';
 
 interface ProposalListProps {
   proposals: Proposal[];
@@ -24,30 +36,66 @@ export const ProposalList: React.FC<ProposalListProps> = ({
   identity,
   onRefresh,
 }) => {
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'attention' | 'approved'>('all');
-  const [agentFilter, setAgentFilter] = useState<'all' | 'pixel' | 'nova'>('all');
+  // Author filter: All Contributors | NOVA | PIXEL | Human Contributions
+  const [authorFilter, setAuthorFilter] = useState<'all' | 'nova' | 'pixel' | 'human'>('all');
+
+  // Status filter: All | Needs Review | Approved | Rejected | Stale | Conflicted
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'rejected' | 'stale' | 'conflict'>('all');
+
   const [redirectingProposal, setRedirectingProposal] = useState<Proposal | null>(null);
   const [conflictedProposal, setConflictedProposal] = useState<Proposal | null>(null);
+  const [showCreateHumanModal, setShowCreateHumanModal] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
+  // Helper check for human proposals
+  const isHumanProposal = (p: Proposal) => {
+    const authorClean = (p.created_by || p.agent_id || '').toLowerCase();
+    return (
+      p.author_type === 'human' ||
+      p.proposal_type === 'human_contribution' ||
+      authorClean === 'alex' ||
+      authorClean === 'maya' ||
+      authorClean === 'human'
+    );
+  };
+
+  const isNovaProposal = (p: Proposal) => {
+    const authorClean = (p.created_by || p.agent_id || '').toLowerCase();
+    return authorClean === 'nova';
+  };
+
+  const isPixelProposal = (p: Proposal) => {
+    const authorClean = (p.created_by || p.agent_id || '').toLowerCase();
+    return authorClean === 'pixel';
+  };
+
+  // Two-dimensional filter composition (Section 4)
   const filteredProposals = proposals.filter((p) => {
-    // 1. Agent filter (Requirement 1.C: Separate NOVA outputs from PIXEL outputs)
-    if (agentFilter === 'pixel' && p.agent_id !== 'pixel') return false;
-    if (agentFilter === 'nova' && p.agent_id !== 'nova') return false;
+    // 1. Author / Contributor filter
+    if (authorFilter === 'nova' && !isNovaProposal(p)) return false;
+    if (authorFilter === 'pixel' && !isPixelProposal(p)) return false;
+    if (authorFilter === 'human' && !isHumanProposal(p)) return false;
 
     // 2. Status filter
-    if (statusFilter === 'pending') return p.status === 'pending_review';
-    if (statusFilter === 'attention') return p.status === 'stale' || p.status === 'conflict';
-    if (statusFilter === 'approved') return p.status === 'approved';
+    if (statusFilter === 'pending' && p.status !== 'pending_review') return false;
+    if (statusFilter === 'approved' && p.status !== 'approved') return false;
+    if (statusFilter === 'rejected' && p.status !== 'rejected') return false;
+    if (statusFilter === 'stale' && p.status !== 'stale') return false;
+    if (statusFilter === 'conflict' && p.status !== 'conflict') return false;
+
     return true;
   });
 
+  // Calculate live counts
   const pendingCount = proposals.filter((p) => p.status === 'pending_review').length;
-  const attentionCount = proposals.filter((p) => p.status === 'stale' || p.status === 'conflict').length;
   const approvedCount = proposals.filter((p) => p.status === 'approved').length;
+  const rejectedCount = proposals.filter((p) => p.status === 'rejected').length;
+  const staleCount = proposals.filter((p) => p.status === 'stale').length;
+  const conflictCount = proposals.filter((p) => p.status === 'conflict').length;
 
-  const pixelCount = proposals.filter((p) => p.agent_id === 'pixel').length;
-  const novaCount = proposals.filter((p) => p.agent_id === 'nova').length;
+  const novaCount = proposals.filter(isNovaProposal).length;
+  const pixelCount = proposals.filter(isPixelProposal).length;
+  const humanCount = proposals.filter(isHumanProposal).length;
 
   const handleApprove = async (proposalId: string) => {
     setActionError(null);
@@ -96,8 +144,9 @@ export const ProposalList: React.FC<ProposalListProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Top Filter Bar */}
+      {/* Top Filter & Control Card */}
       <div className="bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] space-y-4">
+        {/* Title Bar & Status Filters */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center space-x-3.5">
             <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-teal-700 shadow-xs">
@@ -113,16 +162,94 @@ export const ProposalList: React.FC<ProposalListProps> = ({
                 </span>
               </div>
               <p className="text-xs text-[#657189] mt-0.5">
-                Targeted contributions created by NOVA (Strategist) and PIXEL (Prototype Engineer)
+                Traceable proposals authored by NOVA, PIXEL, and human decision owners
               </p>
             </div>
           </div>
 
-          {/* Status Filter Chips */}
-          <div className="flex items-center space-x-1.5 text-xs overflow-x-auto pb-1 sm:pb-0">
+          {/* New Human Contribution Button */}
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setShowCreateHumanModal(true)}
+              className="px-3.5 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-semibold flex items-center space-x-1.5 shadow-2xs transition cursor-pointer"
+            >
+              <PlusCircle className="w-3.5 h-3.5 text-blue-600" />
+              <span>Add Human Contribution</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Two-Dimensional Filter Controls */}
+        <div className="pt-3 border-t border-[#F0F3F7] space-y-3">
+          {/* 1. Author / Contributor Filter Tabs */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center space-x-2">
+              <span className="text-[11px] font-bold text-[#657189] uppercase tracking-wider">
+                Contributor:
+              </span>
+              <div className="flex flex-wrap items-center gap-1.5 bg-[#F8FAFC] p-1 rounded-xl border border-[#E5EAF0]">
+                <button
+                  onClick={() => setAuthorFilter('all')}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
+                    authorFilter === 'all'
+                      ? 'bg-white text-[#172033] shadow-xs'
+                      : 'text-[#657189] hover:text-[#172033]'
+                  }`}
+                >
+                  All Contributors ({proposals.length})
+                </button>
+                <button
+                  onClick={() => setAuthorFilter('nova')}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                    authorFilter === 'nova'
+                      ? 'bg-violet-600 text-white shadow-xs'
+                      : 'text-violet-800 hover:bg-violet-50'
+                  }`}
+                >
+                  <Brain className="w-3.5 h-3.5" />
+                  <span>NOVA ({novaCount})</span>
+                </button>
+                <button
+                  onClick={() => setAuthorFilter('pixel')}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                    authorFilter === 'pixel'
+                      ? 'bg-teal-600 text-white shadow-xs'
+                      : 'text-teal-800 hover:bg-teal-50'
+                  }`}
+                >
+                  <Code2 className="w-3.5 h-3.5" />
+                  <span>PIXEL ({pixelCount})</span>
+                </button>
+                <button
+                  onClick={() => setAuthorFilter('human')}
+                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
+                    authorFilter === 'human'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'text-blue-800 hover:bg-blue-50'
+                  }`}
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span>Human Contributions ({humanCount})</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="text-[11px] text-[#657189] hidden md:block">
+              {authorFilter === 'pixel' && 'PIXEL: Implementation changes to LedgerFlow components & UI.'}
+              {authorFilter === 'nova' && 'NOVA: Product requirements, positioning & strategic PRD updates.'}
+              {authorFilter === 'human' && 'Human Contributions: Direct edits authored by Alex or Maya.'}
+              {authorFilter === 'all' && 'All multi-agent and human contributions in workspace.'}
+            </div>
+          </div>
+
+          {/* 2. Proposal Status Filter Tabs */}
+          <div className="flex flex-wrap items-center space-x-1.5 text-xs pt-1">
+            <span className="text-[11px] font-bold text-[#657189] uppercase tracking-wider mr-1">
+              Status:
+            </span>
             <button
               onClick={() => setStatusFilter('all')}
-              className={`px-3 py-1.5 rounded-xl transition font-medium cursor-pointer ${
+              className={`px-3 py-1 rounded-xl transition font-medium cursor-pointer ${
                 statusFilter === 'all'
                   ? 'bg-[#F0F3F7] text-[#172033] font-semibold shadow-2xs'
                   : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
@@ -132,7 +259,7 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             </button>
             <button
               onClick={() => setStatusFilter('pending')}
-              className={`px-3 py-1.5 rounded-xl transition font-medium cursor-pointer ${
+              className={`px-3 py-1 rounded-xl transition font-medium cursor-pointer ${
                 statusFilter === 'pending'
                   ? 'bg-blue-50 text-blue-700 border border-blue-200 font-semibold shadow-2xs'
                   : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
@@ -141,18 +268,8 @@ export const ProposalList: React.FC<ProposalListProps> = ({
               Needs Review ({pendingCount})
             </button>
             <button
-              onClick={() => setStatusFilter('attention')}
-              className={`px-3 py-1.5 rounded-xl transition font-medium cursor-pointer ${
-                statusFilter === 'attention'
-                  ? 'bg-amber-50 text-amber-800 border border-amber-200 font-semibold shadow-2xs'
-                  : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
-              }`}
-            >
-              Outdated & Conflicts ({attentionCount})
-            </button>
-            <button
               onClick={() => setStatusFilter('approved')}
-              className={`px-3 py-1.5 rounded-xl transition font-medium cursor-pointer ${
+              className={`px-3 py-1 rounded-xl transition font-medium cursor-pointer ${
                 statusFilter === 'approved'
                   ? 'bg-emerald-50 text-emerald-800 border border-emerald-200 font-semibold shadow-2xs'
                   : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
@@ -160,54 +277,36 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             >
               Approved ({approvedCount})
             </button>
-          </div>
-        </div>
-
-        {/* Agent Separation Tabs (Requirement 1.C: Clarify NOVA vs PIXEL responsibilities) */}
-        <div className="pt-3 border-t border-[#F0F3F7] flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center space-x-2">
-            <span className="text-[11px] font-bold text-[#657189] uppercase tracking-wider">
-              Output Category:
-            </span>
-            <div className="flex items-center space-x-1.5 bg-[#F8FAFC] p-1 rounded-xl border border-[#E5EAF0]">
-              <button
-                onClick={() => setAgentFilter('all')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                  agentFilter === 'all'
-                    ? 'bg-white text-[#172033] shadow-xs'
-                    : 'text-[#657189] hover:text-[#172033]'
-                }`}
-              >
-                All Contributors ({proposals.length})
-              </button>
-              <button
-                onClick={() => setAgentFilter('pixel')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                  agentFilter === 'pixel'
-                    ? 'bg-teal-600 text-white shadow-xs'
-                    : 'text-teal-800 hover:bg-teal-50'
-                }`}
-              >
-                <Code2 className="w-3.5 h-3.5" />
-                <span>PIXEL · Prototype Changes ({pixelCount})</span>
-              </button>
-              <button
-                onClick={() => setAgentFilter('nova')}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 ${
-                  agentFilter === 'nova'
-                    ? 'bg-violet-600 text-white shadow-xs'
-                    : 'text-violet-800 hover:bg-violet-50'
-                }`}
-              >
-                <Bot className="w-3.5 h-3.5" />
-                <span>NOVA · Strategy & PRD ({novaCount})</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="text-[11px] text-[#657189]">
-            {agentFilter === 'pixel' && 'PIXEL outputs: target UI sections, components & before/after code previews.'}
-            {agentFilter === 'nova' && 'NOVA outputs: strategic positioning, PRDs, requirements & semantic reviews.'}
+            <button
+              onClick={() => setStatusFilter('rejected')}
+              className={`px-3 py-1 rounded-xl transition font-medium cursor-pointer ${
+                statusFilter === 'rejected'
+                  ? 'bg-slate-100 text-slate-700 border border-slate-200 font-semibold shadow-2xs'
+                  : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
+              }`}
+            >
+              Rejected ({rejectedCount})
+            </button>
+            <button
+              onClick={() => setStatusFilter('stale')}
+              className={`px-3 py-1 rounded-xl transition font-medium cursor-pointer ${
+                statusFilter === 'stale'
+                  ? 'bg-amber-50 text-amber-800 border border-amber-200 font-semibold shadow-2xs'
+                  : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
+              }`}
+            >
+              Stale ({staleCount})
+            </button>
+            <button
+              onClick={() => setStatusFilter('conflict')}
+              className={`px-3 py-1 rounded-xl transition font-medium cursor-pointer ${
+                statusFilter === 'conflict'
+                  ? 'bg-red-50 text-red-800 border border-red-200 font-semibold shadow-2xs'
+                  : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
+              }`}
+            >
+              Conflicted ({conflictCount})
+            </button>
           </div>
         </div>
       </div>
@@ -230,7 +329,7 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           <GitPullRequest className="w-10 h-10 text-[#657189] mx-auto mb-3 opacity-30" />
           <h3 className="text-sm font-bold text-[#172033]">No proposals matching this filter</h3>
           <p className="text-xs text-[#657189] mt-1 max-w-sm mx-auto">
-            Use the staged workflow from Overview or the Guided Demo assistant to generate new contributions.
+            Try adjusting the contributor or status filters above, or add a new human contribution.
           </p>
         </div>
       ) : (
@@ -255,7 +354,7 @@ export const ProposalList: React.FC<ProposalListProps> = ({
       {redirectingProposal && (
         <RedirectModal
           proposalId={redirectingProposal.proposal_id}
-          agentId={redirectingProposal.agent_id}
+          agentId={redirectingProposal.agent_id || 'pixel'}
           summary={redirectingProposal.summary}
           decidedBy={identity || 'alex'}
           onClose={() => setRedirectingProposal(null)}
@@ -275,6 +374,15 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             setConflictedProposal(null);
             setRedirectingProposal(targetProp);
           }}
+        />
+      )}
+
+      {/* Create Human Proposal Modal */}
+      {showCreateHumanModal && (
+        <CreateHumanProposalModal
+          identity={identity}
+          onClose={() => setShowCreateHumanModal(false)}
+          onSuccess={onRefresh}
         />
       )}
     </div>

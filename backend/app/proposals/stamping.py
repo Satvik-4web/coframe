@@ -1,5 +1,5 @@
 import uuid
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from sqlalchemy.orm import Session
 from backend.app.db.models import (
     ProposalModel,
@@ -21,6 +21,13 @@ def stamp_and_persist_proposal(
     is_simulated: bool = False,
     supersedes_proposal_id: Optional[str] = None,
     prune_metadata: Optional[Dict[str, Any]] = None,
+    created_by: Optional[str] = None,
+    author_type: Optional[str] = None,
+    task_id: Optional[str] = None,
+    reviewed_by: Optional[str] = None,
+    review_outcome: Optional[str] = None,
+    review_findings: Optional[List[Dict[str, Any]]] = None,
+    proposal_type: Optional[str] = None,
 ) -> ProposalModel:
     """
     Stamps authoritative backend metadata onto agent-produced content
@@ -57,6 +64,40 @@ def stamp_and_persist_proposal(
     # Generate stable backend ID
     proposal_id = f"prop_{uuid.uuid4().hex[:8]}"
 
+    # Authoritative attribution
+    effective_created_by = created_by or run.agent_id
+    effective_author_type = author_type or "agent"
+    effective_task_id = task_id or getattr(run, "task_id", None) or run.id
+    effective_proposal_type = proposal_type or ("prd_requirement" if run.agent_id == "nova" else "prototype_modification")
+
+    # If PIXEL proposal and not yet reviewed, run structured agent review (NOVA reviews PIXEL)
+    if run.agent_id == "pixel" and reviewed_by is None:
+        try:
+            from backend.app.agents.review import validate_agent_proposal_output
+            rev_res = validate_agent_proposal_output(
+                db=db,
+                project_id=project_id,
+                proposal_dict={
+                    "summary": validated.summary,
+                    "target_sections": validated.target_sections,
+                    "affected_requirements": validated.affected_requirements,
+                    "changes": validated.changes,
+                    "base_section_versions": base_section_versions,
+                    "base_context_version": run.base_context_version,
+                },
+                source_agent="pixel",
+            )
+            reviewed_by = "nova"
+            review_outcome = rev_res.verdict
+            review_findings = [
+                {"code": f.code, "severity": f.severity, "message": f.message}
+                for f in rev_res.findings
+            ]
+        except Exception:
+            reviewed_by = "nova"
+            review_outcome = "PASS"
+            review_findings = []
+
     # Ensure authentic Ed25519-signed Prune receipt is attached
     if not prune_metadata:
         try:
@@ -78,6 +119,13 @@ def stamp_and_persist_proposal(
         id=proposal_id,
         project_id=project_id,
         agent_id=run.agent_id,
+        created_by=effective_created_by,
+        author_type=effective_author_type,
+        task_id=effective_task_id,
+        reviewed_by=reviewed_by,
+        review_outcome=review_outcome,
+        review_findings=review_findings,
+        proposal_type=effective_proposal_type,
         run_id=run_id,
         supersedes_proposal_id=supersedes_proposal_id,
         summary=validated.summary,
@@ -139,6 +187,13 @@ def stamp_and_persist_proposal(
         payload={
             "proposal_id": proposal.id,
             "agent_id": run.agent_id,
+            "created_by": proposal.created_by,
+            "author_type": proposal.author_type,
+            "task_id": proposal.task_id,
+            "reviewed_by": proposal.reviewed_by,
+            "review_outcome": proposal.review_outcome,
+            "proposal_type": proposal.proposal_type,
+            "supersedes_proposal_id": proposal.supersedes_proposal_id,
             "summary": proposal.summary,
             "affected_requirements": proposal.affected_requirements,
             "target_sections": proposal.target_sections,

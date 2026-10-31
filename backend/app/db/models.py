@@ -162,8 +162,14 @@ class ProposalModel(Base):
 
     id = Column(String(64), primary_key=True)
     project_id = Column(String(64), ForeignKey("projects.id"), index=True, nullable=False)
-    agent_id = Column(String(32), index=True, nullable=False)
-    run_id = Column(String(64), ForeignKey("agent_runs.id"), nullable=False)
+    agent_id = Column(String(32), index=True, nullable=True)
+    created_by = Column(String(64), nullable=True, index=True)
+    author_type = Column(String(32), default="agent", nullable=False)  # "agent", "human", "system", "unknown"
+    task_id = Column(String(64), nullable=True)
+    reviewed_by = Column(String(64), nullable=True)  # e.g. "nova"
+    review_outcome = Column(String(32), nullable=True)  # "PASS", "WARNING", "BLOCK"
+    review_findings = Column(JSON, nullable=True)
+    run_id = Column(String(64), ForeignKey("agent_runs.id"), nullable=True)
     supersedes_proposal_id = Column(String(64), ForeignKey("proposals.id"), nullable=True)
     summary = Column(Text, nullable=False)
     reasoning = Column(Text, nullable=False)

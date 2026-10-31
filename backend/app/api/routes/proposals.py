@@ -1,15 +1,18 @@
+import uuid
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from backend.app.db.database import get_db
-from backend.app.db.models import ProposalModel, DecisionModel, utcnow_str
+from backend.app.db.models import ProposalModel, DecisionModel, ProjectModel, AgentRunModel, utcnow_str
 from backend.app.schemas.proposals import (
     ProposalApproveRequest,
     ProposalRejectRequest,
     ProposalRedirectRequest,
     ProposalReconcileRequest,
+    HumanProposalCreateRequest,
 )
 from backend.app.proposals.apply import apply_proposal_atomically, ApplyValidationError
+from backend.app.proposals.serialization import serialize_proposal_for_api
 from backend.app.agents.nova import reconcile_nova_proposal, redirect_nova_proposal
 from backend.app.agents.pixel import redirect_pixel_proposal
 from backend.app.events.logger import log_event
@@ -26,34 +29,7 @@ async def list_proposals(project_id: str, db: Session = Depends(get_db)):
         .order_by(ProposalModel.created_at.desc())
         .all()
     )
-    return [
-        {
-            "proposal_id": p.id,
-            "project_id": p.project_id,
-            "agent_id": p.agent_id,
-            "run_id": p.run_id,
-            "supersedes_proposal_id": p.supersedes_proposal_id,
-            "summary": p.summary,
-            "reasoning": p.reasoning,
-            "affected_requirements": p.affected_requirements,
-            "target_sections": p.target_sections,
-            "changes": p.changes,
-            "base_context_version": p.base_context_version,
-            "base_artifact_version": p.base_artifact_version,
-            "base_section_versions": p.base_section_versions,
-            "requires_decision": p.requires_decision,
-            "assigned_decider_id": p.assigned_decider_id,
-            "status": p.status,
-            "stale_reason": p.stale_reason,
-            "conflict_reason": p.conflict_reason,
-            "source": p.source,
-            "is_simulated": p.is_simulated,
-            "prune_metadata": getattr(p, "prune_metadata", None),
-            "created_at": p.created_at,
-            "updated_at": p.updated_at,
-        }
-        for p in props
-    ]
+    return [serialize_proposal_for_api(p) for p in props]
 
 
 @router.get("/projects/{project_id}/proposals/{proposal_id}")
@@ -65,31 +41,111 @@ async def get_proposal(project_id: str, proposal_id: str, db: Session = Depends(
     )
     if not p:
         raise HTTPException(status_code=404, detail="Proposal not found")
-    return {
-        "proposal_id": p.id,
-        "project_id": p.project_id,
-        "agent_id": p.agent_id,
-        "run_id": p.run_id,
-        "supersedes_proposal_id": p.supersedes_proposal_id,
-        "summary": p.summary,
-        "reasoning": p.reasoning,
-        "affected_requirements": p.affected_requirements,
-        "target_sections": p.target_sections,
-        "changes": p.changes,
-        "base_context_version": p.base_context_version,
-        "base_artifact_version": p.base_artifact_version,
-        "base_section_versions": p.base_section_versions,
-        "requires_decision": p.requires_decision,
-        "assigned_decider_id": p.assigned_decider_id,
-        "status": p.status,
-        "stale_reason": p.stale_reason,
-        "conflict_reason": p.conflict_reason,
-        "source": p.source,
-        "is_simulated": p.is_simulated,
-        "prune_metadata": getattr(p, "prune_metadata", None),
-        "created_at": p.created_at,
-        "updated_at": p.updated_at,
-    }
+    return serialize_proposal_for_api(p)
+
+
+@router.post("/projects/{project_id}/proposals/human")
+async def create_human_proposal(
+    project_id: str,
+    body: HumanProposalCreateRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Creates an authoritative human contribution authored by Alex or Maya.
+    Strictly validates caller identity to prevent spoofing.
+    """
+    author_clean = body.author.strip().lower()
+    if author_clean not in ("alex", "maya"):
+        raise HTTPException(
+            status_code=403,
+            detail=f"Unauthorized contributor '{body.author}'. Only registered project members ('alex', 'maya') can submit human contributions.",
+        )
+
+    project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    # Ensure AgentRun record exists for foreign key integrity
+    run_id = f"run_human_{uuid.uuid4().hex[:8]}"
+    human_run = AgentRunModel(
+        id=run_id,
+        project_id=project_id,
+        agent_id=author_clean,
+        status="completed",
+        lifecycle_state="idle",
+        task_description=f"Human contribution by {author_clean.capitalize()}: {body.summary}",
+        base_context_version=project.context_version,
+        base_artifact_version=project.artifact_version,
+        context_pack={"requirements": [], "section_versions": {}},
+        source="human_entry",
+        started_at=utcnow_str(),
+        completed_at=utcnow_str(),
+    )
+    db.add(human_run)
+
+    proposal_id = f"prop_human_{uuid.uuid4().hex[:8]}"
+    base_sec_vers = {sec: 1 for sec in body.target_sections}
+
+    proposal = ProposalModel(
+        id=proposal_id,
+        project_id=project_id,
+        agent_id=author_clean,
+        created_by=author_clean,
+        author_type="human",
+        task_id=body.task_id or f"task_human_{uuid.uuid4().hex[:6]}",
+        reviewed_by=None,
+        review_outcome=None,
+        review_findings=[],
+        run_id=run_id,
+        summary=body.summary,
+        reasoning=body.reasoning,
+        affected_requirements=body.affected_requirements or [],
+        target_sections=body.target_sections,
+        changes=body.changes,
+        base_context_version=project.context_version,
+        base_artifact_version=project.artifact_version,
+        base_section_versions=base_sec_vers,
+        requires_decision=bool(body.requires_decision),
+        assigned_decider_id=body.assigned_decider_id or "alex",
+        status="pending_review",
+        proposal_type="human_contribution",
+        source="human_entry",
+        is_simulated=False,
+        prune_metadata=None,
+        created_at=utcnow_str(),
+        updated_at=utcnow_str(),
+    )
+    db.add(proposal)
+    db.commit()
+    db.refresh(proposal)
+
+    # Log proposal submitted event
+    log_event(
+        db=db,
+        project_id=project_id,
+        actor_type="human",
+        actor_id=author_clean,
+        event_type="PROPOSAL_SUBMITTED",
+        context_version=project.context_version,
+        artifact_version=project.artifact_version,
+        payload={
+            "proposal_id": proposal.id,
+            "created_by": proposal.created_by,
+            "author_type": proposal.author_type,
+            "summary": proposal.summary,
+            "target_sections": proposal.target_sections,
+            "proposal_type": proposal.proposal_type,
+            "requires_decision": proposal.requires_decision,
+        },
+    )
+
+    await ws_manager.broadcast(project_id, {
+        "type": "PROPOSAL_SUBMITTED",
+        "proposal_id": proposal.id,
+        "author": author_clean,
+    })
+
+    return serialize_proposal_for_api(proposal)
 
 
 @router.post("/projects/{project_id}/proposals/{proposal_id}/approve")
@@ -183,6 +239,9 @@ async def reject_proposal(
         event_type="PROPOSAL_REJECTED",
         payload={
             "proposal_id": p.id,
+            "agent_id": p.agent_id,
+            "created_by": p.created_by or p.agent_id,
+            "author_type": p.author_type,
             "decided_by": body.decided_by,
             "reason": body.reason,
         },
@@ -263,13 +322,7 @@ async def redirect_proposal(
         "message": f"{p.agent_id.upper()} redirected; created revised proposal {new_proposal.id}.",
         "original_proposal_id": proposal_id,
         "new_proposal_id": new_proposal.id,
-        "new_proposal": {
-            "id": new_proposal.id,
-            "agent_id": new_proposal.agent_id,
-            "summary": new_proposal.summary,
-            "supersedes_proposal_id": new_proposal.supersedes_proposal_id,
-            "requires_decision": new_proposal.requires_decision,
-        },
+        "new_proposal": serialize_proposal_for_api(new_proposal),
     }
 
 

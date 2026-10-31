@@ -69,6 +69,35 @@ export const ActivityHistoryView: React.FC<ActivityHistoryViewProps> = ({ events
 
   const formatEventSummary = (e: EventRecord): string => {
     const p = e.payload || {};
+    const evType = e.event_type.toLowerCase();
+
+    if (evType.includes('proposal_submitted') || evType === 'proposal_stamped') {
+      const author = p.created_by || p.agent_id || e.actor_id;
+      const typeLabel = p.proposal_type ? p.proposal_type.replace(/_/g, ' ') : 'contribution';
+      return `${author.toUpperCase()} submitted ${typeLabel}: "${p.summary || ''}"`;
+    }
+
+    if (evType.includes('proposal_approved')) {
+      const approver = p.decided_by || e.actor_id;
+      const origAuthor = p.created_by || p.agent_id;
+      const artVer = p.new_artifact_version || e.artifact_version;
+      return `${approver.toUpperCase()} approved ${origAuthor ? `${origAuthor.toUpperCase()}'s ` : ''}proposal #${(p.proposal_id || '').slice(-6)} (Artifact advanced to v${artVer})`;
+    }
+
+    if (evType.includes('proposal_rejected')) {
+      const rejecter = p.decided_by || e.actor_id;
+      const origAuthor = p.created_by || p.agent_id;
+      return `${rejecter.toUpperCase()} rejected ${origAuthor ? `${origAuthor.toUpperCase()}'s ` : ''}proposal #${(p.proposal_id || '').slice(-6)}: ${p.reason || 'Decision owner rejection'}`;
+    }
+
+    if (evType.includes('proposal_redirected')) {
+      return `Proposal #${(p.original_proposal_id || p.proposal_id || '').slice(-6)} redirected with guidance -> revised proposal #${(p.new_proposal_id || '').slice(-6)}`;
+    }
+
+    if (evType.includes('proposal_reconciled')) {
+      return `Stale proposal #${(p.original_proposal_id || p.proposal_id || '').slice(-6)} reconciled with enterprise context -> revised proposal #${(p.new_proposal_id || '').slice(-6)}`;
+    }
+
     if (p.summary) return p.summary;
     if (p.message) return p.message;
     if (p.requirement_key) {
@@ -77,19 +106,7 @@ export const ActivityHistoryView: React.FC<ActivityHistoryViewProps> = ({ events
     if (p.section_key) {
       return `Mutated artifact section '${p.section_key}' to version v${p.new_version}`;
     }
-    if (e.event_type === 'proposal_stamped') {
-      return `AI proposal created for sections: ${(p.target_sections || []).join(', ')}`;
-    }
-    if (e.event_type === 'proposal_approved') {
-      return `Proposal #${(p.proposal_id || '').slice(-6)} approved and atomically committed`;
-    }
-    if (e.event_type === 'proposal_rejected') {
-      return `Proposal #${(p.proposal_id || '').slice(-6)} rejected: ${p.reason || 'Human rejection'}`;
-    }
-    if (e.event_type === 'proposal_redirected') {
-      return `Proposal #${(p.proposal_id || '').slice(-6)} redirected with guidance: "${p.instruction || ''}"`;
-    }
-    if (e.event_type === 'agent_restarted') {
+    if (evType === 'agent_restarted') {
       return `Agent ${e.actor_id.toUpperCase()} restarted; context restored from authoritative DB snapshot`;
     }
     return p.stale_reason || p.conflict_reason || `${e.event_type.replace(/_/g, ' ')}`;

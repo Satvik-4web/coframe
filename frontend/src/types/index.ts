@@ -36,8 +36,18 @@ export interface ArtifactSection {
 export interface Proposal {
   proposal_id: string;
   project_id: string;
-  agent_id: 'nova' | 'pixel';
-  run_id: string;
+  agent_id?: string | null;
+  created_by?: string | null;
+  author?: string;
+  author_type?: 'agent' | 'human' | 'system' | 'unknown';
+  author_role?: string;
+  author_label?: string;
+  contribution_type?: 'PRODUCT REQUIREMENTS' | 'IMPLEMENTATION' | 'HUMAN CONTRIBUTION' | string;
+  task_id?: string | null;
+  reviewed_by?: string | null;
+  review_outcome?: 'PASS' | 'WARNING' | 'BLOCK' | null;
+  review_findings?: Array<{ code: string; severity: string; message: string }> | null;
+  run_id?: string;
   supersedes_proposal_id?: string | null;
   summary: string;
   reasoning: string;
@@ -62,8 +72,8 @@ export interface Proposal {
   status: 'pending_review' | 'stale' | 'conflict' | 'approved' | 'rejected' | 'superseded';
   stale_reason?: string | null;
   conflict_reason?: string | null;
-  proposal_type?: 'prototype_modification' | 'prd_requirement' | 'strategic_recommendation' | string;
-  source: 'live_llm' | 'cached_fallback';
+  proposal_type?: 'prototype_modification' | 'prd_requirement' | 'strategic_recommendation' | 'human_contribution' | string;
+  source: 'live_llm' | 'cached_fallback' | 'human_entry' | string;
   is_simulated: boolean;
   prune_metadata?: PruneMetadata | null;
   created_at: string;

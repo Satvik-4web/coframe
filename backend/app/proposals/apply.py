@@ -319,6 +319,10 @@ def apply_proposal_atomically(
             payload={
                 "proposal_id": proposal.id,
                 "agent_id": proposal.agent_id,
+                "created_by": proposal.created_by or proposal.agent_id,
+                "author_type": proposal.author_type,
+                "reviewed_by": proposal.reviewed_by,
+                "review_outcome": proposal.review_outcome,
                 "summary": proposal.summary,
                 "target_sections": list(new_section_data.keys()),
                 "decided_by": decided_by,

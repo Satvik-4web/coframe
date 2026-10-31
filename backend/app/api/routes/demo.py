@@ -19,6 +19,7 @@ from backend.app.db.models import (
 )
 from backend.app.resources.manager import get_all_workspace_resources
 from backend.app.observer_summary.generator import generate_observer_summary
+from backend.app.proposals.serialization import serialize_proposal_for_api
 from backend.app.websocket.manager import ws_manager
 
 router = APIRouter(tags=["demo"])
@@ -177,33 +178,7 @@ async def get_project_state(project_id: str, db: Session = Depends(get_db)):
             }
             for s in sections
         },
-        "proposals": [
-            {
-                "proposal_id": p.id,
-                "agent_id": p.agent_id,
-                "run_id": p.run_id,
-                "supersedes_proposal_id": p.supersedes_proposal_id,
-                "summary": p.summary,
-                "reasoning": p.reasoning,
-                "affected_requirements": p.affected_requirements,
-                "target_sections": p.target_sections,
-                "changes": p.changes,
-                "base_context_version": p.base_context_version,
-                "base_artifact_version": p.base_artifact_version,
-                "base_section_versions": p.base_section_versions,
-                "requires_decision": p.requires_decision,
-                "assigned_decider_id": p.assigned_decider_id,
-                "status": p.status,
-                "stale_reason": p.stale_reason,
-                "conflict_reason": p.conflict_reason,
-                "proposal_type": getattr(p, "proposal_type", None) or ("prd_requirement" if p.agent_id == "nova" else "prototype_modification"),
-                "source": p.source,
-                "is_simulated": p.is_simulated,
-                "created_at": p.created_at,
-                "updated_at": p.updated_at,
-            }
-            for p in proposals
-        ],
+        "proposals": [serialize_proposal_for_api(p) for p in proposals],
         "agent_runs": [
             {
                 "id": r.id,
