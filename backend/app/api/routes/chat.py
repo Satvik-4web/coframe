@@ -316,9 +316,16 @@ async def get_workflow_stage(
     db: Session = Depends(get_db),
 ):
     """Retrieves current collaboration workflow stage and agent readiness states."""
-    from backend.app.services.workflow_service import get_or_sync_workflow_stage
-    stage_data = get_or_sync_workflow_stage(db, project_id)
-    return stage_data
+    try:
+        from backend.app.services.workflow_service import get_or_sync_workflow_stage
+        stage_data = get_or_sync_workflow_stage(db, project_id)
+        return stage_data
+    except Exception as e:
+        import sys, traceback
+        sys.stderr.write(f"ERROR in get_workflow_stage: {e}\n")
+        traceback.print_exc(file=sys.stderr)
+        sys.stderr.flush()
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 @router.post("/projects/{project_id}/workflow-stage/sync")

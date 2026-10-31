@@ -97,7 +97,14 @@ def get_or_sync_workflow_stage(db: Optional[Session] = None, project_id: str = "
     """
     session = SessionLocal()
     try:
-        wf = session.query(WorkflowStateModel).filter(WorkflowStateModel.project_id == project_id).first()
+        try:
+            wf = session.query(WorkflowStateModel).filter(WorkflowStateModel.project_id == project_id).first()
+        except Exception:
+            session.rollback()
+            from backend.app.db.database import Base, engine
+            Base.metadata.create_all(bind=engine, tables=[WorkflowStateModel.__table__])
+            wf = session.query(WorkflowStateModel).filter(WorkflowStateModel.project_id == project_id).first()
+
         if not wf:
             wf = WorkflowStateModel(
                 id=f"wf_{project_id}",
@@ -236,7 +243,14 @@ async def update_workflow_stage(
     """Updates workflow state explicitly and broadcasts changes to WebSocket clients using an isolated session."""
     session = SessionLocal()
     try:
-        wf = session.query(WorkflowStateModel).filter(WorkflowStateModel.project_id == project_id).first()
+        try:
+            wf = session.query(WorkflowStateModel).filter(WorkflowStateModel.project_id == project_id).first()
+        except Exception:
+            session.rollback()
+            from backend.app.db.database import Base, engine
+            Base.metadata.create_all(bind=engine, tables=[WorkflowStateModel.__table__])
+            wf = session.query(WorkflowStateModel).filter(WorkflowStateModel.project_id == project_id).first()
+
         if not wf:
             wf = WorkflowStateModel(
                 id=f"wf_{project_id}",

@@ -52,6 +52,8 @@ from backend.app.db.models import (
 
     ChatMessageModel,
     RecoveryRecordModel,
+    PruneReceiptModel,
+    WorkflowStateModel,
 
     utcnow_str,
 
