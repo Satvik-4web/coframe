@@ -135,3 +135,22 @@ FALLBACK_REDIRECTED_PROPOSAL_D = {
         ]
     },
 }
+
+FALLBACK_REDIRECTED_NOVA_PROPOSAL = {
+    "summary": "Strategic Positioning Aligned with Human Direction",
+    "reasoning": "Revised strategic product brief incorporating direct founder feedback on enterprise spend governance and ROI messaging.",
+    "affected_requirements": ["REQ_AUDIENCE", "REQ_BRAND"],
+    "target_sections": ["product_brief"],
+    "changes": {
+        "operations": [
+            {
+                "op": "update_product_brief",
+                "fields": {
+                    "target_audience": "Enterprise Financial Controllers and CFO Offices",
+                    "value_proposition": "Customizable enterprise spend orchestration built to empower finance teams with complete auditability and automated controls.",
+                    "problem": "Manual expense reviews and rigid policy rules cause operational delays and compliance gaps.",
+                },
+            }
+        ]
+    },
+}

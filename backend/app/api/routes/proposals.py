@@ -10,7 +10,7 @@ from backend.app.schemas.proposals import (
     ProposalReconcileRequest,
 )
 from backend.app.proposals.apply import apply_proposal_atomically, ApplyValidationError
-from backend.app.agents.nova import reconcile_nova_proposal
+from backend.app.agents.nova import reconcile_nova_proposal, redirect_nova_proposal
 from backend.app.agents.pixel import redirect_pixel_proposal
 from backend.app.events.logger import log_event
 from backend.app.websocket.manager import ws_manager
@@ -101,6 +101,12 @@ async def approve_proposal(
     Step 6/7: Atomic apply-time validation and state update.
     Rechecks versions, stale events, and permissions in a database transaction.
     """
+    if body.decided_by.lower() not in ("alex", "maya"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid decider identity '{body.decided_by}'. Demo allows only 'alex' or 'maya'.",
+        )
+
     try:
         approved_prop = apply_proposal_atomically(
             db=db,
@@ -134,6 +140,12 @@ async def reject_proposal(
     db: Session = Depends(get_db),
 ):
     """Preserves proposal, records decision and reason."""
+    if body.decided_by.lower() not in ("alex", "maya"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid decider identity '{body.decided_by}'. Demo allows only 'alex' or 'maya'.",
+        )
+
     p = (
         db.query(ProposalModel)
         .filter(ProposalModel.id == proposal_id, ProposalModel.project_id == project_id)
@@ -193,8 +205,14 @@ async def redirect_proposal(
 ):
     """
     Step 6 Redirect: Human enters required instruction note.
-    Originating agent receives note + fresh Context Pack and produces a new linked proposal.
+    Originating agent (NOVA or PIXEL) receives note + fresh Context Pack and produces a new linked proposal.
     """
+    if body.decided_by.lower() not in ("alex", "maya"):
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid decider identity '{body.decided_by}'. Demo allows only 'alex' or 'maya'.",
+        )
+
     p = (
         db.query(ProposalModel)
         .filter(ProposalModel.id == proposal_id, ProposalModel.project_id == project_id)
@@ -218,14 +236,18 @@ async def redirect_proposal(
             human_instruction=body.instruction,
             decided_by=body.decided_by,
         )
-    else:
-        # Nova redirect
-        new_proposal = await redirect_pixel_proposal(  # or nova redirect
+    elif p.agent_id == "nova":
+        new_proposal = await redirect_nova_proposal(
             db=db,
             project_id=project_id,
             original_proposal_id=proposal_id,
             human_instruction=body.instruction,
             decided_by=body.decided_by,
+        )
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported agent '{p.agent_id}' for redirect",
         )
 
     await ws_manager.broadcast(project_id, {
@@ -236,11 +258,12 @@ async def redirect_proposal(
 
     return {
         "status": "success",
-        "message": f"Agent redirected; created revised proposal {new_proposal.id}.",
+        "message": f"{p.agent_id.upper()} redirected; created revised proposal {new_proposal.id}.",
         "original_proposal_id": proposal_id,
         "new_proposal_id": new_proposal.id,
         "new_proposal": {
             "id": new_proposal.id,
+            "agent_id": new_proposal.agent_id,
             "summary": new_proposal.summary,
             "supersedes_proposal_id": new_proposal.supersedes_proposal_id,
             "requires_decision": new_proposal.requires_decision,

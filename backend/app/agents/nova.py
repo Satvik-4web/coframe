@@ -14,6 +14,7 @@ from backend.app.agents.fallback import (
     FALLBACK_NOVA_PROPOSAL_B,
     FALLBACK_RECONCILED_PROPOSAL_A,
     FALLBACK_HIGH_IMPACT_APPROVAL_POLICY,
+    FALLBACK_REDIRECTED_NOVA_PROPOSAL,
 )
 from backend.app.db.models import ProposalModel, AgentRunModel, utcnow_str
 from backend.app.events.logger import log_event
@@ -182,6 +183,89 @@ async def reconcile_nova_proposal(
             "original_proposal_id": original_proposal_id,
             "new_proposal_id": new_proposal.id,
             "requested_by": requested_by,
+        },
+    )
+
+    return new_proposal
+
+
+async def redirect_nova_proposal(
+    db: Session,
+    project_id: str,
+    original_proposal_id: str,
+    human_instruction: str,
+    decided_by: str = "alex",
+) -> ProposalModel:
+    """
+    Step 6 Redirect for NOVA:
+    Captures human instruction, builds fresh Context Pack, prompts NOVA,
+    and persists a new linked proposal (supersedes_proposal_id).
+    """
+    orig_prop = db.query(ProposalModel).filter(ProposalModel.id == original_proposal_id).first()
+    if not orig_prop:
+        raise ValueError(f"Original proposal {original_proposal_id} not found")
+
+    new_run_id = f"run_nova_redirect_{uuid.uuid4().hex[:6]}"
+    task_desc = f"Revise strategic proposal {original_proposal_id} per {decided_by}'s redirect note: '{human_instruction}'"
+
+    run = create_and_persist_agent_run(
+        db=db,
+        project_id=project_id,
+        agent_id="nova",
+        run_id=new_run_id,
+        task_id=f"task_redirect_{uuid.uuid4().hex[:4]}",
+        task_description=task_desc,
+    )
+
+    pack = run.context_pack
+    user_prompt = (
+        f"Original Strategic Proposal:\n{json.dumps({'summary': orig_prop.summary, 'reasoning': orig_prop.reasoning, 'changes': orig_prop.changes}, indent=2)}\n\n"
+        f"Human Director ({decided_by.upper()}) Redirect Instruction:\n'{human_instruction}'\n\n"
+        f"Fresh Context Pack:\n{json.dumps(pack, indent=2)}\n"
+        f"Produce a revised strategic proposal strictly incorporating the human guidance note."
+    )
+
+    raw_output = None
+    source = "live_llm"
+    is_simulated = False
+    try:
+        raw_output, source, is_simulated = await call_llm_json(
+            system_prompt=NOVA_SYSTEM_PROMPT,
+            user_prompt=user_prompt,
+            timeout=8.0,
+        )
+    except Exception:
+        raw_output = FALLBACK_REDIRECTED_NOVA_PROPOSAL
+        source = "cached_fallback"
+        is_simulated = True
+
+    new_proposal = stamp_and_persist_proposal(
+        db=db,
+        project_id=project_id,
+        run_id=run.id,
+        raw_output=raw_output,
+        source=source,
+        is_simulated=is_simulated,
+        supersedes_proposal_id=original_proposal_id,
+    )
+
+    # Mark original proposal as superseded
+    orig_prop.status = "superseded"
+    orig_prop.updated_at = utcnow_str()
+    db.commit()
+
+    log_event(
+        db=db,
+        project_id=project_id,
+        actor_type="human",
+        actor_id=decided_by,
+        event_type="PROPOSAL_REDIRECTED",
+        payload={
+            "original_proposal_id": original_proposal_id,
+            "new_proposal_id": new_proposal.id,
+            "instruction": human_instruction,
+            "decided_by": decided_by,
+            "agent_id": "nova",
         },
     )
 

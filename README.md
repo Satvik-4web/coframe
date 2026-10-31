@@ -32,15 +32,16 @@ Per competition standards, every capability's implementation status is disclosed
 
 | Capability | Reality | Verification Detail |
 | :--- | :--- | :--- |
-| **Two Human Sessions** | Functional Demo Identities | Join as Alex or Maya. Real-time presence indicator updates across windows. |
+| **Two Human Sessions** | Functional Demo Identity Selector | Rapid role switcher without signup friction; active presence indicator updates across tabs. |
+| **Decision Permissions** | Functional Server Rule Engine | Backend restricts high-impact proposals (`requires_decision=True`) to Alex. Maya receives HTTP 403. |
 | **Realtime Sync** | Functional WebSockets | FastAPI WebSocket broadcasts events, edits, and presence instantaneously. |
 | **NOVA & PIXEL** | Live LLM + Labeled Fallback | Live provider (Gemini/OpenAI/Claude); if key omitted, uses labeled deterministic fallback. |
 | **Context Pack** | Functional Persisted Pack | Stored immutably on `agent_runs.context_pack`; inspectable in Context Inspector. |
 | **Selective Staleness** | Functional Set-Intersection | `changed_keys ∩ affected_requirements`. Proposal A stales; Proposal B survives. |
-| **Section Conflict** | Functional Compare-and-Swap | Detected when base section version < current section version. |
-| **Atomic Apply Engine** | Functional ACID Transaction | Database transaction rechecks all section versions and permissions before write. |
-| **Human Decision Policy**| Functional Server Rule Engine| Approval policy proposals require Alex; Maya receives HTTP 403. |
-| **Agent Recovery** | Functional State Rebuild | Fresh Context Pack generated from DB state with recovery summary. |
+| **Section Conflict** | Functional Compare-and-Swap | Detected when base section version < current section version; side-by-side diff review. |
+| **Atomic Apply Engine** | Functional ACID Transaction with CAS | Database transaction rechecks all section versions and permissions before atomic write; rolls back on error. |
+| **Dual Agent Redirect** | Functional Lineage Tracking | Both NOVA and PIXEL support human redirects, generating revised proposals linked by `supersedes_proposal_id`. |
+| **Agent Recovery** | Functional State Rebuild | Fresh Context Pack generated from DB state with authentic recovery summary. |
 | **Observer Summary** | Functional Synthesis | What Changed / Why / What Next banner with source event citations. |
 | **Prototype Renderer** | Functional React Components| Fixed React suite (`LedgerFlowHero`, `MetricGrid`, `ApprovalQueue`). No arbitrary eval. |
 | **Deterministic Reset** | Functional Database Seed | `POST /api/demo/reset` restores baseline LedgerFlow artifact in 1 click. |
@@ -55,14 +56,20 @@ Per competition standards, every capability's implementation status is disclosed
 
 ### 1. Clone & Configure
 ```bash
-git clone <repository_url>
+git clone https://github.com/Satvik-4web/coframe.git
 cd "Bios Hackathon"
 
 # Copy environment configuration
 cp .env.example .env
 ```
 
-### 2. Run Backend & Frontend
+### 2. Automated Full-Stack Verification (Recommended)
+Run the automated verification script, which tests runtimes, builds the frontend, validates backend readiness, runs the 17 Pytest tests, and performs the headless Playwright browser E2E test:
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts/verify.ps1
+```
+
+### 3. Manual Run Options
 
 #### Option A: Unified Full-Stack Run (Single Command)
 Build the frontend and run the complete application via FastAPI:
@@ -105,20 +112,35 @@ Use the **Demo Walkthrough Stepper** at the top of the COFRAME workspace to exec
    - **Case A (Selective Stale):** Proposal A turns red/STALE ("Written for small businesses..."). Proposal B stays green/PENDING because metrics were untouched!
    - **Case B (Section Conflict):** Click *Manual Edit Hero* as Maya. Maya saves custom hero copy (hero becomes v2). Proposal C turns red/CONFLICT. Click *Compare Side-by-Side Conflict* to see Maya's version vs. PIXEL's version.
 5. **Step 5 — Restart Agent & Context Recovery:** Go to Agent Activity and click *Restart NOVA*. Backend reconstructs a fresh Context Pack from SQLite/Postgres. Inspect the exact pack in the Context Inspector.
-6. **Step 6 — High-Impact Human Decision:** Click *Propose Enterprise Policy (PIXEL)*. Proposal D is flagged with *Requires Alex Approval*. Maya is blocked. Alex clicks *Redirect*, writes: *"Make approval thresholds configurable per organisation"*. PIXEL generates a revised proposal linked by `supersedes_proposal_id`. Alex approves.
+6. **Step 6 — High-Impact Human Decision:** Click *Propose Enterprise Policy (PIXEL)*. Proposal D is flagged with *Requires Alex Approval*. Maya is blocked (HTTP 403). Alex clicks *Redirect*, writes: *"Make approval thresholds configurable per organisation"*. PIXEL generates a revised proposal linked by `supersedes_proposal_id`. Alex approves.
 7. **Step 7 — Inspect Shared LedgerFlow Canvas:** Open the Product Canvas tab. The live React prototype displays the revised hero, enterprise metrics, and configurable approval queue!
 
 ---
 
 ## 5. Automated Test Suite
 
-Run the full automated test suite covering all 25 acceptance criteria:
+### 1. Pytest Unit and Concurrency Test Suites
+Execute the full backend test suite covering 17 automated tests across atomic CAS transactions, multi-section rollback, selective staleness, section conflicts, agent recovery, NOVA/PIXEL redirects, and permission enforcement:
 
 ```bash
 python -m pytest backend/tests/ -v
 ```
+*Results:* **17 passed** in ~1.5 seconds.
 
-All tests pass in ~1.3 seconds with 100% test coverage over atomic apply, selective staleness, section conflicts, agent recovery, and permissions.
+Key tests include:
+- `test_competing_manual_edits`: Verifies compare-and-swap rejection on stale version writes.
+- `test_proposal_apply_vs_manual_edit_conflict`: Verifies concurrent manual edit causes pending proposal apply to abort cleanly.
+- `test_multi_section_partial_write_prevention_and_rollback`: Proves database transaction atomicity—if a section version fails, all writes roll back.
+- `test_redirect_nova_and_pixel_preserves_supersedes_relationship`: Validates dual redirect for both NOVA and PIXEL with fresh Context Pack and `supersedes_proposal_id` lineage.
+- `test_decision_permissions_alex_vs_maya`: Verifies server-side authorization blocking unauthorized identities from high-impact decisions.
+
+### 2. Playwright Multi-Browser End-to-End Suite
+Execute the full multi-session browser interaction test:
+
+```bash
+python backend/tests/test_playwright_e2e.py
+```
+*Results:* **All 11 test stages passed**, capturing full-fidelity screenshot to `docs/demo_screenshot.png`.
 
 ---
 

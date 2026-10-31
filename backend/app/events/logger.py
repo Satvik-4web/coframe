@@ -14,9 +14,12 @@ def log_event(
     payload: Dict[str, Any],
     context_version: Optional[int] = None,
     artifact_version: Optional[int] = None,
+    auto_commit: bool = True,
 ) -> EventModel:
     """
     Appends an immutable event to the project's event history with monotonic sequence_no.
+    If auto_commit is False, flushes to the session without committing,
+    ensuring atomic participation in an outer transaction.
     """
     # Fetch current versions if not explicitly provided
     if context_version is None or artifact_version is None:
@@ -52,8 +55,10 @@ def log_event(
         created_at=utcnow_str(),
     )
     db.add(event)
-    db.commit()
-    db.refresh(event)
+    if auto_commit:
+        db.commit()
+        db.refresh(event)
+    else:
+        db.flush()
 
-    # Note: real-time broadcast will be called by route or manager
     return event
