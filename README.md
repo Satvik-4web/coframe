@@ -45,6 +45,7 @@ Per competition standards, every capability's implementation status is disclosed
 | **Observer Summary** | Functional Synthesis | What Changed / Why / What Next banner with source event citations. |
 | **Prototype Renderer** | Functional React Components| Fixed React suite (`LedgerFlowHero`, `MetricGrid`, `ApprovalQueue`). No arbitrary eval. |
 | **Deterministic Reset** | Functional Database Seed | `POST /api/demo/reset` restores baseline LedgerFlow artifact in 1 click. |
+| **GitHub Integration** | Functional Outbox & Git DB API | Connects real repositories, creates isolated branches, creates atomic commits via Git Database API, and opens reviewable Pull Requests. |
 
 ---
 
@@ -119,20 +120,22 @@ Use the **Demo Walkthrough Stepper** at the top of the COFRAME workspace to exec
 
 ## 5. Automated Test Suite
 
-### 1. Pytest Unit and Concurrency Test Suites
-Execute the full backend test suite covering 17 automated tests across atomic CAS transactions, multi-section rollback, selective staleness, section conflicts, agent recovery, NOVA/PIXEL redirects, and permission enforcement:
+### 1. Pytest Unit, Concurrency, and GitHub Test Suites
+Execute the full backend test suite covering 32 automated tests across atomic CAS transactions, multi-section rollback, selective staleness, section conflicts, agent recovery, NOVA/PIXEL redirects, permission enforcement, and the comprehensive GitHub integration (Outbox pattern, branches, commits, PRs, and API endpoints):
 
 ```bash
-python -m pytest backend/tests/ -v
+python -m pytest backend/tests/test_backend.py backend/tests/test_api_endpoints.py backend/tests/test_concurrency_and_redirect.py backend/tests/test_github_integration.py backend/tests/test_github_api_endpoints.py -v
 ```
-*Results:* **17 passed** in ~1.5 seconds.
+*Results:* **32 passed** in ~2.3 seconds.
 
-Key tests include:
+Key test suites include:
 - `test_competing_manual_edits`: Verifies compare-and-swap rejection on stale version writes.
 - `test_proposal_apply_vs_manual_edit_conflict`: Verifies concurrent manual edit causes pending proposal apply to abort cleanly.
 - `test_multi_section_partial_write_prevention_and_rollback`: Proves database transaction atomicity—if a section version fails, all writes roll back.
 - `test_redirect_nova_and_pixel_preserves_supersedes_relationship`: Validates dual redirect for both NOVA and PIXEL with fresh Context Pack and `supersedes_proposal_id` lineage.
 - `test_decision_permissions_alex_vs_maya`: Verifies server-side authorization blocking unauthorized identities from high-impact decisions.
+- `test_full_publish_and_idempotency`: Verifies isolated branch, commit creation via Git Database API, PR generation, and idempotency protection against duplicate publications.
+- `test_outbox_job_created_on_apply_and_failure_isolated`: Validates transactional Outbox sync job creation and proves GitHub failures never roll back approved COFRAME artifacts.
 
 ### 2. Playwright Multi-Browser End-to-End Suite
 Execute the full multi-session browser interaction test:
@@ -144,7 +147,13 @@ python backend/tests/test_playwright_e2e.py
 
 ---
 
-## 6. Technology Stack
+## 6. GitHub Integration Architecture & Guide
+For full architecture diagrams, token permission requirements, and live demo choreography, refer to the dedicated guide:  
+**[`docs/GITHUB_INTEGRATION.md`](./docs/GITHUB_INTEGRATION.md)**
+
+---
+
+## 7. Technology Stack
 
 - **Frontend:** React 19, TypeScript, Vite, Tailwind CSS v4, Lucide Icons
 - **Backend:** FastAPI, Python 3.10+, SQLAlchemy 2.0, Pydantic v2

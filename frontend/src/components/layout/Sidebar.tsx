@@ -9,9 +9,10 @@ import {
   User,
   Sparkles,
 } from 'lucide-react';
+import { GitHubIcon } from '../github/GitHubIcon';
 import { HumanIdentity } from '../../types';
 
-export type NavigationTab = 'workspace' | 'canvas' | 'proposals' | 'agents' | 'context';
+export type NavigationTab = 'workspace' | 'canvas' | 'proposals' | 'agents' | 'context' | 'github';
 
 interface SidebarProps {
   currentTab: NavigationTab;
@@ -40,6 +41,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     { id: 'agents', label: 'Agent Activity', icon: Bot },
     { id: 'context', label: 'Context & History', icon: History },
+    { id: 'github', label: 'GitHub', icon: GitHubIcon },
   ];
 
   return (

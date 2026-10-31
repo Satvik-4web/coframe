@@ -8,6 +8,7 @@ import {
   rejectProposal,
   reconcileProposal,
   editArtifactSection,
+  publishApprovedProposal,
 } from '../../lib/api';
 import { GitPullRequest, Filter, Sparkles, AlertCircle } from 'lucide-react';
 
@@ -70,6 +71,16 @@ export const ProposalList: React.FC<ProposalListProps> = ({
     // Rejects conflicted proposal, keeping Maya's version intact
     await handleReject(proposal.proposal_id);
     setConflictedProposal(null);
+  };
+
+  const handlePublishToGitHub = async (proposalId: string) => {
+    setActionError(null);
+    try {
+      await publishApprovedProposal(proposalId, identity || 'alex');
+      onRefresh();
+    } catch (err: any) {
+      setActionError(err.message || 'Failed to publish to GitHub');
+    }
   };
 
   return (
@@ -160,6 +171,7 @@ export const ProposalList: React.FC<ProposalListProps> = ({
               onRedirect={(p) => setRedirectingProposal(p)}
               onReconcile={handleReconcile}
               onCompareConflict={(p) => setConflictedProposal(p)}
+              onPublishToGitHub={handlePublishToGitHub}
             />
           ))}
         </div>

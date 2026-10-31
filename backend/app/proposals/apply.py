@@ -1,4 +1,5 @@
-from typing import Dict, Any, Tuple
+import uuid
+from typing import Dict, Any, Tuple, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import update
 from backend.app.db.models import (
@@ -8,9 +9,12 @@ from backend.app.db.models import (
     DecisionModel,
     RequirementModel,
     EventModel,
+    GitHubConnectionModel,
+    GitHubSyncJobModel,
     utcnow_str,
 )
 from backend.app.events.logger import log_event
+from backend.app.github.sync_worker import enqueue_sync_job_async
 
 
 class ApplyValidationError(Exception):
@@ -323,10 +327,34 @@ def apply_proposal_atomically(
             auto_commit=False,
         )
 
-        # Final single commit committing sections, project, proposal, decision, and event!
+        # 11. Transactionally record GitHub sync job if connected (Outbox Pattern)
+        conn = (
+            db.query(GitHubConnectionModel)
+            .filter(GitHubConnectionModel.project_id == project_id)
+            .first()
+        )
+        sync_job = None
+        if conn and conn.connection_status == "connected":
+            sync_job = GitHubSyncJobModel(
+                id=str(uuid.uuid4()),
+                project_id=project_id,
+                proposal_id=proposal.id,
+                status="pending",
+                attempts=0,
+                created_at=utcnow_str(),
+                updated_at=utcnow_str(),
+            )
+            db.add(sync_job)
+
+        # Final single commit committing sections, project, proposal, decision, event, and sync job!
         db.commit()
         db.refresh(proposal)
         db.refresh(project)
+
+        # Asynchronously dispatch the Outbox sync job after successful commit
+        if sync_job:
+            enqueue_sync_job_async(sync_job.id)
+
         return proposal
 
     except Exception:

@@ -10,6 +10,7 @@ import { ProposalList } from './components/proposals/ProposalList';
 import { ContextInspector } from './components/context-inspector/ContextInspector';
 import { EventTimeline } from './components/event-timeline/EventTimeline';
 import { DemoGuide } from './components/demo-stepper/DemoGuide';
+import { GitHubDashboard } from './components/github/GitHubDashboard';
 import { resetDemo } from './lib/api';
 
 export function App() {
@@ -136,6 +137,13 @@ export function App() {
 
           {currentTab === 'context' && state && (
             <EventTimeline events={state.events} />
+          )}
+
+          {currentTab === 'github' && state && (
+            <GitHubDashboard
+              proposals={state.proposals}
+              onRefreshProject={refresh}
+            />
           )}
         </main>
       </div>

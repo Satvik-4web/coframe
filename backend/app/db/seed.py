@@ -10,6 +10,9 @@ from backend.app.db.models import (
     AgentRunModel,
     ProposalModel,
     DecisionModel,
+    GitHubConnectionModel,
+    GitHubContributionModel,
+    GitHubSyncJobModel,
     utcnow_str,
 )
 
@@ -25,6 +28,10 @@ def reset_demo_database(db: Session, project_id: str = DEMO_PROJECT_ID):
     init_db()
 
     # Clear existing demo records
+    db.query(GitHubSyncJobModel).filter(GitHubSyncJobModel.project_id == project_id).delete(synchronize_session=False)
+    db.query(GitHubContributionModel).filter(GitHubContributionModel.project_id == project_id).delete(synchronize_session=False)
+    db.query(GitHubConnectionModel).filter(GitHubConnectionModel.project_id == project_id).delete(synchronize_session=False)
+
     db.query(DecisionModel).filter(DecisionModel.proposal_id.in_(
         db.query(ProposalModel.id).filter(ProposalModel.project_id == project_id)
     )).delete(synchronize_session=False)

@@ -83,10 +83,10 @@ try {
     }
 
     # 5. Run Pytest Test Suite
-    Write-Host "`n[5/6] Running Pytest Unit & Integration Suite (17 tests)..." -ForegroundColor Yellow
-    python -m pytest backend/tests/test_backend.py backend/tests/test_api_endpoints.py backend/tests/test_concurrency_and_redirect.py -v
+    Write-Host "`n[5/6] Running Pytest Unit & Integration Suite (32 tests including GitHub)..." -ForegroundColor Yellow
+    python -m pytest backend/tests/test_backend.py backend/tests/test_api_endpoints.py backend/tests/test_concurrency_and_redirect.py backend/tests/test_github_integration.py backend/tests/test_github_api_endpoints.py -v
     if ($LASTEXITCODE -ne 0) { throw "Pytest suite failed." }
-    Write-Host "All 17 Pytest tests PASSED." -ForegroundColor Green
+    Write-Host "All 32 Pytest tests PASSED." -ForegroundColor Green
 
     # 6. Run Playwright Two-Session Browser E2E Test
     Write-Host "`n[6/6] Running Playwright Headless Two-Session E2E Workflow..." -ForegroundColor Yellow

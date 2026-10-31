@@ -13,6 +13,7 @@ import {
   Sparkles,
   ShieldCheck,
   Cpu,
+  GitPullRequest,
 } from 'lucide-react';
 
 interface ProposalCardProps {
@@ -23,6 +24,7 @@ interface ProposalCardProps {
   onRedirect: (proposal: Proposal) => void;
   onReconcile: (id: string) => void;
   onCompareConflict: (proposal: Proposal) => void;
+  onPublishToGitHub?: (proposalId: string) => void;
 }
 
 export const ProposalCard: React.FC<ProposalCardProps> = ({
@@ -33,6 +35,7 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
   onRedirect,
   onReconcile,
   onCompareConflict,
+  onPublishToGitHub,
 }) => {
   const [expanded, setExpanded] = useState(false);
 
@@ -254,7 +257,25 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
           )}
         </div>
 
-        {/* Right Side: Review Actions (Approve / Reject / Redirect) */}
+        {/* Right Side: Review Actions (Approve / Reject / Redirect) or GitHub Publishing */}
+        {proposal.status === 'approved' && (
+          <div className="flex items-center space-x-2">
+            <span className="text-xs text-emerald-400 font-semibold flex items-center space-x-1">
+              <Check className="w-3.5 h-3.5" />
+              <span>Applied to Artifact</span>
+            </span>
+            {onPublishToGitHub && (
+              <button
+                onClick={() => onPublishToGitHub(proposal.proposal_id)}
+                className="px-3 py-1.5 rounded-lg bg-teal-500 hover:bg-teal-400 text-black text-xs font-semibold flex items-center space-x-1 shadow-sm transition cursor-pointer"
+              >
+                <GitPullRequest className="w-3.5 h-3.5" />
+                <span>Publish to GitHub</span>
+              </button>
+            )}
+          </div>
+        )}
+
         {proposal.status === 'pending_review' && (
           <div className="flex items-center space-x-2">
             <button
