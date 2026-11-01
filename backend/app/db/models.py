@@ -1189,3 +1189,35 @@ class ExecutionAssignmentModel(Base):
         Index("idx_exec_proj_status", "project_id", "status"),
         Index("idx_exec_plan", "plan_proposal_id"),
     )
+
+
+class PixelBuildSessionModel(Base):
+    __tablename__ = "pixel_build_sessions"
+
+    id = Column(String(64), primary_key=True, default=lambda: f"pbs_{uuid.uuid4().hex[:10]}")
+    project_id = Column(String(64), ForeignKey("projects.id"), index=True, nullable=False)
+    plan_id = Column(String(64), nullable=True, index=True)
+    prd_id = Column(String(64), nullable=True, index=True)
+    execution_assignment_id = Column(String(64), nullable=True)
+    run_id = Column(String(64), nullable=True)
+    instruction = Column(Text, nullable=False)
+    understanding = Column(Text, nullable=True)
+    status = Column(String(32), default="pending", nullable=False)  # pending, building, completed, failed, interrupted
+    progress_pct = Column(Integer, default=0, nullable=False)
+    current_task_id = Column(String(64), nullable=True)
+    tasks = Column(JSON, default=list, nullable=False)
+    components = Column(JSON, default=list, nullable=False)
+    proposal_id = Column(String(64), nullable=True)
+    error_message = Column(Text, nullable=True)
+    execution_source = Column(String(32), default="live_llm", nullable=False)  # live_llm, rule_based_fallback
+    is_simulated = Column(Boolean, default=False, nullable=False)
+    tokens_used = Column(Integer, default=0, nullable=False)
+    retry_count = Column(Integer, default=0, nullable=False)
+    created_at = Column(String(64), default=utcnow_str, nullable=False)
+    updated_at = Column(String(64), default=utcnow_str, nullable=False)
+    completed_at = Column(String(64), nullable=True)
+
+    __table_args__ = (
+        Index("idx_pixel_build_proj_created", "project_id", "created_at"),
+        Index("idx_pixel_build_plan", "project_id", "plan_id"),
+    )

@@ -54,6 +54,8 @@ from backend.app.db.models import (
     RecoveryRecordModel,
     PruneReceiptModel,
     WorkflowStateModel,
+    ExecutionAssignmentModel,
+    PixelBuildSessionModel,
 
     utcnow_str,
 

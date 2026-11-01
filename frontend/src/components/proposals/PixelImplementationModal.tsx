@@ -61,7 +61,7 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
   const impl = proposal.implementation_data;
   const title = impl?.title || proposal.summary;
   const sections = impl?.affected_sections || proposal.target_sections || ['hero'];
-  const testResults = impl?.test_results || { executed: 89, passed: 89, failed: 0, status: 'passed' };
+  const testResults = impl?.test_results;
   const novaReview = proposal.review_outcome || (proposal.reviewed_by ? 'PASS' : 'PASS');
   const findings = proposal.review_findings || [];
 
@@ -510,13 +510,23 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
                   <p className="text-xs text-[#334155]">TypeScript clean, 0 compilation errors.</p>
                 </div>
 
-                <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/30 space-y-1">
-                  <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-emerald-800 uppercase">Pytest Suite</span>
-                    <span className="text-emerald-600 font-bold text-xs">89 / 89</span>
+                {testResults && testResults.executed > 0 ? (
+                  <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/30 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-emerald-800 uppercase">Pytest Suite</span>
+                      <span className="text-emerald-600 font-bold text-xs">{testResults.passed} / {testResults.executed}</span>
+                    </div>
+                    <p className="text-xs text-[#334155]">{Math.round((testResults.passed / testResults.executed) * 100)}% tests passed, {testResults.failed || 0} regressions.</p>
                   </div>
-                  <p className="text-xs text-[#334155]">100% tests passed, 0 regressions.</p>
-                </div>
+                ) : (
+                  <div className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-1">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-[#657189] uppercase">Verification Status</span>
+                      <span className="text-slate-600 font-bold text-xs">Sandbox Ready</span>
+                    </div>
+                    <p className="text-xs text-[#657189]">Pytest suite ready for execution upon developer deployment.</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

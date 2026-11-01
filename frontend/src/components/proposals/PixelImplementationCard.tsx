@@ -47,7 +47,7 @@ export const PixelImplementationCard: React.FC<PixelImplementationCardProps> = (
   const title = impl?.title || proposal.summary;
   const implSummary = impl?.implementation_summary?.what_implemented || proposal.summary;
   const sections = impl?.affected_sections || proposal.target_sections || ['hero'];
-  const testResults = impl?.test_results || { executed: 89, passed: 89, failed: 0, status: 'passed' };
+  const testResults = impl?.test_results;
   const novaReview = proposal.review_outcome || (proposal.reviewed_by ? 'PASS' : 'PASS');
 
   const isApproved = proposal.status === 'approved';
@@ -192,13 +192,15 @@ export const PixelImplementationCard: React.FC<PixelImplementationCardProps> = (
           ))}
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] font-medium text-[#657189]">Verification:</span>
-          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
-            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-            <span>{testResults.passed} Tests Passed (100%)</span>
-          </span>
-        </div>
+        {testResults && testResults.executed > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-medium text-[#657189]">Verification:</span>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+              <span>{testResults.passed} Tests Passed ({Math.round((testResults.passed / testResults.executed) * 100)}%)</span>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Stale / Conflict Callouts if active */}

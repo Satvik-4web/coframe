@@ -254,6 +254,8 @@ def apply_proposal_atomically(
                     data_copy["categories"] = op["categories"]
                 if "title" in op:
                     data_copy["title"] = op["title"]
+                if "data" in op and isinstance(op["data"], dict):
+                    data_copy.update(op["data"])
                 new_section_data["dashboard"] = data_copy
 
         elif op_name == "set_approval_queue_config":

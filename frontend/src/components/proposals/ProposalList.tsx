@@ -1,69 +1,56 @@
-import React, { useState, useEffect } from 'react';
-import { Proposal, HumanIdentity, ArtifactSection, ProposalStats } from '../../types';
+import React, { useState } from 'react';
+import { Proposal, HumanIdentity, ArtifactSection } from '../../types';
 import { ProposalCard } from './ProposalCard';
-import { NovaPrdCard } from './NovaPrdCard';
 import { NovaPrdDocumentModal } from './NovaPrdDocumentModal';
-import { PixelImplementationCard } from './PixelImplementationCard';
 import { PixelImplementationModal } from './PixelImplementationModal';
 import { RedirectModal } from './RedirectModal';
 import { ConflictCompareModal } from './ConflictCompareModal';
 import { CreateHumanProposalModal } from './CreateHumanProposalModal';
 import { ExecutionEnvironmentModal } from './ExecutionEnvironmentModal';
+import { computeProposalCounts } from '../../hooks/useProposalCounts';
 import {
   approveProposal,
   rejectProposal,
   reconcileProposal,
   publishApprovedProposal,
   confirmProposalRequirements,
-  fetchProposalStats,
-  resolveProposalConflict,
 } from '../../lib/api';
 import {
   GitPullRequest,
-  Filter,
-  Sparkles,
-  AlertCircle,
-  Bot,
-  Code2,
-  Layers,
-  User,
   PlusCircle,
   Brain,
   CheckCircle2,
   Clock,
   ShieldAlert,
-  ArrowRight,
-  ShieldCheck,
-  FileText,
-  CornerDownRight,
-  RefreshCw,
-  GitMerge,
-  ExternalLink,
+  AlertTriangle,
+  History,
+  AlertCircle,
 } from 'lucide-react';
+import { useToast } from '../common/Toast';
 
 interface ProposalListProps {
   proposals: Proposal[];
   sections: Record<string, ArtifactSection>;
   identity: HumanIdentity;
   onRefresh: () => void;
+  previewProposalId?: string | null;
+  onTogglePreviewProposal?: (proposalId: string) => void;
 }
 
-type FilterPill =
-  | 'all'
-  | 'nova_prds'
-  | 'pixel_implementations'
-  | 'needs_attention'
-  | 'conflicts'
-  | 'applied'
-  | 'rejected';
+export type MainProposalTab = 'needs_decision' | 'applied' | 'history';
+export type HistorySubFilter = 'all' | 'rejected' | 'redirected' | 'superseded';
 
 export const ProposalList: React.FC<ProposalListProps> = ({
   proposals,
   sections,
   identity,
   onRefresh,
+  previewProposalId,
+  onTogglePreviewProposal,
 }) => {
-  const [activeFilter, setActiveFilter] = useState<FilterPill>('all');
+  const { showToast } = useToast();
+  const [activeTab, setActiveTab] = useState<MainProposalTab>('needs_decision');
+  const [historySubFilter, setHistorySubFilter] = useState<HistorySubFilter>('all');
   const [redirectingProposal, setRedirectingProposal] = useState<Proposal | null>(null);
   const [conflictedProposal, setConflictedProposal] = useState<Proposal | null>(null);
   const [showCreateHumanModal, setShowCreateHumanModal] = useState(false);
@@ -71,127 +58,60 @@ export const ProposalList: React.FC<ProposalListProps> = ({
   const [selectedPixelProposal, setSelectedPixelProposal] = useState<Proposal | null>(null);
   const [executingProposal, setExecutingProposal] = useState<Proposal | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [stats, setStats] = useState<ProposalStats | null>(null);
-  const [isStatsLoading, setIsStatsLoading] = useState(false);
 
-  // Load stats from server
-  const loadStats = async () => {
-    try {
-      setIsStatsLoading(true);
-      const data = await fetchProposalStats('demo-ledgerflow');
-      setStats(data);
-    } catch (e) {
-      console.warn('Could not fetch proposal stats from backend:', e);
-    } finally {
-      setIsStatsLoading(false);
-    }
-  };
+  // Single authoritative source of proposal counts across entire workspace
+  const counts = computeProposalCounts(proposals);
 
-  useEffect(() => {
-    loadStats();
-  }, [proposals]);
+  // Categorize proposals
+  const isConflict = (p: Proposal) =>
+    p.status === 'conflict' || Boolean((p as any).is_conflicted);
+  const isStale = (p: Proposal) => p.status === 'stale';
+  const isPending = (p: Proposal) => p.status === 'pending_review';
+  const isApplied = (p: Proposal) => p.status === 'approved';
+  const isRedirected = (p: Proposal) =>
+    (p.status as string) === 'redirected' ||
+    (p.status === 'rejected' && Boolean((p as any).superseded_by)) ||
+    Boolean((p as any).is_redirected);
+  const isRejected = (p: Proposal) =>
+    p.status === 'rejected' && !(p as any).superseded_by && !(p as any).is_redirected;
+  const isSuperseded = (p: Proposal) => p.status === 'superseded';
 
-  // Contributor classification helpers
-  const isHumanProposal = (p: Proposal) => {
-    const authorClean = (p.created_by || p.agent_id || p.author || '').toLowerCase();
-    return (
-      p.author_type === 'human' ||
-      p.proposal_type === 'human_contribution' ||
-      authorClean === 'alex' ||
-      authorClean === 'maya' ||
-      authorClean === 'human'
-    );
-  };
+  // Three primary queues
+  const needsDecisionProposals = proposals.filter(
+    (p) => isPending(p) || isConflict(p) || isStale(p)
+  );
 
-  const isNovaProposal = (p: Proposal) => {
-    const authorClean = (p.created_by || p.agent_id || '').toLowerCase();
-    const ptype = p.proposal_type || '';
-    return (
-      authorClean === 'nova' ||
-      ['prd_requirement', 'requirements', 'product_requirements'].includes(ptype) ||
-      Boolean(p.prd_data && typeof p.prd_data === 'object')
-    );
-  };
+  const appliedProposals = proposals.filter(isApplied);
 
-  const isPixelProposal = (p: Proposal) => {
-    const authorClean = (p.created_by || p.agent_id || '').toLowerCase();
-    return (
-      authorClean === 'pixel' ||
-      p.proposal_type === 'prototype_modification' ||
-      p.proposal_type === 'implementation' ||
-      Boolean(p.implementation_data && typeof p.implementation_data === 'object')
-    );
-  };
+  const historyProposals = proposals.filter(
+    (p) => isRejected(p) || isRedirected(p) || isSuperseded(p)
+  );
 
-  const isProposalConflicted = (p: Proposal) => {
-    if (p.status === 'conflict' || Boolean(p.is_conflicted)) return true;
-    if (p.status === 'pending_review' && p.base_section_versions) {
-      for (const secKey of p.target_sections || []) {
-        const liveSec = sections[secKey];
-        const baseVer = p.base_section_versions[secKey] ?? 1;
-        if (liveSec && liveSec.version > baseVer) {
-          return true;
-        }
-      }
-    }
-    return false;
-  };
-
-  // Filter categorization
-  const novaProposals = proposals.filter(isNovaProposal);
-  const pixelProposals = proposals.filter((p) => isPixelProposal(p) && !isNovaProposal(p));
-  const humanProposals = proposals.filter(isHumanProposal);
-  const conflictedProposals = proposals.filter(isProposalConflicted);
-  const appliedProposals = proposals.filter((p) => p.status === 'approved');
-  const rejectedProposals = proposals.filter((p) => p.status === 'rejected');
-
-  const needsAttentionProposals = proposals.filter((p) => {
-    if (p.status !== 'pending_review' && !isProposalConflicted(p)) return false;
-    if (p.requires_decision) {
-      return (p.assigned_decider_id || 'alex').toLowerCase() === (identity || 'alex').toLowerCase();
-    }
+  const filteredHistoryProposals = historyProposals.filter((p) => {
+    if (historySubFilter === 'rejected') return isRejected(p);
+    if (historySubFilter === 'redirected') return isRedirected(p);
+    if (historySubFilter === 'superseded') return isSuperseded(p);
     return true;
   });
 
-  // Calculate display counts (prefer live DB stats with fallback)
-  const awaitingCount = stats ? stats.awaiting_confirmation : novaProposals.filter((p) => p.status === 'pending_review').length;
-  const inProgressCount = stats ? stats.implementations_in_progress : 0;
-  const readyForReviewCount = stats ? stats.ready_for_review : pixelProposals.filter((p) => p.status === 'pending_review' && !isProposalConflicted(p)).length;
-  const conflictTotalCount = stats ? stats.conflicted : conflictedProposals.length;
-  const appliedTotalCount = stats ? stats.recently_applied : appliedProposals.length;
-
-  // Filtered proposal list based on activeFilter
-  const getFilteredList = () => {
-    switch (activeFilter) {
-      case 'nova_prds':
-        return novaProposals;
-      case 'pixel_implementations':
-        return pixelProposals;
-      case 'needs_attention':
-        return needsAttentionProposals;
-      case 'conflicts':
-        return conflictedProposals;
-      case 'applied':
-        return appliedProposals;
-      case 'rejected':
-        return rejectedProposals;
-      case 'all':
-      default:
-        return proposals;
-    }
-  };
-
-  const filteredProposals = getFilteredList();
+  const displayedProposals =
+    activeTab === 'needs_decision'
+      ? needsDecisionProposals
+      : activeTab === 'applied'
+      ? appliedProposals
+      : filteredHistoryProposals;
 
   // Action handlers
   const handleApprove = async (proposalId: string) => {
     setActionError(null);
     try {
       await approveProposal('demo-ledgerflow', proposalId, identity || 'alex');
+      showToast('Proposal approved and applied to prototype!', 'success');
       onRefresh();
-      loadStats();
     } catch (err: any) {
-      setActionError(err.message || 'Failed to approve proposal');
+      const msg = err.message || 'Failed to approve proposal';
+      setActionError(msg);
+      showToast(msg, 'error');
     }
   };
 
@@ -199,10 +119,12 @@ export const ProposalList: React.FC<ProposalListProps> = ({
     setActionError(null);
     try {
       await rejectProposal('demo-ledgerflow', proposalId, identity || 'alex', 'Rejected via review UI');
+      showToast('Proposal rejected.', 'info');
       onRefresh();
-      loadStats();
     } catch (err: any) {
-      setActionError(err.message || 'Failed to reject proposal');
+      const msg = err.message || 'Failed to reject proposal';
+      setActionError(msg);
+      showToast(msg, 'error');
     }
   };
 
@@ -210,10 +132,12 @@ export const ProposalList: React.FC<ProposalListProps> = ({
     setActionError(null);
     try {
       await reconcileProposal('demo-ledgerflow', proposalId, identity || 'maya');
+      showToast('Proposal reconciled with active context.', 'success');
       onRefresh();
-      loadStats();
     } catch (err: any) {
-      setActionError(err.message || 'Failed to reconcile proposal');
+      const msg = err.message || 'Failed to reconcile proposal';
+      setActionError(msg);
+      showToast(msg, 'error');
     }
   };
 
@@ -226,10 +150,12 @@ export const ProposalList: React.FC<ProposalListProps> = ({
         identity || 'alex',
         `Confirmed by ${identity || 'alex'}. Handing off to PIXEL for autonomous implementation.`
       );
+      showToast('Requirements confirmed! Handed off to PIXEL for autonomous implementation.', 'success');
       onRefresh();
-      loadStats();
     } catch (err: any) {
-      setActionError(err.message || 'Failed to confirm requirements');
+      const msg = err.message || 'Failed to confirm requirements';
+      setActionError(msg);
+      showToast(msg, 'error');
     }
   };
 
@@ -237,15 +163,18 @@ export const ProposalList: React.FC<ProposalListProps> = ({
     setActionError(null);
     try {
       await publishApprovedProposal(proposalId, identity || 'alex');
+      showToast('Proposal published to GitHub.', 'success');
       onRefresh();
     } catch (err: any) {
-      setActionError(err.message || 'Failed to publish to GitHub');
+      const msg = err.message || 'Failed to publish to GitHub';
+      setActionError(msg);
+      showToast(msg, 'error');
     }
   };
 
   return (
     <div className="space-y-6">
-      {/* 1. Header & Live Database Stats Cards */}
+      {/* 1. Header & Unified Selector Stats Cards */}
       <div className="space-y-4">
         {/* Main Title & Action Bar */}
         <div className="bg-white border border-[#E7ECF2] p-5 rounded-3xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -256,10 +185,10 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-bold text-[#172033] tracking-tight">
-                  Proposals & Contributions
+                  Proposals & Decisions
                 </h1>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-[#172033] border border-[#E7ECF2]">
-                  {proposals.length} Total
+                  {counts.total} Total
                 </span>
               </div>
               <p className="text-xs text-[#657189] mt-0.5">
@@ -279,97 +208,85 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           </div>
         </div>
 
-        {/* 5 Live Database Stats Cards */}
+        {/* 5 Authoritative Selector Summary Tiles (Derived strictly from useProposalCounts) */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {/* Card 1: Awaiting Confirmation */}
+          {/* Tile 1: Needs Decision */}
           <div
-            onClick={() => setActiveFilter('nova_prds')}
+            onClick={() => setActiveTab('needs_decision')}
             className={`p-4 rounded-2xl border transition cursor-pointer ${
-              activeFilter === 'nova_prds'
-                ? 'bg-violet-50/50 border-violet-300 ring-2 ring-violet-200 shadow-xs'
-                : 'bg-white border-[#E7ECF2] hover:border-violet-200 hover:shadow-2xs'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-violet-700 tracking-wider">
-                Awaiting Confirmation
-              </span>
-              <Brain className="w-3.5 h-3.5 text-violet-600" />
-            </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-[#172033]">{awaitingCount}</span>
-              <span className="text-[10px] text-[#657189] font-medium">NOVA PRDs</span>
-            </div>
-          </div>
-
-          {/* Card 2: Implementations In Progress */}
-          <div
-            onClick={() => setActiveFilter('pixel_implementations')}
-            className={`p-4 rounded-2xl border transition cursor-pointer ${
-              activeFilter === 'pixel_implementations'
-                ? 'bg-teal-50/50 border-teal-300 ring-2 ring-teal-200 shadow-xs'
-                : 'bg-white border-[#E7ECF2] hover:border-teal-200 hover:shadow-2xs'
-            }`}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-teal-700 tracking-wider">
-                In Progress
-              </span>
-              <RefreshCw className="w-3.5 h-3.5 text-teal-600" />
-            </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-[#172033]">{inProgressCount}</span>
-              <span className="text-[10px] text-[#657189] font-medium">Engineering Tasks</span>
-            </div>
-          </div>
-
-          {/* Card 3: Ready for Human Review */}
-          <div
-            onClick={() => setActiveFilter('needs_attention')}
-            className={`p-4 rounded-2xl border transition cursor-pointer ${
-              activeFilter === 'needs_attention'
+              activeTab === 'needs_decision'
                 ? 'bg-blue-50/50 border-blue-300 ring-2 ring-blue-200 shadow-xs'
                 : 'bg-white border-[#E7ECF2] hover:border-blue-200 hover:shadow-2xs'
             }`}
           >
             <div className="flex items-center justify-between">
               <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">
-                Ready for Review
+                Needs Decision
               </span>
-              <Code2 className="w-3.5 h-3.5 text-blue-600" />
+              <Clock className="w-3.5 h-3.5 text-blue-600" />
             </div>
             <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-[#172033]">{readyForReviewCount}</span>
-              <span className="text-[10px] text-[#657189] font-medium">Needs Decision</span>
+              <span className="text-2xl font-black text-blue-900">{counts.needsDecision}</span>
+              <span className="text-[10px] text-[#657189] font-medium">Pending Review</span>
             </div>
           </div>
 
-          {/* Card 4: Conflicted */}
+          {/* Tile 2: Fresh Pending */}
           <div
-            onClick={() => setActiveFilter('conflicts')}
-            className={`p-4 rounded-2xl border transition cursor-pointer ${
-              activeFilter === 'conflicts'
-                ? 'bg-red-50/50 border-red-300 ring-2 ring-red-200 shadow-xs'
-                : 'bg-white border-[#E7ECF2] hover:border-red-200 hover:shadow-2xs'
-            }`}
+            onClick={() => setActiveTab('needs_decision')}
+            className="p-4 rounded-2xl border bg-white border-[#E7ECF2] hover:border-teal-200 hover:shadow-2xs transition cursor-pointer"
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-red-700 tracking-wider">
-                Conflicted
+              <span className="text-[10px] uppercase font-bold text-teal-700 tracking-wider">
+                Fresh Pending
               </span>
-              <ShieldAlert className="w-3.5 h-3.5 text-red-600" />
+              <Brain className="w-3.5 h-3.5 text-teal-600" />
             </div>
             <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-red-700">{conflictTotalCount}</span>
-              <span className="text-[10px] text-red-600 font-medium">Approval Blocked</span>
+              <span className="text-2xl font-black text-teal-900">{counts.pending}</span>
+              <span className="text-[10px] text-[#657189] font-medium">Ready for Review</span>
             </div>
           </div>
 
-          {/* Card 5: Recently Applied */}
+          {/* Tile 3: Conflicts */}
           <div
-            onClick={() => setActiveFilter('applied')}
+            onClick={() => setActiveTab('needs_decision')}
+            className="p-4 rounded-2xl border bg-white border-[#E7ECF2] hover:border-rose-200 hover:shadow-2xs transition cursor-pointer"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-bold text-rose-700 tracking-wider">
+                Conflicts
+              </span>
+              <ShieldAlert className="w-3.5 h-3.5 text-rose-600" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-1.5">
+              <span className="text-2xl font-black text-rose-700">{counts.conflict}</span>
+              <span className="text-[10px] text-rose-600 font-medium">Needs Reconcile</span>
+            </div>
+          </div>
+
+          {/* Tile 4: Stale Proposals */}
+          <div
+            onClick={() => setActiveTab('needs_decision')}
+            className="p-4 rounded-2xl border bg-white border-[#E7ECF2] hover:border-amber-200 hover:shadow-2xs transition cursor-pointer"
+          >
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-bold text-amber-700 tracking-wider">
+                Stale
+              </span>
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+            </div>
+            <div className="mt-2 flex items-baseline gap-1.5">
+              <span className="text-2xl font-black text-amber-700">{counts.stale}</span>
+              <span className="text-[10px] text-amber-600 font-medium">Superseded</span>
+            </div>
+          </div>
+
+          {/* Tile 5: Applied to Prototype */}
+          <div
+            onClick={() => setActiveTab('applied')}
             className={`p-4 rounded-2xl border transition cursor-pointer ${
-              activeFilter === 'applied'
+              activeTab === 'applied'
                 ? 'bg-emerald-50/50 border-emerald-300 ring-2 ring-emerald-200 shadow-xs'
                 : 'bg-white border-[#E7ECF2] hover:border-emerald-200 hover:shadow-2xs'
             }`}
@@ -381,96 +298,75 @@ export const ProposalList: React.FC<ProposalListProps> = ({
               <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
             </div>
             <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-emerald-700">{appliedTotalCount}</span>
-              <span className="text-[10px] text-emerald-600 font-medium">To Prototype</span>
+              <span className="text-2xl font-black text-emerald-700">{counts.applied}</span>
+              <span className="text-[10px] text-emerald-600 font-medium">In LedgerFlow</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. Navigation Filter Pills */}
-      <div className="flex items-center space-x-1.5 overflow-x-auto p-1.5 bg-[#FAFBFD] border border-[#E7ECF2] rounded-2xl shrink-0">
-        <button
-          onClick={() => setActiveFilter('all')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
-            activeFilter === 'all'
-              ? 'bg-white text-[#172033] shadow-xs border border-[#E2E8F0]'
-              : 'text-[#657189] hover:text-[#172033]'
-          }`}
-        >
-          All ({proposals.length})
-        </button>
+      {/* 2. Simplified Three-Tab Navigation */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-[#FAFBFD] border border-[#E7ECF2] p-1.5 rounded-2xl">
+        <div className="flex items-center space-x-1.5 overflow-x-auto">
+          {/* Tab 1: Needs Decision */}
+          <button
+            onClick={() => setActiveTab('needs_decision')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 shrink-0 ${
+              activeTab === 'needs_decision'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-[#657189] hover:text-[#172033] hover:bg-slate-100'
+            }`}
+          >
+            <Clock className="w-3.5 h-3.5" />
+            <span>Needs decision ({counts.needsDecision})</span>
+          </button>
 
-        <button
-          onClick={() => setActiveFilter('nova_prds')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-            activeFilter === 'nova_prds'
-              ? 'bg-violet-600 text-white shadow-xs'
-              : 'text-violet-800 hover:bg-violet-50'
-          }`}
-        >
-          <Brain className="w-3.5 h-3.5" />
-          <span>NOVA PRDs ({novaProposals.length})</span>
-        </button>
+          {/* Tab 2: Applied */}
+          <button
+            onClick={() => setActiveTab('applied')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 shrink-0 ${
+              activeTab === 'applied'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'text-[#657189] hover:text-[#172033] hover:bg-slate-100'
+            }`}
+          >
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Applied ({counts.applied})</span>
+          </button>
 
-        <button
-          onClick={() => setActiveFilter('pixel_implementations')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-            activeFilter === 'pixel_implementations'
-              ? 'bg-teal-600 text-white shadow-xs'
-              : 'text-teal-800 hover:bg-teal-50'
-          }`}
-        >
-          <Code2 className="w-3.5 h-3.5" />
-          <span>PIXEL Implementations ({pixelProposals.length})</span>
-        </button>
+          {/* Tab 3: History */}
+          <button
+            onClick={() => setActiveTab('history')}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-2 shrink-0 ${
+              activeTab === 'history'
+                ? 'bg-slate-800 text-white shadow-xs'
+                : 'text-[#657189] hover:text-[#172033] hover:bg-slate-100'
+            }`}
+          >
+            <History className="w-3.5 h-3.5" />
+            <span>History ({counts.rejected + counts.redirected})</span>
+          </button>
+        </div>
 
-        <button
-          onClick={() => setActiveFilter('needs_attention')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-            activeFilter === 'needs_attention'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-blue-800 hover:bg-blue-50'
-          }`}
-        >
-          <Clock className="w-3.5 h-3.5" />
-          <span>Needs My Attention ({needsAttentionProposals.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveFilter('conflicts')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-            activeFilter === 'conflicts'
-              ? 'bg-red-600 text-white shadow-xs'
-              : 'text-red-800 hover:bg-red-50'
-          }`}
-        >
-          <ShieldAlert className="w-3.5 h-3.5" />
-          <span>Conflicts ({conflictedProposals.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveFilter('applied')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-            activeFilter === 'applied'
-              ? 'bg-emerald-600 text-white shadow-xs'
-              : 'text-emerald-800 hover:bg-emerald-50'
-          }`}
-        >
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          <span>Applied ({appliedProposals.length})</span>
-        </button>
-
-        <button
-          onClick={() => setActiveFilter('rejected')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-            activeFilter === 'rejected'
-              ? 'bg-slate-700 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
-          }`}
-        >
-          <span>Rejected ({rejectedProposals.length})</span>
-        </button>
+        {/* Sub-filter for History tab */}
+        {activeTab === 'history' && (
+          <div className="flex items-center space-x-1 px-2">
+            <span className="text-2xs font-semibold text-[#657189] mr-1 uppercase">Filter:</span>
+            {(['all', 'rejected', 'redirected'] as HistorySubFilter[]).map((filter) => (
+              <button
+                key={filter}
+                onClick={() => setHistorySubFilter(filter)}
+                className={`px-2.5 py-1 rounded-lg text-[11px] font-semibold transition cursor-pointer capitalize ${
+                  historySubFilter === filter
+                    ? 'bg-slate-200 text-slate-800'
+                    : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
 
       {actionError && (
@@ -479,253 +375,136 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
             <span>{actionError}</span>
           </div>
-          <button onClick={() => setActionError(null)} className="text-red-600 hover:text-red-900 text-xs font-bold cursor-pointer">
+          <button
+            onClick={() => setActionError(null)}
+            className="text-red-600 hover:text-red-900 text-xs font-bold cursor-pointer"
+          >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* 3. Structured Content Queues */}
-      {filteredProposals.length === 0 ? (
+      {/* 3. Proposals Display via Unified ProposalCard */}
+      {displayedProposals.length === 0 ? (
         <div className="text-center py-16 bg-white border border-[#E7ECF2] rounded-3xl p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
           <GitPullRequest className="w-10 h-10 text-[#657189] mx-auto mb-3 opacity-30" />
-          <h3 className="text-sm font-bold text-[#172033]">No proposals matching this filter</h3>
+          <h3 className="text-sm font-bold text-[#172033]">
+            {activeTab === 'needs_decision'
+              ? 'No proposals need decision'
+              : activeTab === 'applied'
+              ? 'No applied proposals yet'
+              : 'No proposals in history'}
+          </h3>
           <p className="text-xs text-[#657189] mt-1 max-w-sm mx-auto">
-            Try adjusting your filter selection above or create a new contribution.
+            {activeTab === 'needs_decision'
+              ? 'All caught up! Start a new feature or request in Workspace Chat.'
+              : 'Proposals will appear here once approved or archived.'}
           </p>
-        </div>
-      ) : activeFilter === 'all' ? (
-        <div className="space-y-8">
-          {/* QUEUE 1: Requirements Queue (NOVA PRDs) */}
-          {novaProposals.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center space-x-2">
-                  <Brain className="w-4 h-4 text-violet-600" />
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
-                    Requirements Queue (NOVA PRDs)
-                  </h2>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
-                    {novaProposals.length}
-                  </span>
-                </div>
-                <span className="text-[11px] text-[#657189]">
-                  Confirmed PRDs automatically delegate to PIXEL
-                </span>
-              </div>
-
-              <div className="space-y-4">
-                {novaProposals.map((prop) => {
-                  const linkedPixel = proposals.find(
-                    (p) => p.supersedes_proposal_id === prop.proposal_id && isPixelProposal(p)
-                  );
-                  return (
-                    <NovaPrdCard
-                      key={prop.proposal_id}
-                      proposal={prop}
-                      identity={identity}
-                      onOpenPrd={(p) => setSelectedNovaProposal(p)}
-                      onConfirmRequirements={handleConfirmRequirements}
-                      onReject={handleReject}
-                      hasLinkedImplementation={Boolean(linkedPixel)}
-                      onOpenPixelProposal={linkedPixel ? () => setSelectedPixelProposal(linkedPixel) : undefined}
-                    />
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* QUEUE 2: Engineering Queue (PIXEL Implementations) */}
-          {pixelProposals.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center space-x-2">
-                  <Code2 className="w-4 h-4 text-teal-600" />
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
-                    Engineering Queue (PIXEL Implementations)
-                  </h2>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
-                    {pixelProposals.length}
-                  </span>
-                </div>
-                <span className="text-[11px] text-[#657189]">
-                  Code contributions reviewed by NOVA awaiting human approval
-                </span>
-              </div>
-
-              <div className="space-y-4">
-                {pixelProposals.map((prop) => (
-                  <PixelImplementationCard
-                    key={prop.proposal_id}
-                    proposal={prop}
-                    identity={identity}
-                    onOpenImplementation={(p) => setSelectedPixelProposal(p)}
-                    onChooseExecutionEnvironment={(p) => setExecutingProposal(p)}
-                    onApprove={handleApprove}
-                    onReject={handleReject}
-                    onRedirect={(p) => setRedirectingProposal(p)}
-                    onCompareConflict={(p) => setConflictedProposal(p)}
-                    onOpenParentPrd={(parentPrdId) => {
-                      const parentPrd = proposals.find((p) => p.proposal_id === parentPrdId);
-                      if (parentPrd) setSelectedNovaProposal(parentPrd);
-                    }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* QUEUE 3: Completed Contributions History Table */}
-          {appliedProposals.length > 0 && (
-            <div className="space-y-3 pt-2">
-              <div className="flex items-center justify-between px-1">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
-                    Completed Contributions History
-                  </h2>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                    {appliedProposals.length} Applied
-                  </span>
-                </div>
-                <span className="text-[11px] text-[#657189]">
-                  Cryptographically traceable decision and deployment audit log
-                </span>
-              </div>
-
-              <div className="bg-white border border-[#E7ECF2] rounded-3xl overflow-hidden shadow-2xs">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-[#FAFBFD] border-b border-[#E7ECF2] text-[10px] font-bold uppercase tracking-wider text-[#657189]">
-                    <tr>
-                      <th className="py-3 px-4">Contribution</th>
-                      <th className="py-3 px-4">Author</th>
-                      <th className="py-3 px-4">Reviewer</th>
-                      <th className="py-3 px-4">Approver</th>
-                      <th className="py-3 px-4">Target Section</th>
-                      <th className="py-3 px-4">Applied</th>
-                      <th className="py-3 px-4 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#F0F3F7]">
-                    {appliedProposals.map((prop) => {
-                      const author = prop.author || prop.created_by || 'PIXEL';
-                      const reviewer = prop.reviewed_by || 'NOVA';
-                      const approver = prop.assigned_decider_id || 'Alex';
-                      const targetSec = (prop.target_sections || ['hero'])[0];
-                      const dateStr = prop.updated_at
-                        ? new Date(prop.updated_at).toLocaleDateString([], {
-                            month: 'short',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })
-                        : 'Recently';
-
-                      return (
-                        <tr key={prop.proposal_id} className="hover:bg-slate-50/60 transition">
-                          <td className="py-3.5 px-4 font-semibold text-[#172033]">
-                            <div className="flex items-center space-x-2">
-                              <span className="font-mono text-[10px] text-slate-500">
-                                #{prop.proposal_id.slice(-6)}
-                              </span>
-                              <span className="max-w-xs truncate">{prop.summary}</span>
-                            </div>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
-                              {author}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-600 font-medium">
-                            <span className="flex items-center gap-1 text-[11px]">
-                              <Brain className="w-3 h-3 text-violet-500" />
-                              {reviewer}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-600 font-semibold">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200">
-                              {approver.toUpperCase()}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 font-mono text-[11px] text-teal-700">
-                            {targetSec} (v{prop.base_artifact_version + 1})
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-500 text-[11px]">{dateStr}</td>
-                          <td className="py-3.5 px-4 text-right">
-                            <button
-                              type="button"
-                              onClick={() => {
-                                if (isNovaProposal(prop)) setSelectedNovaProposal(prop);
-                                else setSelectedPixelProposal(prop);
-                              }}
-                              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#172033] font-bold text-[10px] transition cursor-pointer"
-                            >
-                              Inspect
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredProposals.map((prop) => {
-            if (isNovaProposal(prop)) {
-              const linkedPixel = proposals.find(
-                (p) => p.supersedes_proposal_id === prop.proposal_id && isPixelProposal(p)
-              );
-              return (
-                <NovaPrdCard
-                  key={prop.proposal_id}
-                  proposal={prop}
-                  identity={identity}
-                  onOpenPrd={(p) => setSelectedNovaProposal(p)}
-                  onConfirmRequirements={handleConfirmRequirements}
-                  onReject={handleReject}
-                  hasLinkedImplementation={Boolean(linkedPixel)}
-                  onOpenPixelProposal={linkedPixel ? () => setSelectedPixelProposal(linkedPixel) : undefined}
-                />
-              );
-            }
-            if (isPixelProposal(prop)) {
-              return (
-                <PixelImplementationCard
-                  key={prop.proposal_id}
-                  proposal={prop}
-                  identity={identity}
-                  onOpenImplementation={(p) => setSelectedPixelProposal(p)}
-                  onChooseExecutionEnvironment={(p) => setExecutingProposal(p)}
-                  onApprove={handleApprove}
-                  onReject={handleReject}
-                  onRedirect={(p) => setRedirectingProposal(p)}
-                  onCompareConflict={(p) => setConflictedProposal(p)}
-                  onOpenParentPrd={(parentPrdId) => {
-                    const parentPrd = proposals.find((p) => p.proposal_id === parentPrdId);
-                    if (parentPrd) setSelectedNovaProposal(parentPrd);
-                  }}
-                />
-              );
-            }
-            return (
-              <ProposalCard
-                key={prop.proposal_id}
-                proposal={prop}
-                identity={identity}
-                onApprove={handleApprove}
-                onReject={handleReject}
-                onRedirect={(p) => setRedirectingProposal(p)}
-                onReconcile={handleReconcile}
-                onCompareConflict={(p) => setConflictedProposal(p)}
-                onPublishToGitHub={handlePublishToGitHub}
-              />
-            );
-          })}
+          {displayedProposals.map((prop) => (
+            <ProposalCard
+              key={prop.proposal_id}
+              proposal={prop}
+              identity={identity}
+              sections={sections}
+              isPreviewing={previewProposalId === prop.proposal_id}
+              onTogglePreview={onTogglePreviewProposal}
+              onApprove={handleApprove}
+              onReject={handleReject}
+              onRedirect={(p) => setRedirectingProposal(p)}
+              onReconcile={handleReconcile}
+              onCompareConflict={(p) => setConflictedProposal(p)}
+              onConfirmRequirements={handleConfirmRequirements}
+              onOpenPrd={(p) => setSelectedNovaProposal(p)}
+              onPublishToGitHub={handlePublishToGitHub}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Completed Contributions Table for Applied Tab */}
+      {activeTab === 'applied' && appliedProposals.length > 0 && (
+        <div className="space-y-3 pt-4">
+          <div className="flex items-center justify-between px-1">
+            <div className="flex items-center space-x-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
+                Completed Contributions Audit Log
+              </h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                {appliedProposals.length} Applied
+              </span>
+            </div>
+            <span className="text-[11px] text-[#657189]">
+              Cryptographically traceable decision and deployment audit log
+            </span>
+          </div>
+
+          <div className="bg-white border border-[#E7ECF2] rounded-3xl overflow-hidden shadow-2xs">
+            <table className="w-full text-xs text-left">
+              <thead className="bg-[#FAFBFD] border-b border-[#E7ECF2] text-[10px] font-bold uppercase tracking-wider text-[#657189]">
+                <tr>
+                  <th className="py-3 px-4">Contribution</th>
+                  <th className="py-3 px-4">Author</th>
+                  <th className="py-3 px-4">Reviewer</th>
+                  <th className="py-3 px-4">Approver</th>
+                  <th className="py-3 px-4">Target Section</th>
+                  <th className="py-3 px-4">Applied</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#F0F3F7]">
+                {appliedProposals.map((prop) => {
+                  const author = prop.author || prop.created_by || 'PIXEL';
+                  const reviewer = prop.reviewed_by || 'NOVA';
+                  const approver = prop.assigned_decider_id || 'Alex';
+                  const targetSec = (prop.target_sections || ['hero'])[0];
+                  const dateStr = prop.updated_at
+                    ? new Date(prop.updated_at).toLocaleDateString([], {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : 'Recently';
+
+                  return (
+                    <tr key={prop.proposal_id} className="hover:bg-slate-50/60 transition">
+                      <td className="py-3.5 px-4 font-semibold text-[#172033]">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-mono text-[10px] text-slate-500">
+                            #{prop.proposal_id.slice(-6)}
+                          </span>
+                          <span className="max-w-xs truncate">{prop.summary}</span>
+                        </div>
+                      </td>
+                      <td className="py-3.5 px-4">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
+                          {author}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-600 font-medium">
+                        <span className="flex items-center gap-1 text-[11px]">
+                          <Brain className="w-3 h-3 text-violet-500" />
+                          {reviewer}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-600 font-semibold">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200">
+                          {approver.toUpperCase()}
+                        </span>
+                      </td>
+                      <td className="py-3.5 px-4 font-mono text-[11px] text-teal-700">
+                        {targetSec} (v{prop.base_artifact_version + 1})
+                      </td>
+                      <td className="py-3.5 px-4 text-slate-500 text-[11px]">{dateStr}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
@@ -739,7 +518,6 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           onClose={() => setRedirectingProposal(null)}
           onSuccess={() => {
             onRefresh();
-            loadStats();
           }}
         />
       )}
@@ -753,7 +531,6 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           onClose={() => setConflictedProposal(null)}
           onKeepHuman={() => {
             onRefresh();
-            loadStats();
           }}
           onReconcilePixel={async () => {
             await handleReconcile(conflictedProposal.proposal_id);
@@ -766,7 +543,6 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           }}
           onSuccess={() => {
             onRefresh();
-            loadStats();
           }}
         />
       )}
@@ -778,7 +554,6 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           onClose={() => setShowCreateHumanModal(false)}
           onSuccess={() => {
             onRefresh();
-            loadStats();
           }}
         />
       )}
@@ -823,6 +598,7 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           }}
         />
       )}
+
       {/* Execution Environment Selection Modal */}
       {executingProposal && (
         <ExecutionEnvironmentModal
@@ -832,7 +608,6 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           onExecutionCompleted={(_mode) => {
             setExecutingProposal(null);
             onRefresh();
-            loadStats();
           }}
         />
       )}
