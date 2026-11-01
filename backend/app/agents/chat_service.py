@@ -32,22 +32,38 @@ Your collaborators are:
 - PIXEL (AI Software Engineer)
 
 Your role:
-1. When Alex or Maya introduces a new product idea with ambiguous acronyms (e.g. "SAI"), missing problem definitions, or brief phrases without target audience, IDENTIFY the ambiguity and ASK clarifying questions first rather than fabricating details or generating a premature PRD. Keep "proposal_intent": false.
-2. Clarify user requirements, target audience, business value, constraints, and measurable acceptance criteria.
-3. Formulate structured Product Requirement Documents (PRDs) when requirements are sufficiently specified or the user explicitly asks to create/generate a PRD or proposal.
-4. Set "proposal_intent": true ONLY when the user explicitly requests to create/generate/submit a proposal or PRD, or when sufficient requirements have been established to formulate a complete PRD.
-5. For exploratory, policy, or clarifying questions (e.g. "how should we structure...", "what do you think...", "can you explain..."), provide clear strategic guidance and set "proposal_intent": false.
-6. When creating a PRD proposal, include a complete 11-section PRD object in "prd_data" with:
-   - title, objective, executive_summary, problem_statement, target_audience, proposed_solution, functional_requirements, non_functional_requirements, user_stories, acceptance_criteria, constraints_and_assumptions, dependencies_and_risks, open_questions.
+1. ONLY ask clarifying questions (and set "proposal_intent": false) when a message contains an unexplained bare acronym with NO surrounding context (e.g. standalone "SAI" with zero description). Any message describing an improvement, feature, problem, or capability is sufficient to produce a PRD immediately.
+2. For ANY product idea, feature request, UX improvement, workflow change, or capability request — even short ones like "make the UI better", "add multi-currency support", or "improve the dashboard" — IMMEDIATELY formulate a comprehensive PRD and set "proposal_intent": true. Do NOT ask for more clarification. Make reasonable assumptions and document them in constraints_and_assumptions.
+3. For pure exploratory questions (e.g. "how should we structure...", "what do you think about...") where no product change is requested, provide strategic guidance and set "proposal_intent": false.
+4. When "proposal_intent": true, you MUST include a complete PRD object in "prd_data" with ALL required fields.
+5. The "message" field must summarize the PRD you just created. Do NOT suggest the user type a follow-up command. Create the PRD immediately and confirm it has been submitted for approval.
 
-Respond with valid JSON containing:
+DECISION RULE (follow exactly):
+- Unexplained bare acronym with zero context → "proposal_intent": false, ask for clarification
+- ANY product/feature/UX/improvement/workflow request (however brief) → "proposal_intent": true, create PRD now
+
+Respond with valid JSON:
 {
-  "message": "Your conversational response in clear, professional GitHub-flavored Markdown. If asking clarifying questions, outline potential interpretations (e.g. what an acronym stands for). If submitting a PRD, summarize the key sections.",
-  "proposal_intent": false,
-  "proposal_summary": "Short title if proposing a requirements change (null otherwise)",
-  "affected_requirements": ["REQ_AUDIENCE" or "REQ_METRICS" or "REQ_BRAND" or "REQ_ROLES"],
-  "target_sections": ["product_brief" or "dashboard" or "approval_queue" or "hero"],
-  "prd_data": null
+  "message": "Professional GitHub-flavored Markdown summary confirming PRD creation and outlining key sections.",
+  "proposal_intent": true,
+  "proposal_summary": "Short descriptive title (never null when proposal_intent is true)",
+  "affected_requirements": ["REQ_AUDIENCE", "REQ_METRICS", "REQ_BRAND", or "REQ_ROLES"],
+  "target_sections": ["product_brief", "dashboard", "approval_queue", or "hero"],
+  "prd_data": {
+    "title": "...",
+    "objective": "...",
+    "executive_summary": "...",
+    "problem_statement": "...",
+    "target_audience": "...",
+    "proposed_solution": "...",
+    "functional_requirements": ["..."],
+    "non_functional_requirements": ["..."],
+    "user_stories": ["As a [role], I want [feature] so that [benefit]"],
+    "acceptance_criteria": ["..."],
+    "constraints_and_assumptions": "...",
+    "dependencies_and_risks": "...",
+    "open_questions": "..."
+  }
 }
 """
 
@@ -168,75 +184,75 @@ Instruction for {agent_id.upper()}:
 
 
 def _detect_ambiguity(message: str) -> bool:
-    """Detects whether a product prompt contains ambiguous acronyms or underspecified requests."""
+    """
+    Returns True ONLY when the message is a bare unexplained acronym with zero surrounding context.
+    Short messages that contain actual product/UX/feature words are NOT ambiguous.
+    """
     m_lower = message.lower().strip()
     words = [w.strip(".,!?:;\"'()") for w in m_lower.split()]
 
-    ambiguous_acronyms = ["sai", "erp", "sso", "ai", "ml", "nlp"]
-    has_ambiguous_acronym = any(acronym in words for acronym in ambiguous_acronyms)
-
-    known_expansions = [
-        "smart automated invoicing",
-        "spend anomaly intelligence",
-        "strategic account integration",
-        "single sign on",
-        "enterprise resource planning",
+    # If any product/feature/improvement intent words are present, it is NOT ambiguous
+    product_intent_words = [
+        "ui", "ux", "design", "better", "improve", "redesign", "feature", "add", "make",
+        "build", "create", "update", "change", "fix", "enhance", "integrate", "workflow",
+        "dashboard", "approval", "expense", "currency", "invoice", "policy", "receipt",
+        "travel", "report", "analytics", "ocr", "sso", "erp", "notification", "alert",
+        "export", "import", "chart", "graph", "table", "filter", "search", "user", "role",
+        "permission", "audit", "compliance", "budget", "spending", "vendor", "category",
     ]
-    if any(exp in m_lower for exp in known_expansions):
+    if any(w in m_lower for w in product_intent_words):
         return False
 
-    if has_ambiguous_acronym:
-        return True
-
-    if len(words) <= 5 and not any(t in m_lower for t in ["create proposal", "create prd", "generate prd", "submit prd"]):
+    # A message is ambiguous only if it is essentially JUST an unexplained acronym
+    truly_ambiguous_standalone = ["sai", "nlp", "ml"]
+    if len(words) <= 2 and any(acronym in words for acronym in truly_ambiguous_standalone):
         return True
 
     return False
 
 
-def _should_create_proposal(user_message: str, raw_output: Dict[str, Any], agent_id: str) -> bool:
+def _should_create_proposal(user_message: str, raw_output: dict, agent_id: str) -> bool:
     """
-    Determines whether a proposal (PRD for NOVA or Implementation Plan for PIXEL) should be created.
-    - If force_proposal is set by the agent intelligence, creates proposal.
-    - For NOVA: Any non-ambiguous product idea, feature request, or policy/functional question
-      creates a formal Product Requirements Document (PRD) proposal for human confirmation.
-      Only bare ambiguous acronyms without context (e.g. standalone 'SAI') remain in clarification mode.
-    - For PIXEL: Only creates proposal when operations/target_sections are provided and not blocked.
+    Determines whether a proposal should be created from this agent response.
+
+    For NOVA:
+    - If NOVA itself set proposal_intent=true OR provided prd_data, always create.
+    - If the message contains a product/feature/UX keyword, create even without explicit flag.
+    - Only skip if ambiguity detected AND nova didn't set intent.
+
+    For PIXEL:
+    - Only create when operations are provided AND proposal_intent is set.
     """
     m_lower = user_message.lower().strip()
 
     if raw_output.get("force_proposal") is True:
         return True
 
-    # Ambiguity gate for NOVA: If ambiguous acronym without definition, clarify first
     if agent_id == "nova":
-        if _detect_ambiguity(user_message):
-            return False
-        # If NOVA output has proposal_intent or prd_data, or user introduced a feature/process request
+        # If NOVA explicitly decided to create a PRD, always honour it
         if bool(raw_output.get("proposal_intent")) or bool(raw_output.get("prd_data")):
             return True
-        # If user explicitly asks or introduces a concrete capability
-        explicit_triggers = [
-            "create proposal", "create a proposal", "submit proposal", "submit a proposal",
-            "generate proposal", "generate a proposal", "propose a change", "propose an update",
-            "create prd", "generate prd", "submit prd", "ocr", "receipt", "travel", "policy",
-            "approval", "invoicing", "workflow", "currency", "expense", "feature", "integrate",
-            "how should we", "how do we", "let's build", "let us add", "can we add", "i want"
+        # If ambiguity gate triggers and NOVA didn't set intent, respect the clarification mode
+        if _detect_ambiguity(user_message):
+            return False
+        # Any product/feature keyword in the user message → create proposal
+        product_triggers = [
+            "ui", "ux", "design", "better", "improve", "redesign", "feature", "add", "make",
+            "build", "create", "update", "change", "fix", "enhance", "integrate", "workflow",
+            "approval", "expense", "currency", "invoice", "policy", "receipt", "travel",
+            "report", "analytics", "ocr", "notification", "alert", "export", "import",
+            "chart", "table", "filter", "search", "permission", "audit", "compliance",
+            "budget", "spending", "vendor", "category", "create proposal", "create prd",
+            "generate prd", "submit prd", "generate proposal",
         ]
-        if any(t in m_lower for t in explicit_triggers):
+        if any(t in m_lower for t in product_triggers):
             return True
         return bool(raw_output.get("target_sections"))
 
-    # For PIXEL:
-    explicit_pixel = [
-        "create proposal", "create a proposal", "submit proposal", "submit a proposal",
-        "generate proposal", "generate a proposal", "propose a change", "propose an update",
-        "update hero", "update dashboard", "implement this", "apply this change",
-    ]
-    if any(t in m_lower for t in explicit_pixel):
-        return bool(raw_output.get("proposal_intent"))
-
-    return bool(raw_output.get("proposal_intent")) and bool(raw_output.get("target_sections") or raw_output.get("operations"))
+    # PIXEL: only create if operations present and intent set
+    return bool(raw_output.get("proposal_intent")) and bool(
+        raw_output.get("target_sections") or raw_output.get("operations")
+    )
 
 
 async def dispatch_chat_message(

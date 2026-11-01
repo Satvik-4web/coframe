@@ -56,10 +56,8 @@ async def load_demo_scenario(db: Session = Depends(get_db)):
     from backend.app.agents.nova import run_nova_initial
     from backend.app.agents.pixel import run_pixel_initial
 
-    await asyncio.gather(
-        run_nova_initial(db, DEMO_PROJECT_ID),
-        run_pixel_initial(db, DEMO_PROJECT_ID),
-    )
+    await run_nova_initial(db, DEMO_PROJECT_ID)
+    await run_pixel_initial(db, DEMO_PROJECT_ID)
     summary = await generate_observer_summary(db, DEMO_PROJECT_ID)
     await ws_manager.broadcast(DEMO_PROJECT_ID, {"type": "STATE_REFRESHED", "reason": "SCENARIO_LOADED"})
     return {

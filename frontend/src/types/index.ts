@@ -44,6 +44,7 @@ export interface ArtifactSection {
 }
 
 export interface Proposal {
+  id?: string;
   proposal_id: string;
   project_id: string;
   agent_id?: string | null;

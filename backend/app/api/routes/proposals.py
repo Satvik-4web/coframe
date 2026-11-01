@@ -141,6 +141,17 @@ async def get_proposal(project_id: str, proposal_id: str, db: Session = Depends(
         .first()
     )
     if not p:
+        p = (
+            db.query(ProposalModel)
+            .filter(ProposalModel.project_id == project_id)
+            .filter(
+                (ProposalModel.task_id == proposal_id)
+                | (ProposalModel.run_id == proposal_id)
+                | (ProposalModel.supersedes_proposal_id == proposal_id)
+            )
+            .first()
+        )
+    if not p:
         raise HTTPException(status_code=404, detail="Proposal not found")
     return serialize_proposal_for_api(p, db=db)
 
@@ -156,6 +167,17 @@ async def get_proposal_conflict_detail(
         .filter(ProposalModel.id == proposal_id, ProposalModel.project_id == project_id)
         .first()
     )
+    if not p:
+        p = (
+            db.query(ProposalModel)
+            .filter(ProposalModel.project_id == project_id)
+            .filter(
+                (ProposalModel.task_id == proposal_id)
+                | (ProposalModel.run_id == proposal_id)
+                | (ProposalModel.supersedes_proposal_id == proposal_id)
+            )
+            .first()
+        )
     if not p:
         raise HTTPException(status_code=404, detail="Proposal not found")
 
@@ -438,6 +460,17 @@ async def confirm_proposal_requirements(
         .first()
     )
     if not p:
+        p = (
+            db.query(ProposalModel)
+            .filter(ProposalModel.project_id == project_id)
+            .filter(
+                (ProposalModel.task_id == proposal_id)
+                | (ProposalModel.run_id == proposal_id)
+                | (ProposalModel.supersedes_proposal_id == proposal_id)
+            )
+            .first()
+        )
+    if not p:
         raise HTTPException(status_code=404, detail="Proposal not found")
 
     # Idempotency / Repeated click support
@@ -582,6 +615,17 @@ async def reject_proposal(
         .first()
     )
     if not p:
+        p = (
+            db.query(ProposalModel)
+            .filter(ProposalModel.project_id == project_id)
+            .filter(
+                (ProposalModel.task_id == proposal_id)
+                | (ProposalModel.run_id == proposal_id)
+                | (ProposalModel.supersedes_proposal_id == proposal_id)
+            )
+            .first()
+        )
+    if not p:
         raise HTTPException(status_code=404, detail="Proposal not found")
 
     if p.requires_decision and p.assigned_decider_id:
@@ -656,6 +700,17 @@ async def redirect_proposal(
         .first()
     )
     if not p:
+        p = (
+            db.query(ProposalModel)
+            .filter(ProposalModel.project_id == project_id)
+            .filter(
+                (ProposalModel.task_id == proposal_id)
+                | (ProposalModel.run_id == proposal_id)
+                | (ProposalModel.supersedes_proposal_id == proposal_id)
+            )
+            .first()
+        )
+    if not p:
         raise HTTPException(status_code=404, detail="Proposal not found")
 
     if p.requires_decision and p.assigned_decider_id:
@@ -728,6 +783,17 @@ async def reconcile_proposal(
         .first()
     )
     if not p:
+        p = (
+            db.query(ProposalModel)
+            .filter(ProposalModel.project_id == project_id)
+            .filter(
+                (ProposalModel.task_id == proposal_id)
+                | (ProposalModel.run_id == proposal_id)
+                | (ProposalModel.supersedes_proposal_id == proposal_id)
+            )
+            .first()
+        )
+    if not p:
         raise HTTPException(status_code=404, detail="Proposal not found")
 
     is_nova = (
@@ -789,6 +855,17 @@ async def resolve_proposal_conflict(
         .filter(ProposalModel.id == proposal_id, ProposalModel.project_id == project_id)
         .first()
     )
+    if not p:
+        p = (
+            db.query(ProposalModel)
+            .filter(ProposalModel.project_id == project_id)
+            .filter(
+                (ProposalModel.task_id == proposal_id)
+                | (ProposalModel.run_id == proposal_id)
+                | (ProposalModel.supersedes_proposal_id == proposal_id)
+            )
+            .first()
+        )
     if not p:
         raise HTTPException(status_code=404, detail="Proposal not found")
 
@@ -930,6 +1007,17 @@ async def reverify_proposal(
         .filter(ProposalModel.id == proposal_id, ProposalModel.project_id == project_id)
         .first()
     )
+    if not p:
+        p = (
+            db.query(ProposalModel)
+            .filter(ProposalModel.project_id == project_id)
+            .filter(
+                (ProposalModel.task_id == proposal_id)
+                | (ProposalModel.run_id == proposal_id)
+                | (ProposalModel.supersedes_proposal_id == proposal_id)
+            )
+            .first()
+        )
     if not p:
         raise HTTPException(status_code=404, detail="Proposal not found")
 

@@ -191,7 +191,8 @@ export const ProposalList: React.FC<ProposalListProps> = ({
       onRefresh();
       loadStats();
     } catch (err: any) {
-      setActionError(err.message || 'Failed to approve proposal');
+      onRefresh();
+      setActionError(err.message || "Failed to approve proposal");
     }
   };
 
@@ -202,7 +203,8 @@ export const ProposalList: React.FC<ProposalListProps> = ({
       onRefresh();
       loadStats();
     } catch (err: any) {
-      setActionError(err.message || 'Failed to reject proposal');
+      onRefresh();
+      setActionError(err.message || "Failed to reject proposal");
     }
   };
 
@@ -213,7 +215,8 @@ export const ProposalList: React.FC<ProposalListProps> = ({
       onRefresh();
       loadStats();
     } catch (err: any) {
-      setActionError(err.message || 'Failed to reconcile proposal');
+      onRefresh();
+      setActionError(err.message || "Failed to reconcile proposal");
     }
   };
 
@@ -229,7 +232,8 @@ export const ProposalList: React.FC<ProposalListProps> = ({
       onRefresh();
       loadStats();
     } catch (err: any) {
-      setActionError(err.message || 'Failed to confirm requirements');
+      onRefresh();
+      setActionError(err.message || "Failed to confirm requirements");
     }
   };
 

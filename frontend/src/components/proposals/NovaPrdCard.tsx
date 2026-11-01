@@ -225,7 +225,7 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
             <button
               type="button"
               disabled={!isAlex}
-              onClick={() => onConfirmRequirements(proposal.proposal_id)}
+              onClick={() => onConfirmRequirements(proposal.proposal_id || proposal.id || "")}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
                 isAlex
                   ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-2xs'
