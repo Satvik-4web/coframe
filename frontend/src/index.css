@@ -3,11 +3,11 @@
 @layer base {
   :root {
     /* Brand Theme Colors */
-    --sidebar-bg: #11152A;
-    --sidebar-surface: #191F3B;
-    --sidebar-border: #232B4E;
-    --sidebar-text: #E2E8F0;
-    --sidebar-text-muted: #8E9BAE;
+    --sidebar-bg: #080B18;
+    --sidebar-surface: rgba(255,255,255,0.035);
+    --sidebar-border: rgba(255,255,255,0.055);
+    --sidebar-text: #C8D0E0;
+    --sidebar-text-muted: #3D4F6B;
 
     --bg-main: #F7F8FC;
     --bg-card: #FFFFFF;
@@ -61,14 +61,14 @@
 
 /* Dark scrollbars for sidebar */
 .dark-scroll::-webkit-scrollbar-track {
-  background: #11152A;
+  background: #080B18;
 }
 .dark-scroll::-webkit-scrollbar-thumb {
-  background: #232B4E;
+  background: rgba(255,255,255,0.07);
   border-radius: 4px;
 }
 .dark-scroll::-webkit-scrollbar-thumb:hover {
-  background: #3B4571;
+  background: rgba(255,255,255,0.13);
 }
 
 /* Glassmorphism & Surface Helpers */
