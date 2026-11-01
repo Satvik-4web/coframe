@@ -15,8 +15,6 @@ import {
   getInterruptedTask,
 } from '../../lib/api';
 import { MCPToolExplorer } from '../mcp/MCPToolExplorer';
-import { EditRequirementModal } from '../requirements/EditRequirementModal';
-import { useToast } from '../common/Toast';
 import {
   RotateCcw,
   Cpu,
@@ -42,7 +40,6 @@ import {
   ArrowRight,
   Database,
   XCircle,
-  Edit3,
 } from 'lucide-react';
 
 interface ContextInspectorProps {
@@ -62,8 +59,6 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
   const [operating, setOperating] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [expandedReq, setExpandedReq] = useState<string | null>(null);
-  const [editingRequirement, setEditingRequirement] = useState<any | null>(null);
-  const { showToast } = useToast();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   // Interrupted task tracking
@@ -669,30 +664,6 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                                     Score: {scorePercent}%
                                   </span>
                                   <button
-                                    type="button"
-                                    onClick={() => {
-                                      if (identity !== 'alex') {
-                                        showToast('Only Alex (Founder / Decision Owner) can edit requirements.', 'error');
-                                        return;
-                                      }
-                                      setEditingRequirement(req);
-                                    }}
-                                    disabled={identity !== 'alex'}
-                                    className={`flex items-center space-x-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold border transition ${
-                                      identity === 'alex'
-                                        ? 'bg-white hover:bg-blue-50 text-blue-700 border-blue-200 cursor-pointer shadow-2xs'
-                                        : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed opacity-60'
-                                    }`}
-                                    title={
-                                      identity === 'alex'
-                                        ? `Edit ${req.key} and advance context version`
-                                        : 'Only Alex (Founder / Decision Owner) can edit requirements'
-                                    }
-                                  >
-                                    <Edit3 className="w-3 h-3 text-blue-600" />
-                                    <span>Edit</span>
-                                  </button>
-                                  <button
                                     onClick={() => setExpandedReq(isExpanded ? null : (req.id || req.key))}
                                     className="p-1 text-[#657189] hover:text-[#172033] transition cursor-pointer"
                                   >
@@ -1252,21 +1223,6 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
       <div className="pt-2">
         <MCPToolExplorer identity={identity || null} />
       </div>
-      {editingRequirement && (
-        <EditRequirementModal
-          isOpen={Boolean(editingRequirement)}
-          onClose={() => setEditingRequirement(null)}
-          requirementKey={editingRequirement.key || editingRequirement.id}
-          requirementTitle={editingRequirement.title || editingRequirement.key}
-          currentValue={editingRequirement.value}
-          identity={identity || 'alex'}
-          onUpdated={() => {
-            setEditingRequirement(null);
-            if (onRefresh) onRefresh();
-            loadRunPack(selectedAgent, selectedRunId);
-          }}
-        />
-      )}
     </div>
   );
 };

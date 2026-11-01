@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { ShieldCheck, AlertTriangle, CheckCircle, Clock, Check, X, Lock } from 'lucide-react';
 import { fetchExpenses, decideExpense } from '../../lib/api';
 import { HumanIdentity } from '../../types';
-import { useToast } from '../common/Toast';
 
 interface QueueItem {
   id: string;
@@ -23,30 +22,17 @@ interface LedgerFlowApprovalQueueProps {
   };
   version: number;
   identity?: HumanIdentity;
-  changeBadge?: string;
-  isProposed?: boolean;
 }
 
 export const LedgerFlowApprovalQueue: React.FC<LedgerFlowApprovalQueueProps> = ({
   data,
   version,
   identity = 'alex',
-  changeBadge,
-  isProposed = false,
 }) => {
-  const { showToast } = useToast();
   const items = data.items || [];
   const [liveExpenses, setLiveExpenses] = useState<any[]>([]);
-  const [localItemStatuses, setLocalItemStatuses] = useState<
-    Record<string, 'pending' | 'approved' | 'rejected' | 'escalated'>
-  >({});
+  const [loading, setLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-
-  // Clean professional copy replacing raw internal placeholder notes
-  const displayPolicyNote =
-    !data.policy_note || data.policy_note.toLowerCase().includes('not yet finalised')
-      ? 'Standard corporate spend policy: Multi-tier manager approval required for flagged or threshold-exceeding disbursements.'
-      : data.policy_note;
 
   const loadLiveExpenses = async () => {
     try {
@@ -65,43 +51,14 @@ export const LedgerFlowApprovalQueue: React.FC<LedgerFlowApprovalQueueProps> = (
     setActionError(null);
     try {
       await decideExpense('demo-ledgerflow', expenseId, decision, identity || 'alex');
-      showToast(`Expense ${expenseId.slice(-8)} ${decision}!`, 'success');
       await loadLiveExpenses();
     } catch (err: any) {
       setActionError(err.message || `Failed to ${decision} expense`);
-      showToast(err.message || `Failed to ${decision} expense`, 'error');
     }
   };
 
-  const handleLocalItemAction = (itemId: string, newStatus: 'approved' | 'rejected') => {
-    setLocalItemStatuses((prev) => ({ ...prev, [itemId]: newStatus }));
-    showToast(`Prototype item ${itemId} marked as ${newStatus}`, 'info');
-  };
-
-  const getItemStatus = (item: QueueItem) => localItemStatuses[item.id] || item.status;
-
   return (
-    <div
-      className={`bg-white border rounded-2xl p-6 shadow-sm space-y-6 relative transition-all ${
-        isProposed
-          ? 'border-teal-500 ring-2 ring-teal-200'
-          : 'border-[#E7ECF2]'
-      }`}
-    >
-      {/* Proposed unapplied ribbon */}
-      {isProposed && (
-        <div className="absolute -top-3 right-6 bg-teal-600 text-white text-[11px] font-bold px-3 py-0.5 rounded-full shadow-md uppercase tracking-wider">
-          Proposed (Unapplied)
-        </div>
-      )}
-
-      {/* Change Badge */}
-      {changeBadge && (
-        <div className="inline-flex items-center px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 border border-teal-200 text-xs font-mono mb-2">
-          {changeBadge}
-        </div>
-      )}
-
+    <div className="bg-white border border-[#E7ECF2] rounded-2xl p-6 shadow-sm space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-[#F0F3F7]">
         <div>
           <div className="flex items-center space-x-2">
@@ -112,10 +69,12 @@ export const LedgerFlowApprovalQueue: React.FC<LedgerFlowApprovalQueueProps> = (
               </span>
             )}
           </div>
-          <p className="text-xs text-[#657189] mt-1 flex items-center space-x-1">
-            <ShieldCheck className="w-3.5 h-3.5 text-teal-600 inline mr-1 shrink-0" />
-            <span>{displayPolicyNote}</span>
-          </p>
+          {data.policy_note && (
+            <p className="text-xs text-[#657189] mt-1 flex items-center space-x-1">
+              <ShieldCheck className="w-3.5 h-3.5 text-teal-600 inline mr-1" />
+              <span>{data.policy_note}</span>
+            </p>
+          )}
         </div>
 
         <div className="flex items-center space-x-1 px-2.5 py-1 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] text-[10px] text-[#657189] font-mono self-start sm:self-center">
@@ -234,7 +193,7 @@ export const LedgerFlowApprovalQueue: React.FC<LedgerFlowApprovalQueueProps> = (
         </div>
       )}
 
-      {/* Configurable Corporate Queue Items with Interactive Manager Actions */}
+      {/* Baseline LedgerFlow Prototype Queue Items (Targeted by Playwright) */}
       <div className="space-y-3">
         <h3 className="text-xs font-bold uppercase tracking-wider text-[#657189]">
           Configurable Corporate Queue Items
@@ -248,70 +207,47 @@ export const LedgerFlowApprovalQueue: React.FC<LedgerFlowApprovalQueueProps> = (
                 <th className="py-2.5 px-3">Category</th>
                 <th className="py-2.5 px-3">Amount</th>
                 <th className="py-2.5 px-3">Policy Audit</th>
-                <th className="py-2.5 px-3 text-right">Interactive Actions / Status</th>
+                <th className="py-2.5 px-3 text-right">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#F0F3F7]">
-              {items.map((item) => {
-                const currentStatus = getItemStatus(item);
-                const isPendingOrEscalated =
-                  currentStatus === 'pending' || currentStatus === 'escalated';
-
-                return (
-                  <tr key={item.id} className="hover:bg-[#F8FAFC]/80 transition">
-                    <td className="py-3 px-3 font-mono font-medium text-[#172033]">{item.id}</td>
-                    <td className="py-3 px-3">
-                      <div className="font-semibold text-[#172033]">{item.submitter}</div>
-                      <div className="text-[11px] text-[#657189]">{item.department}</div>
-                    </td>
-                    <td className="py-3 px-3">{item.category}</td>
-                    <td className="py-3 px-3 font-bold text-[#172033]">{item.amount}</td>
-                    <td className="py-3 px-3">
-                      {item.policy_flag ? (
-                        <span className="inline-flex items-center space-x-1 text-[11px] text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 font-medium">
-                          <AlertTriangle className="w-3 h-3 text-amber-600" />
-                          <span>{item.policy_flag}</span>
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-emerald-700 flex items-center space-x-1">
-                          <CheckCircle className="w-3 h-3" />
-                          <span>Compliant</span>
-                        </span>
-                      )}
-                    </td>
-                    <td className="py-3 px-3 text-right">
-                      {isPendingOrEscalated ? (
-                        <div className="flex items-center justify-end space-x-1.5">
-                          <button
-                            type="button"
-                            onClick={() => handleLocalItemAction(item.id, 'rejected')}
-                            className="px-2 py-0.5 rounded-lg bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-[10px] font-semibold transition cursor-pointer"
-                          >
-                            Reject
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleLocalItemAction(item.id, 'approved')}
-                            className="px-2.5 py-0.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white text-[10px] font-semibold transition cursor-pointer shadow-2xs"
-                          >
-                            Approve
-                          </button>
-                        </div>
-                      ) : (
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                            currentStatus === 'approved'
-                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                              : 'bg-rose-50 text-rose-800 border border-rose-200'
-                          }`}
-                        >
-                          {currentStatus}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
+              {items.map((item) => (
+                <tr key={item.id} className="hover:bg-[#F8FAFC]/80 transition">
+                  <td className="py-3 px-3 font-mono font-medium text-[#172033]">{item.id}</td>
+                  <td className="py-3 px-3">
+                    <div className="font-semibold text-[#172033]">{item.submitter}</div>
+                    <div className="text-[11px] text-[#657189]">{item.department}</div>
+                  </td>
+                  <td className="py-3 px-3">{item.category}</td>
+                  <td className="py-3 px-3 font-bold text-[#172033]">{item.amount}</td>
+                  <td className="py-3 px-3">
+                    {item.policy_flag ? (
+                      <span className="inline-flex items-center space-x-1 text-[11px] text-amber-800 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 font-medium">
+                        <AlertTriangle className="w-3 h-3 text-amber-600" />
+                        <span>{item.policy_flag}</span>
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-emerald-700 flex items-center space-x-1">
+                        <CheckCircle className="w-3 h-3" />
+                        <span>Compliant</span>
+                      </span>
+                    )}
+                  </td>
+                  <td className="py-3 px-3 text-right">
+                    <span
+                      className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                        item.status === 'approved'
+                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                          : item.status === 'escalated'
+                          ? 'bg-rose-50 text-rose-800 border border-rose-200'
+                          : 'bg-slate-100 text-slate-700'
+                      }`}
+                    >
+                      {item.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>

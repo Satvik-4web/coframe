@@ -1,35 +1,33 @@
 import React, { useState } from 'react';
 import {
+  MessageSquare,
   LayoutDashboard,
+  Palette,
+  GitPullRequest,
   Bot,
   History,
-  MessageSquare,
-  GitPullRequest,
+  Radio,
   ChevronLeft,
   ChevronRight,
   Sparkles,
   Layers,
-  Shield,
-  GitBranch,
-  ChevronDown,
+  ArrowUpRight,
 } from 'lucide-react';
 import { HumanIdentity } from '../../types';
 
 export type NavigationTab =
-  | 'workspace'
-  | 'history'
-  | 'agents_context'
+  | 'chat'
   | 'overview'
   | 'preview'
-  | 'canvas'
   | 'proposals'
   | 'agents'
   | 'activity'
   | 'context'
-  | 'chat'
   | 'resources'
   | 'governance'
-  | 'github';
+  | 'github'
+  | 'workspace'
+  | 'canvas';
 
 interface SidebarProps {
   currentTab: NavigationTab;
@@ -38,8 +36,6 @@ interface SidebarProps {
   conflictedProposalsCount: number;
   pendingApprovalsCount?: number;
   identity: HumanIdentity;
-  onToggleChatDrawer?: () => void;
-  isChatDrawerOpen?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -47,81 +43,65 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectTab,
   pendingProposalsCount,
   conflictedProposalsCount,
-  onToggleChatDrawer,
-  isChatDrawerOpen = false,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [showMoreTools, setShowMoreTools] = useState(false);
 
   const totalDecisionCount = pendingProposalsCount + conflictedProposalsCount;
 
-  // Normalized active tab matching for the 3 primary destinations
-  const isWorkspaceActive =
-    currentTab === 'workspace' ||
-    currentTab === 'overview' ||
-    currentTab === 'preview' ||
-    currentTab === 'canvas';
-
-  const isHistoryActive = currentTab === 'history' || currentTab === 'activity';
-
-  const isAgentsContextActive =
-    currentTab === 'agents_context' || currentTab === 'agents' || currentTab === 'context';
-
-  // 3 Primary Destinations
-  const primaryNavItems = [
+  const mainNavItems = [
     {
-      id: 'workspace' as NavigationTab,
-      isActive: isWorkspaceActive,
-      label: 'Workspace',
-      description: 'Live prototype & decisions',
+      id: 'chat',
+      label: 'Chat',
+      description: 'Workspace conversation',
+      icon: MessageSquare,
+      shortcut: '⌘1',
+    },
+    {
+      id: 'overview',
+      label: 'Overview',
+      description: 'Product command centre',
       icon: LayoutDashboard,
-      badge: totalDecisionCount > 0 ? totalDecisionCount : undefined,
+      shortcut: '⌘2',
+    },
+    {
+      id: 'preview',
+      label: 'Product Preview',
+      description: 'LedgerFlow live canvas',
+      icon: Palette,
+      shortcut: '⌘3',
+    },
+    {
+      id: 'proposals',
+      label: 'Proposals',
+      description: 'Requirements & code reviews',
+      icon: GitPullRequest,
+      badge: totalDecisionCount,
       badgeColor:
         conflictedProposalsCount > 0
-          ? 'bg-rose-500/20 text-rose-300 border-rose-500/30'
-          : 'bg-blue-500/20 text-blue-300 border-blue-500/30',
-      onClick: () => onSelectTab('workspace'),
+          ? 'bg-red-500/20 text-red-300 border-red-500/30'
+          : 'bg-violet-500/20 text-violet-300 border-violet-500/30',
+      shortcut: '⌘4',
     },
     {
-      id: 'history' as NavigationTab,
-      isActive: isHistoryActive,
-      label: 'History',
-      description: 'Full audit log & changes',
-      icon: History,
-      onClick: () => onSelectTab('history'),
-    },
-    {
-      id: 'agents_context' as NavigationTab,
-      isActive: isAgentsContextActive,
-      label: 'Agents & Context',
-      description: 'NOVA, PIXEL & requirements',
+      id: 'agents',
+      label: 'AI Team',
+      description: 'NOVA & PIXEL management',
       icon: Bot,
-      onClick: () => onSelectTab('agents_context'),
-    },
-  ];
-
-  // Secondary Tools (Preserved for backwards-compatibility)
-  const secondaryNavItems = [
-    {
-      id: 'proposals' as NavigationTab,
-      label: 'Proposals Queue',
-      icon: GitPullRequest,
-      badge: totalDecisionCount > 0 ? totalDecisionCount : undefined,
+      shortcut: '⌘5',
     },
     {
-      id: 'resources' as NavigationTab,
-      label: 'Shared Creation Shelf',
-      icon: Layers,
+      id: 'activity',
+      label: 'Activity & History',
+      description: 'Event audit trail',
+      icon: History,
+      shortcut: '⌘6',
     },
     {
-      id: 'governance' as NavigationTab,
-      label: 'Governance Matrix',
-      icon: Shield,
-    },
-    {
-      id: 'github' as NavigationTab,
-      label: 'GitHub Integration',
-      icon: GitBranch,
+      id: 'context',
+      label: 'Context Inspector',
+      description: 'Immutable context pack',
+      icon: Radio,
+      shortcut: '⌘7',
     },
   ];
 
@@ -152,141 +132,123 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        {/* Quick Agent Chat Drawer Button */}
-        {onToggleChatDrawer && (
-          <div className="px-3 mb-4">
-            <button
-              type="button"
-              onClick={onToggleChatDrawer}
-              className={`w-full py-2 px-3 rounded-xl font-semibold text-xs transition flex items-center justify-between cursor-pointer border ${
-                isChatDrawerOpen
-                  ? 'bg-violet-600 text-white border-violet-500 shadow-md shadow-violet-900/40'
-                  : 'bg-[#191F3B] hover:bg-[#20274B] text-violet-300 border-[#2A345E]'
-              }`}
-              title="Toggle Agent Chat Drawer"
-            >
-              <div className="flex items-center space-x-2">
-                <MessageSquare className="w-4 h-4 text-violet-400" />
-                {!isCollapsed && <span>Agent Chat</span>}
+        {/* Active Project Card */}
+        {!isCollapsed ? (
+          <div className="px-3 mb-5">
+            <div className="p-3 rounded-xl bg-[#191F3B] border border-[#232B4E] flex items-center justify-between group hover:border-[#384373] transition cursor-pointer">
+              <div className="min-w-0 pr-2">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-[#8E9BAE]">Active Project</p>
+                </div>
+                <h3 className="text-xs font-bold text-white mt-0.5 truncate">LedgerFlow</h3>
+                <p className="text-[10px] text-[#8E9BAE] truncate">Enterprise Spend Governance</p>
               </div>
-              {!isCollapsed && (
-                <span className="text-[10px] font-mono bg-violet-900/50 px-1.5 py-0.5 rounded text-violet-200">
-                  Slide
-                </span>
-              )}
-            </button>
+              <div className="w-6 h-6 rounded-lg bg-[#232B4E] flex items-center justify-center text-slate-400 group-hover:text-white transition shrink-0">
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="px-2 mb-4 flex justify-center">
+            <div
+              className="w-10 h-10 rounded-xl bg-[#191F3B] border border-[#232B4E] flex items-center justify-center relative cursor-pointer"
+              title="LedgerFlow (Enterprise Spend Governance)"
+            >
+              <span className="text-xs font-bold text-white">LF</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 absolute -top-0.5 -right-0.5 border border-[#11152A]" />
+            </div>
           </div>
         )}
 
-        {/* 3 Primary Navigation Destinations */}
-        <div className="px-3 space-y-1 mb-4">
+        {/* Navigation Section */}
+        <div className="flex-1 overflow-y-auto dark-scroll px-2.5 space-y-1">
           {!isCollapsed && (
-            <div className="px-2 mb-2 text-[10px] font-bold uppercase tracking-wider text-[#63708E]">
-              Primary Destinations
+            <div className="px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#8E9BAE]">
+              Workspace Navigation
             </div>
           )}
 
-          {primaryNavItems.map((item) => {
+          {mainNavItems.map((item) => {
             const Icon = item.icon;
+            const isActive =
+              currentTab === item.id ||
+              (item.id === 'overview' && currentTab === 'workspace') ||
+              (item.id === 'preview' && currentTab === 'canvas');
+
             return (
               <button
                 key={item.id}
-                onClick={item.onClick}
-                className={`w-full flex items-center justify-between p-2.5 rounded-xl transition cursor-pointer group ${
-                  item.isActive
-                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold shadow-md shadow-violet-900/20'
-                    : 'text-[#94A3B8] hover:bg-[#1A203D] hover:text-white'
+                onClick={() => onSelectTab(item.id as NavigationTab)}
+                title={isCollapsed ? `${item.label} — ${item.description}` : undefined}
+                className={`w-full flex items-center rounded-xl text-xs font-medium transition-all cursor-pointer group relative ${
+                  isCollapsed ? 'justify-center p-2.5' : 'justify-between px-3 py-2.5'
+                } ${
+                  isActive
+                    ? 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold shadow-md shadow-violet-900/30'
+                    : 'text-[#8E9BAE] hover:bg-[#191F3B] hover:text-white'
                 }`}
-                title={item.label}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <Icon
-                    className={`w-4 h-4 shrink-0 transition ${
-                      item.isActive ? 'text-white' : 'text-[#64748B] group-hover:text-violet-400'
+                    className={`w-4 h-4 shrink-0 transition-transform group-hover:scale-105 ${
+                      isActive ? 'text-white' : 'text-[#8E9BAE] group-hover:text-white'
                     }`}
                   />
                   {!isCollapsed && (
                     <div className="text-left min-w-0">
-                      <div className="text-xs truncate leading-snug">{item.label}</div>
-                      <div
-                        className={`text-[10px] truncate ${
-                          item.isActive ? 'text-violet-200' : 'text-[#64748B]'
-                        }`}
-                      >
-                        {item.description}
-                      </div>
+                      <span className="block truncate text-xs">{item.label}</span>
                     </div>
                   )}
                 </div>
 
-                {!isCollapsed && item.badge !== undefined && (
+                {!isCollapsed && item.badge !== undefined && item.badge > 0 && (
                   <span
-                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${item.badgeColor || 'bg-slate-700 text-white'}`}
+                    className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border ${item.badgeColor}`}
                   >
                     {item.badge}
                   </span>
+                )}
+
+                {/* Collapsed dot badge */}
+                {isCollapsed && item.badge !== undefined && item.badge > 0 && (
+                  <span className="w-2 h-2 rounded-full bg-violet-400 absolute top-1.5 right-1.5 border border-[#11152A]" />
                 )}
               </button>
             );
           })}
         </div>
 
-        {/* Secondary Tools Collapsible Section */}
-        {!isCollapsed && (
-          <div className="px-3 flex-1 overflow-y-auto space-y-1 pt-2 border-t border-[#232B4E]">
-            <button
-              type="button"
-              onClick={() => setShowMoreTools(!showMoreTools)}
-              className="w-full flex items-center justify-between px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-[#63708E] hover:text-[#94A3B8] transition cursor-pointer"
-            >
-              <span>Workspace Tools</span>
-              <ChevronDown
-                className={`w-3.5 h-3.5 transition-transform ${showMoreTools ? 'rotate-180' : ''}`}
-              />
-            </button>
+        {/* Bottom Area: Identity / Branding & Collapse Toggle */}
+        <div className="pt-3 px-3 border-t border-[#232B4E] mt-auto">
+          {!isCollapsed ? (
+            <div className="p-2.5 rounded-xl bg-[#191F3B]/80 border border-[#232B4E] mb-2">
+              <div className="flex items-center gap-2 mb-1">
+                <Sparkles className="w-3 h-3 text-violet-400" />
+                <span className="text-[10px] font-bold text-white uppercase tracking-wider">Human + AI</span>
+              </div>
+              <p className="text-[10px] text-[#8E9BAE] leading-tight">
+                Sequential Product Lifecycle · NOVA + PIXEL
+              </p>
+            </div>
+          ) : null}
 
-            {showMoreTools && (
-              <div className="space-y-1 pt-1 animate-fadeIn">
-                {secondaryNavItems.map((item) => {
-                  const Icon = item.icon;
-                  const isActive = currentTab === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => onSelectTab(item.id)}
-                      className={`w-full flex items-center justify-between px-2.5 py-1.5 rounded-lg text-xs transition cursor-pointer ${
-                        isActive
-                          ? 'bg-[#1F274B] text-white font-semibold'
-                          : 'text-[#8E9BAE] hover:bg-[#1A203D] hover:text-white'
-                      }`}
-                    >
-                      <div className="flex items-center space-x-2">
-                        <Icon className="w-3.5 h-3.5 text-slate-400" />
-                        <span>{item.label}</span>
-                      </div>
-                      {item.badge !== undefined && (
-                        <span className="text-[10px] font-bold px-1.5 py-0.2 rounded-full bg-slate-800 text-slate-300">
-                          {item.badge}
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+          {/* Collapse / Expand Toggle Button */}
+          <button
+            onClick={() => setIsCollapsed(!isCollapsed)}
+            className={`w-full flex items-center justify-center p-2 rounded-xl text-[#8E9BAE] hover:text-white hover:bg-[#191F3B] transition cursor-pointer text-xs`}
+            title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="w-4 h-4" />
+            ) : (
+              <div className="flex items-center gap-2 text-[11px] font-medium">
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Collapse Sidebar</span>
               </div>
             )}
-          </div>
-        )}
-      </div>
-
-      {/* Collapse / Expand Toggle Button */}
-      <div className="px-3 pt-3 border-t border-[#232B4E]">
-        <button
-          onClick={() => setIsCollapsed(!isCollapsed)}
-          className="w-full flex items-center justify-center p-2 rounded-xl text-[#64748B] hover:text-white hover:bg-[#1A203D] transition cursor-pointer"
-          title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        >
-          {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-        </button>
+          </button>
+        </div>
       </div>
     </aside>
   );
