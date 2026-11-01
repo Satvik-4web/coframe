@@ -16,6 +16,7 @@ from backend.app.api.routes import (
     expenses,
     prd,
     chat,
+    pixel_builder,
 )
 
 base_router = APIRouter()
@@ -36,6 +37,7 @@ base_router.include_router(resources.router)
 base_router.include_router(expenses.router)
 base_router.include_router(prd.router)
 base_router.include_router(chat.router)
+base_router.include_router(pixel_builder.router)
 
 api_router = APIRouter(prefix="/api")
 api_router.include_router(base_router)
