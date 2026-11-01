@@ -48,3 +48,6 @@ frontend/.vite/
 Thumbs.db
 
 .vercel
+
+scratch/
+.playwright-mcp/

@@ -8,6 +8,7 @@ import { PixelImplementationModal } from './PixelImplementationModal';
 import { RedirectModal } from './RedirectModal';
 import { ConflictCompareModal } from './ConflictCompareModal';
 import { CreateHumanProposalModal } from './CreateHumanProposalModal';
+import { ExecutionEnvironmentModal } from './ExecutionEnvironmentModal';
 import {
   approveProposal,
   rejectProposal,
@@ -68,6 +69,7 @@ export const ProposalList: React.FC<ProposalListProps> = ({
   const [showCreateHumanModal, setShowCreateHumanModal] = useState(false);
   const [selectedNovaProposal, setSelectedNovaProposal] = useState<Proposal | null>(null);
   const [selectedPixelProposal, setSelectedPixelProposal] = useState<Proposal | null>(null);
+  const [executingProposal, setExecutingProposal] = useState<Proposal | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [stats, setStats] = useState<ProposalStats | null>(null);
   const [isStatsLoading, setIsStatsLoading] = useState(false);
@@ -559,6 +561,7 @@ export const ProposalList: React.FC<ProposalListProps> = ({
                     proposal={prop}
                     identity={identity}
                     onOpenImplementation={(p) => setSelectedPixelProposal(p)}
+                    onChooseExecutionEnvironment={(p) => setExecutingProposal(p)}
                     onApprove={handleApprove}
                     onReject={handleReject}
                     onRedirect={(p) => setRedirectingProposal(p)}
@@ -697,6 +700,7 @@ export const ProposalList: React.FC<ProposalListProps> = ({
                   proposal={prop}
                   identity={identity}
                   onOpenImplementation={(p) => setSelectedPixelProposal(p)}
+                  onChooseExecutionEnvironment={(p) => setExecutingProposal(p)}
                   onApprove={handleApprove}
                   onReject={handleReject}
                   onRedirect={(p) => setRedirectingProposal(p)}
@@ -800,6 +804,7 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           identity={identity}
           isOpen={true}
           onClose={() => setSelectedPixelProposal(null)}
+          onChooseExecutionEnvironment={(p) => setExecutingProposal(p)}
           onApprove={(id) => {
             handleApprove(id);
             setSelectedPixelProposal(null);
@@ -815,6 +820,19 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           onCompareConflict={(p) => {
             setSelectedPixelProposal(null);
             setConflictedProposal(p);
+          }}
+        />
+      )}
+      {/* Execution Environment Selection Modal */}
+      {executingProposal && (
+        <ExecutionEnvironmentModal
+          proposal={executingProposal}
+          isOpen={Boolean(executingProposal)}
+          onClose={() => setExecutingProposal(null)}
+          onExecutionCompleted={(_mode) => {
+            setExecutingProposal(null);
+            onRefresh();
+            loadStats();
           }}
         />
       )}

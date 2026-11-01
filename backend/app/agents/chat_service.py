@@ -394,7 +394,7 @@ async def handle_nova_chat(
     # Determine if proposal should be created
     should_propose = _should_create_proposal(user_message, raw_output, "nova")
 
-    if should_propose and raw_output.get("target_sections"):
+    if should_propose:
         summary = raw_output.get("proposal_summary") or f"NOVA Requirements: {user_message[:40]}"
         # Ensure affected requirements only contain valid requirement keys
         candidate_reqs = raw_output.get("affected_requirements") or []
@@ -1050,7 +1050,8 @@ I have submitted this PRD proposal for human review. **PIXEL is waiting for Alex
         }
 
     # Specific policy question handler (e.g. international travel expense approval)
-    if "travel" in m_lower or "policy" in m_lower or "international" in m_lower or "expense approval" in m_lower:
+    proposal_kws = ["create proposal", "create a proposal", "create prd", "generate prd", "generate proposal", "submit proposal", "formalize"]
+    if ("travel" in m_lower or "policy" in m_lower or "international" in m_lower or "expense approval" in m_lower) and not any(kw in m_lower for kw in proposal_kws):
         return {
             "message": """### Strategic Policy Architecture · International Travel & Spend Governance
 
@@ -1069,7 +1070,7 @@ To structure LedgerFlow's international travel expense policy effectively while 
 *Would you like me to formalize this into a PRD requirements proposal for Alex's review? If so, reply: `Create proposal for international travel policy`.*""",
             "proposal_intent": False,
         }
-    elif "idea" in m_lower or "define" in m_lower:
+    elif ("idea" in m_lower or "define" in m_lower) and not any(kw in m_lower for kw in proposal_kws):
         return {
             "message": """### Strategic Product Framing · NOVA Analysis
 
@@ -1087,7 +1088,7 @@ I've analyzed your product idea for **LedgerFlow**. To translate this into a mea
 *If you would like me to submit this as a formal PRD proposal, reply `Create proposal`.*""",
             "proposal_intent": False,
         }
-    elif any(w in m_lower for w in ["ui", "ux", "better", "improve", "redesign", "user experience", "design", "usability"]):
+    elif any(w in m_lower for w in ["ui", "ux", "better", "improve", "redesign", "user experience", "design", "usability"]) and not any(kw in m_lower for kw in proposal_kws):
         return {
             "message": """### UX & Product Improvement Analysis · NOVA
 
@@ -1116,7 +1117,7 @@ We should formalize a UX Improvement Brief. Once confirmed, PIXEL can map these 
         import re
         clean = message.strip()
         clean = re.sub(r'^(team|nova|alex|hey|hi)[\s,:]+', '', clean, flags=re.IGNORECASE).strip()
-        clean = re.sub(r'^(how should we handle|how do we handle|how should we structure|can we add|let us add|let\'s add|we need to add|we need|i want to integrate|i want to add|i want to introduce|please add|please build)\s+', '', clean, flags=re.IGNORECASE).strip(' ?.')
+        clean = re.sub(r'^(create proposal for|create a proposal for|create prd for|generate prd for|generate proposal for|create proposal|create prd|how should we handle|how do we handle|how should we structure|can we add|let us add|let\'s add|we need to add|we need|i want to integrate|i want to add|i want to introduce|please add|please build)\s+', '', clean, flags=re.IGNORECASE).strip(' ?.')
         title_words = [w.capitalize() for w in clean.split()]
         feature_name = ' '.join(title_words) or 'Product Feature'
         if len(feature_name) > 60:

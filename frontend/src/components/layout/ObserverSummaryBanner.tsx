@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { ObserverSummary } from '../../types';
-import { Sparkles, Info, ChevronDown } from 'lucide-react';
+import { Sparkles, ChevronDown, ChevronUp, X, Info } from 'lucide-react';
 
 interface ObserverSummaryBannerProps {
   summary?: ObserverSummary;
@@ -10,71 +10,79 @@ interface ObserverSummaryBannerProps {
 export const ObserverSummaryBanner: React.FC<ObserverSummaryBannerProps> = ({
   summary,
 }) => {
-  if (!summary) return null;
+  const [isDismissed, setIsDismissed] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!summary || isDismissed) return null;
 
   return (
-    <div className="bg-white border-b border-[#E5EAF0] px-6 py-3.5 shadow-xs">
-      <div className="max-w-7xl mx-auto space-y-2.5">
-        {/* Header bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center space-x-2">
-            <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
-              Latest Collaboration Update
-            </h4>
-            <span className="hidden sm:inline text-slate-300">•</span>
-            <span className="hidden sm:inline text-xs text-[#657189]">
-              Plain-language summary of team activity
+    <div className="bg-gradient-to-r from-violet-50/70 via-indigo-50/50 to-teal-50/50 border-b border-[#E8EAF2] px-6 transition-all duration-200 text-xs">
+      <div className="max-w-7xl mx-auto py-2">
+        {/* Compact Strip Header */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-violet-600 animate-pulse shrink-0" />
+            <span className="text-[10px] font-bold uppercase tracking-wider text-violet-800 bg-violet-100 px-2 py-0.5 rounded-full shrink-0">
+              Live Synthesis
             </span>
+            <p className="text-xs text-[#172033] font-medium truncate">
+              {summary.what_changed || 'Collaboration update available'}
+            </p>
           </div>
 
-          <details className="text-[11px] text-[#657189] cursor-pointer group">
-            <summary className="hover:text-[#172033] flex items-center gap-1 list-none font-medium">
-              <span>Technical details</span>
-              <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform" />
-            </summary>
-            <div className="absolute right-6 mt-1 bg-white border border-[#E5EAF0] rounded-xl p-3 shadow-lg z-30 text-xs w-64 space-y-1 animate-in fade-in zoom-in-95 duration-100">
-              <div className="font-bold text-[#172033] mb-1">Synthesis Metadata</div>
-              <p>Source: <span className="font-mono">{summary.source}</span></p>
-              <p>Context Version: <span className="font-mono">v{summary.context_version}</span></p>
-              <p>Artifact Version: <span className="font-mono">v{summary.artifact_version}</span></p>
-              <p>Audit Events: <span className="font-mono">{summary.source_event_ids?.length || 0} events</span></p>
-            </div>
-          </details>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-[#657189] hover:text-[#172033] hover:bg-white/80 transition cursor-pointer"
+            >
+              <span>{isExpanded ? 'Less details' : 'View context'}</span>
+              {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+            </button>
+
+            <button
+              onClick={() => setIsDismissed(true)}
+              className="p-1 rounded-lg text-[#657189] hover:text-[#172033] hover:bg-white/80 transition cursor-pointer"
+              title="Dismiss notification"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
-        {/* 3-Section Aligned Row: What Changed / Why / What Happens Next (Requirement 1.E) */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
-          {/* Section 1: What Changed */}
-          <div className="space-y-1">
-            <div className="flex items-center space-x-1.5 text-[11px] font-bold text-teal-700 uppercase tracking-wide">
-              <span>What Changed</span>
+        {/* Expandable 3-Pillar Context Panel (What Changed / Why / Next Steps) */}
+        {isExpanded && (
+          <div className="mt-3 pt-3 border-t border-violet-100 grid grid-cols-1 md:grid-cols-3 gap-4 pb-1 animate-in fade-in duration-150">
+            {/* 1. What Changed */}
+            <div className="space-y-1">
+              <span className="text-[10px] font-bold text-violet-800 uppercase tracking-wider">
+                1. What Changed
+              </span>
+              <p className="text-xs text-[#172033] leading-relaxed">
+                {summary.what_changed}
+              </p>
             </div>
-            <p className="text-xs text-[#172033] leading-relaxed font-medium">
-              {summary.what_changed}
-            </p>
-          </div>
 
-          {/* Section 2: Why */}
-          <div className="space-y-1 md:border-l md:border-[#E5EAF0] md:pl-4">
-            <div className="flex items-center space-x-1.5 text-[11px] font-bold text-blue-700 uppercase tracking-wide">
-              <span>Why</span>
+            {/* 2. Why */}
+            <div className="space-y-1 md:border-l md:border-violet-100 md:pl-4">
+              <span className="text-[10px] font-bold text-[#2563EB] uppercase tracking-wider">
+                2. Rationale & Context
+              </span>
+              <p className="text-xs text-[#475569] leading-relaxed">
+                {summary.why}
+              </p>
             </div>
-            <p className="text-xs text-[#475569] leading-relaxed">
-              {summary.why}
-            </p>
-          </div>
 
-          {/* Section 3: What Happens Next */}
-          <div className="space-y-1 md:border-l md:border-[#E5EAF0] md:pl-4">
-            <div className="flex items-center space-x-1.5 text-[11px] font-bold text-violet-700 uppercase tracking-wide">
-              <span>What Happens Next</span>
+            {/* 3. What Happens Next */}
+            <div className="space-y-1 md:border-l md:border-violet-100 md:pl-4">
+              <span className="text-[10px] font-bold text-[#0D9488] uppercase tracking-wider">
+                3. What Happens Next
+              </span>
+              <p className="text-xs text-[#475569] leading-relaxed">
+                {summary.what_happens_next}
+              </p>
             </div>
-            <p className="text-xs text-[#475569] leading-relaxed">
-              {summary.what_happens_next}
-            </p>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -139,36 +139,53 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
         {/* NOVA Card */}
         <div
           onClick={() => setSelectedAgent('nova')}
-          className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+          className={`p-5 rounded-3xl border transition-all cursor-pointer ${
             selectedAgent === 'nova'
-              ? 'bg-white border-violet-300 ring-2 ring-violet-100 shadow-sm'
-              : 'bg-white border-[#E7ECF2] hover:border-violet-200'
+              ? 'bg-white border-violet-400 ring-2 ring-violet-100 shadow-md'
+              : 'bg-white border-[#E7ECF2] hover:border-violet-200 hover:shadow-xs'
           }`}
         >
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-xl bg-violet-50 border border-violet-200 flex items-center justify-center font-bold text-violet-700 text-sm">
+              <div className="w-10 h-10 rounded-2xl bg-[#7C3AED] text-white flex items-center justify-center font-black text-sm shadow-2xs">
                 N
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-sm font-bold text-[#172033]">NOVA</h3>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
                     Product Strategist
                   </span>
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    gemini-2.5-flash
+                  </span>
                 </div>
                 <p className="text-[11px] text-[#657189] mt-0.5">
-                  Audience validation, market positioning & governance
+                  Idea discovery, requirements formulation & PRD authoring
                 </p>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {novaRun?.status === 'working' ? 'Working' : 'Ready'}
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border shadow-2xs ${
+              novaRun?.status === 'working'
+                ? 'bg-violet-50 text-violet-700 border-violet-200'
+                : novaRun?.status === 'waiting_for_review'
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${
+                novaRun?.status === 'working' ? 'bg-violet-500 animate-ping' : 'bg-emerald-500'
+              }`} />
+              <span>
+                {novaRun?.status === 'working'
+                  ? 'Creating PRD'
+                  : novaRun?.status === 'waiting_for_review'
+                  ? 'Waiting for Approval'
+                  : 'Idle (Ready)'}
+              </span>
             </span>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#F0F3F7] grid grid-cols-2 gap-2 text-xs">
+          <div className="mt-4 pt-3 border-t border-[#F0F3F7] grid grid-cols-3 gap-2 text-xs">
             <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
               <span className="text-[10px] text-[#657189] block font-medium">Context Base</span>
               <span className="font-mono font-bold text-blue-700">v{novaRun?.base_context_version || 1}</span>
@@ -177,47 +194,68 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
               <span className="text-[10px] text-[#657189] block font-medium">Artifact Base</span>
               <span className="font-mono font-bold text-emerald-700">v{novaRun?.base_artifact_version || 1}</span>
             </div>
+            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
+              <span className="text-[10px] text-[#657189] block font-medium">Model Engine</span>
+              <span className="font-bold text-violet-700 truncate block">Gemini 2.5</span>
+            </div>
           </div>
 
           <p className="mt-3 text-xs text-[#657189] line-clamp-2 leading-relaxed">
-            <strong className="text-[#172033]">Active Task: </strong>
-            {novaRun?.task_description || 'Synthesizing market requirements & audience fit'}
+            <strong className="text-[#172033]">Current Task: </strong>
+            {novaRun?.current_task || novaRun?.task_description || 'Synthesizing market requirements & audience fit'}
           </p>
         </div>
 
         {/* PIXEL Card */}
         <div
           onClick={() => setSelectedAgent('pixel')}
-          className={`p-5 rounded-2xl border transition-all cursor-pointer ${
+          className={`p-5 rounded-3xl border transition-all cursor-pointer ${
             selectedAgent === 'pixel'
-              ? 'bg-white border-teal-300 ring-2 ring-teal-100 shadow-sm'
-              : 'bg-white border-[#E7ECF2] hover:border-teal-200'
+              ? 'bg-white border-teal-400 ring-2 ring-teal-100 shadow-md'
+              : 'bg-white border-[#E7ECF2] hover:border-teal-200 hover:shadow-xs'
           }`}
         >
           <div className="flex items-start justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center font-bold text-teal-700 text-sm">
+              <div className="w-10 h-10 rounded-2xl bg-[#0D9488] text-white flex items-center justify-center font-black text-sm shadow-2xs">
                 P
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h3 className="text-sm font-bold text-[#172033]">PIXEL</h3>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
-                    Prototype Engineer
+                    AI Software Engineer
+                  </span>
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                    gemini-2.5-flash
                   </span>
                 </div>
                 <p className="text-[11px] text-[#657189] mt-0.5">
-                  Artifact mutations, code proposals & policy automation
+                  Implementation plans, schema mutations & automated tests
                 </p>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              {pixelRun?.status === 'working' ? 'Working' : 'Ready'}
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border shadow-2xs ${
+              pixelRun?.status === 'working'
+                ? 'bg-teal-50 text-teal-700 border-teal-200'
+                : pixelRun?.status === 'waiting_for_review'
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+            }`}>
+              <span className={`w-2 h-2 rounded-full ${
+                pixelRun?.status === 'working' ? 'bg-teal-500 animate-ping' : 'bg-emerald-500'
+              }`} />
+              <span>
+                {pixelRun?.status === 'working'
+                  ? 'Implementing'
+                  : pixelRun?.status === 'waiting_for_review'
+                  ? 'Waiting for Review'
+                  : 'Idle (Ready)'}
+              </span>
             </span>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#F0F3F7] grid grid-cols-2 gap-2 text-xs">
+          <div className="mt-4 pt-3 border-t border-[#F0F3F7] grid grid-cols-3 gap-2 text-xs">
             <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
               <span className="text-[10px] text-[#657189] block font-medium">Context Base</span>
               <span className="font-mono font-bold text-blue-700">v{pixelRun?.base_context_version || 1}</span>
@@ -226,11 +264,15 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
               <span className="text-[10px] text-[#657189] block font-medium">Artifact Base</span>
               <span className="font-mono font-bold text-emerald-700">v{pixelRun?.base_artifact_version || 1}</span>
             </div>
+            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
+              <span className="text-[10px] text-[#657189] block font-medium">Model Engine</span>
+              <span className="font-bold text-teal-700 truncate block">Gemini 2.5</span>
+            </div>
           </div>
 
           <p className="mt-3 text-xs text-[#657189] line-clamp-2 leading-relaxed">
-            <strong className="text-[#172033]">Active Task: </strong>
-            {pixelRun?.task_description || 'Implementing LedgerFlow hero and approval policy sections'}
+            <strong className="text-[#172033]">Current Task: </strong>
+            {pixelRun?.current_task || pixelRun?.task_description || 'Implementing LedgerFlow hero and approval policy sections'}
           </p>
         </div>
       </div>

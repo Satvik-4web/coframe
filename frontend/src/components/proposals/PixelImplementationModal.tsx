@@ -13,6 +13,7 @@ import {
   AlertTriangle,
   Lock,
   FileCode,
+  Terminal,
   Eye,
   CheckSquare,
   Sparkles,
@@ -35,6 +36,7 @@ interface PixelImplementationModalProps {
   onReject: (proposalId: string) => void;
   onRedirect: (proposal: Proposal) => void;
   onCompareConflict?: (proposal: Proposal) => void;
+  onChooseExecutionEnvironment?: (proposal: Proposal) => void;
 }
 
 export const PixelImplementationModal: React.FC<PixelImplementationModalProps> = ({
@@ -46,6 +48,7 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
   onReject,
   onRedirect,
   onCompareConflict,
+  onChooseExecutionEnvironment,
 }) => {
   const [activeTab, setActiveTab] = useState<
     'overview' | 'requirements' | 'diff' | 'preview' | 'validation' | 'review' | 'technical'
@@ -666,6 +669,20 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
 
             {isPending && !isConflict && (
               <>
+                {onChooseExecutionEnvironment && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onClose();
+                      onChooseExecutionEnvironment(proposal);
+                    }}
+                    className="px-3.5 py-2 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                    title="Select execution environment (Connected Agent IDE or Built-in PIXEL)"
+                  >
+                    <Terminal className="w-3.5 h-3.5 text-violet-600" />
+                    <span>Execution Environment</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => {

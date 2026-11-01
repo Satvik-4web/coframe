@@ -11,7 +11,10 @@ import {
   Info,
   ChevronDown,
   Shield,
-  FileCode,
+  CheckCircle2,
+  AlertCircle,
+  Wifi,
+  WifiOff,
 } from 'lucide-react';
 import { loadDemoScenario } from '../../lib/api';
 
@@ -64,151 +67,167 @@ export const TopBar: React.FC<TopBarProps> = ({
     }
   };
 
+  // Derive real connection label
+  const connectionLabel = isConnected ? 'Connected' : 'Reconnecting...';
+
   return (
-    <header className="h-16 border-b border-[#E7ECF2] bg-white px-6 flex items-center justify-between z-30 select-none shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-      {/* 1. Left: Brand & Active Project & Scenario Status */}
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-600 via-teal-700 to-violet-600 flex items-center justify-center font-bold text-white text-sm shadow-2xs">
-            C
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold tracking-tight text-sm text-[#172033]">COFRAME</span>
-              <span className="text-slate-300">/</span>
-              <span className="text-xs font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-[#172033]">
-                LedgerFlow
-              </span>
-            </div>
-          </div>
+    <header className="h-14 border-b border-[#E8EAF2] bg-white/95 backdrop-blur-md px-5 flex items-center justify-between z-30 select-none shadow-[0_1px_2px_rgba(0,0,0,0.02)] sticky top-0">
+      {/* 1. Left: Active Project Selector, Scenario State & Live Connection Status */}
+      <div className="flex items-center gap-3">
+        {/* Project Selector */}
+        <div className="flex items-center gap-2 px-2.5 py-1 rounded-xl bg-[#F7F8FC] border border-[#E8EAF2] hover:border-slate-300 transition cursor-pointer">
+          <span className="w-2 h-2 rounded-full bg-indigo-600" />
+          <span className="text-xs font-bold text-[#172033]">LedgerFlow</span>
+          <span className="text-[10px] text-[#657189] font-medium hidden sm:inline">v2</span>
         </div>
 
-        {/* Scenario Pill: Clean Baseline vs Loaded Demo */}
-        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs border">
+        {/* Scenario Pill */}
+        <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs border border-[#E8EAF2] bg-[#F7F8FC]">
           <span
-            className={`w-2 h-2 rounded-full ${
-              isCleanBaseline ? 'bg-emerald-500' : 'bg-violet-500 animate-pulse'
+            className={`w-1.5 h-1.5 rounded-full ${
+              isCleanBaseline ? 'bg-emerald-500' : 'bg-violet-600 animate-pulse'
             }`}
           />
           <span className="text-[11px] font-semibold text-[#172033]">
-            {isCleanBaseline ? 'Clean Baseline' : 'Demo Scenario Active'}
+            {isCleanBaseline ? 'Clean Baseline' : 'Demo Scenario'}
           </span>
         </div>
 
-        {/* Real-time Connection Status Dot */}
-        <div className="hidden md:flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#F8FAFC] border border-[#E7ECF2] text-xs text-[#657189]">
-          <span
-            className={`w-1.5 h-1.5 rounded-full ${
-              isConnected ? 'bg-emerald-500' : 'bg-amber-500'
-            }`}
-          />
-          <span className="text-[11px] font-medium">{isConnected ? 'Live Sync' : 'Connecting...'}</span>
+        {/* Live WebSocket Connection Status (Real state, never hardcoded) */}
+        <div
+          className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
+            isConnected
+              ? 'bg-emerald-50/80 border-emerald-200/80 text-emerald-800'
+              : 'bg-amber-50/80 border-amber-200/80 text-amber-800'
+          }`}
+          title={isConnected ? 'Real-time WebSocket connected' : 'WebSocket connecting or recovering'}
+        >
+          {isConnected ? (
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+          ) : (
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+          )}
+          <span className="text-[11px]">{connectionLabel}</span>
         </div>
       </div>
 
-      {/* 2. Middle: Provenance Versions Chips */}
+      {/* 2. Centre: Context & Artifact Version Anchors */}
       <div className="hidden lg:flex items-center gap-2 text-xs relative">
         <div
           onMouseEnter={() => setShowVersionTooltip(true)}
           onMouseLeave={() => setShowVersionTooltip(false)}
           className="flex items-center gap-2 cursor-pointer"
         >
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F8FAFC] border border-[#E7ECF2] text-[#657189] hover:border-blue-300 transition">
-            <Radio className="w-3.5 h-3.5 text-blue-600" />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F7F8FC] border border-[#E8EAF2] text-[#657189] hover:border-blue-300 transition">
+            <Radio className="w-3.5 h-3.5 text-[#2563EB]" />
             <span className="text-[11px] font-medium">Context:</span>
-            <span className="font-mono font-bold text-blue-700">v{project?.context_version ?? 1}</span>
+            <span className="font-mono font-bold text-[#2563EB]">v{project?.context_version ?? 1}</span>
           </div>
 
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F8FAFC] border border-[#E7ECF2] text-[#657189] hover:border-teal-300 transition">
-            <Layers className="w-3.5 h-3.5 text-teal-600" />
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F7F8FC] border border-[#E8EAF2] text-[#657189] hover:border-teal-300 transition">
+            <Layers className="w-3.5 h-3.5 text-[#0D9488]" />
             <span className="text-[11px] font-medium">Artifact:</span>
-            <span className="font-mono font-bold text-teal-700">v{project?.artifact_version ?? 1}</span>
+            <span className="font-mono font-bold text-[#0D9488]">v{project?.artifact_version ?? 1}</span>
           </div>
         </div>
 
         {showVersionTooltip && (
-          <div className="absolute top-10 left-0 w-72 bg-white rounded-xl border border-[#E7ECF2] p-3 shadow-xl z-50 text-xs text-[#657189] animate-in fade-in zoom-in-95 duration-100">
+          <div className="absolute top-10 left-1/2 -translate-x-1/2 w-72 bg-white rounded-xl border border-[#E8EAF2] p-3 shadow-xl z-50 text-xs text-[#657189] animate-in fade-in zoom-in-95 duration-100">
             <div className="font-bold text-[#172033] mb-1 flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5 text-teal-600" />
+              <Info className="w-3.5 h-3.5 text-indigo-600" />
               <span>Version Provenance</span>
             </div>
             <p className="leading-relaxed">
-              <strong className="text-blue-700">Context Version</strong> tracks verified requirements and decisions.
+              <strong className="text-[#2563EB]">Context Version:</strong> Increments with approved requirements, product decisions, and PRDs.
             </p>
             <p className="mt-1 leading-relaxed">
-              <strong className="text-teal-700">Artifact Version</strong> tracks the canonical LedgerFlow product release.
+              <strong className="text-[#0D9488]">Artifact Version:</strong> Increments when code or section changes are committed to LedgerFlow.
             </p>
           </div>
         )}
       </div>
 
-      {/* 3. Right: Collaborators Presence, Guided Demo, Identity & Reset */}
-      <div className="flex items-center gap-2.5">
-        {/* Collaborators Toggle Pill */}
+      {/* 3. Right: Participant Avatars, Guided Demo, Identity Switcher, Reset Actions */}
+      <div className="flex items-center gap-2">
+        {/* 4 Participant Avatars: Alex, Maya, NOVA, PIXEL */}
+        <div className="hidden sm:flex items-center -space-x-1.5 mr-1" title="COFRAME Active Collaborators">
+          <div
+            className="w-7 h-7 rounded-full bg-[#2563EB] text-white font-bold text-xs flex items-center justify-center border-2 border-white shadow-2xs"
+            title="Alex (Founder / Decision Owner)"
+          >
+            A
+          </div>
+          <div
+            className="w-7 h-7 rounded-full bg-[#D946A1] text-white font-bold text-xs flex items-center justify-center border-2 border-white shadow-2xs"
+            title="Maya (Product Designer)"
+          >
+            M
+          </div>
+          <div
+            className="w-7 h-7 rounded-full bg-[#7C3AED] text-white font-bold text-xs flex items-center justify-center border-2 border-white shadow-2xs"
+            title="NOVA (AI Product Strategist)"
+          >
+            N
+          </div>
+          <div
+            className="w-7 h-7 rounded-full bg-[#0D9488] text-white font-bold text-xs flex items-center justify-center border-2 border-white shadow-2xs"
+            title="PIXEL (AI Software Engineer)"
+          >
+            P
+          </div>
+        </div>
+
+        {/* Collaborators Panel Toggle Pill */}
         {onToggleCollaboratorsPanel && (
           <button
             onClick={onToggleCollaboratorsPanel}
-            className={`hidden md:flex items-center gap-2 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition cursor-pointer ${
+            className={`hidden md:flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-medium transition cursor-pointer ${
               isCollaboratorsPanelOpen
-                ? 'bg-teal-50 border-teal-200 text-teal-900 shadow-2xs font-semibold'
-                : 'bg-white border-[#E7ECF2] text-[#657189] hover:bg-[#F8FAFC] hover:text-[#172033]'
+                ? 'bg-violet-50 border-violet-200 text-violet-900 font-semibold'
+                : 'bg-white border-[#E8EAF2] text-[#657189] hover:bg-[#F7F8FC] hover:text-[#172033]'
             }`}
-            title="Toggle Collaborators Panel"
+            title="Toggle Team & Collaborators Drawer"
           >
-            <div className="flex items-center -space-x-1.5">
-              <div className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 font-bold text-[10px] flex items-center justify-center border border-white">
-                A
-              </div>
-              <div className="w-5 h-5 rounded-full bg-purple-100 text-purple-700 font-bold text-[10px] flex items-center justify-center border border-white">
-                M
-              </div>
-              <div className="w-5 h-5 rounded-full bg-violet-100 text-violet-700 font-bold text-[10px] flex items-center justify-center border border-white">
-                N
-              </div>
-              <div className="w-5 h-5 rounded-full bg-teal-100 text-teal-700 font-bold text-[10px] flex items-center justify-center border border-white">
-                P
-              </div>
-            </div>
-            <span className="text-[11px]">Team (4)</span>
+            <Users className="w-3.5 h-3.5 text-slate-500" />
+            <span className="text-[11px]">Team ({onlineMembers.length > 0 ? onlineMembers.length : 4})</span>
           </button>
         )}
 
-        {/* Compact Guided Demo Drawer Button (Requirement 1.A) */}
+        {/* Guided Demo Button */}
         {onToggleDemoGuide && (
           <button
             onClick={onToggleDemoGuide}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer shadow-2xs ${
               isDemoGuideOpen
-                ? 'bg-teal-700 text-white'
-                : 'bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200'
+                ? 'bg-violet-700 text-white'
+                : 'bg-violet-50 hover:bg-violet-100 text-violet-800 border border-violet-200'
             }`}
           >
-            <Compass className="w-3.5 h-3.5 text-teal-600" />
+            <Compass className="w-3.5 h-3.5 text-violet-600" />
             <span>Guided Demo</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
           </button>
         )}
 
-        {/* Active Identity Pill & Switcher */}
+        {/* Active Identity Switcher */}
         <button
           onClick={onSwitchIdentity}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F8FAFC] hover:bg-slate-100 border border-[#E7ECF2] text-xs font-semibold text-[#172033] transition cursor-pointer"
-          title="Click to switch collaborator identity"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#F7F8FC] hover:bg-slate-100 border border-[#E8EAF2] text-xs font-semibold text-[#172033] transition cursor-pointer"
+          title="Click to switch collaborator role (Alex ↔ Maya)"
         >
           <div
             className={`w-2 h-2 rounded-full ${
-              identity === 'alex' ? 'bg-blue-600' : 'bg-purple-600'
+              identity === 'alex' ? 'bg-[#2563EB]' : 'bg-[#D946A1]'
             }`}
           />
-          <span>{identity === 'alex' ? 'Alex (Founder)' : 'Maya (Designer)'}</span>
+          <span>{identity === 'alex' ? 'Alex' : 'Maya'}</span>
           <span className="text-[10px] text-[#657189] uppercase tracking-wider font-bold">Switch</span>
         </button>
 
-        {/* Subtle Prune AI Security Shield Icon (Requirement 1.E: reduce clutter) */}
+        {/* Prune AI Security Shield */}
         <button
           onClick={() => setShowPruneModal(true)}
-          className="p-2 rounded-xl text-emerald-800 hover:bg-emerald-50 transition border border-transparent hover:border-emerald-200 cursor-pointer"
-          title="Prune AI Seatbelt (Ed25519 Receipts & Shield Status)"
+          className="p-1.5 rounded-xl text-emerald-800 hover:bg-emerald-50 transition border border-transparent hover:border-emerald-200 cursor-pointer"
+          title="Prune AI Cryptographic Seatbelt & Audit Receipts"
         >
           <Shield className="w-4 h-4 text-emerald-600" />
         </button>
@@ -218,15 +237,15 @@ export const TopBar: React.FC<TopBarProps> = ({
           <button
             onClick={() => setShowResetMenu(!showResetMenu)}
             disabled={isResetting || isLoadingScenario}
-            className="p-2 rounded-xl text-[#657189] hover:text-[#172033] hover:bg-slate-100 transition border border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-1"
+            className="p-1.5 rounded-xl text-[#657189] hover:text-[#172033] hover:bg-slate-100 transition border border-transparent hover:border-slate-200 cursor-pointer flex items-center gap-0.5"
             title="Workspace Reset & Demo Scenarios"
           >
-            <RotateCcw className={`w-4 h-4 ${isResetting || isLoadingScenario ? 'animate-spin text-teal-600' : ''}`} />
+            <RotateCcw className={`w-3.5 h-3.5 ${isResetting || isLoadingScenario ? 'animate-spin text-violet-600' : ''}`} />
             <ChevronDown className="w-3 h-3 text-slate-400" />
           </button>
 
           {showResetMenu && (
-            <div className="absolute right-0 top-10 w-56 bg-white rounded-xl border border-[#E5EAF0] shadow-xl z-50 p-1.5 space-y-1 text-xs">
+            <div className="absolute right-0 top-10 w-56 bg-white rounded-xl border border-[#E8EAF2] shadow-xl z-50 p-1.5 space-y-1 text-xs">
               <button
                 onClick={() => {
                   setShowResetMenu(false);

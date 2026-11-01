@@ -23,7 +23,7 @@ interface ActivityHistoryViewProps {
 }
 
 export const ActivityHistoryView: React.FC<ActivityHistoryViewProps> = ({ events }) => {
-  const [filterType, setFilterType] = useState<'all' | 'human' | 'agent' | 'proposals' | 'system'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'alex' | 'maya' | 'nova' | 'pixel' | 'prds' | 'plans' | 'decisions'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -36,7 +36,7 @@ export const ActivityHistoryView: React.FC<ActivityHistoryViewProps> = ({ events
           className={`flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
             isAlex
               ? 'bg-blue-50 text-blue-700 border-blue-200'
-              : 'bg-violet-50 text-violet-700 border-violet-200'
+              : 'bg-pink-50 text-pink-700 border-pink-200'
           }`}
         >
           <User className="w-3 h-3" />
@@ -113,11 +113,18 @@ export const ActivityHistoryView: React.FC<ActivityHistoryViewProps> = ({ events
   };
 
   const filteredEvents = events.filter((e) => {
+    const actId = (e.actor_id || '').toLowerCase();
+    const evType = (e.event_type || '').toLowerCase();
+    const payloadStr = JSON.stringify(e.payload || '').toLowerCase();
+
     // 1. Filter by category
-    if (filterType === 'human' && e.actor_type !== 'human') return false;
-    if (filterType === 'agent' && e.actor_type !== 'agent') return false;
-    if (filterType === 'system' && e.actor_type !== 'system') return false;
-    if (filterType === 'proposals' && !e.event_type.includes('proposal')) return false;
+    if (filterType === 'alex' && actId !== 'alex') return false;
+    if (filterType === 'maya' && actId !== 'maya') return false;
+    if (filterType === 'nova' && actId !== 'nova') return false;
+    if (filterType === 'pixel' && actId !== 'pixel') return false;
+    if (filterType === 'prds' && !(evType.includes('prd') || evType.includes('requirement') || payloadStr.includes('prd'))) return false;
+    if (filterType === 'plans' && !(evType.includes('proposal') || evType.includes('implementation') || evType.includes('mutation'))) return false;
+    if (filterType === 'decisions' && !(evType.includes('approved') || evType.includes('rejected') || evType.includes('confirmed') || evType.includes('decision'))) return false;
 
     // 2. Filter by search query
     if (searchQuery.trim()) {
@@ -169,46 +176,86 @@ export const ActivityHistoryView: React.FC<ActivityHistoryViewProps> = ({ events
       {/* Filter and Search Bar */}
       <div className="bg-white border border-[#E7ECF2] p-4 rounded-2xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         {/* Category Filter Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 text-xs shrink-0">
           <button
             onClick={() => setFilterType('all')}
-            className={`px-3 py-1.5 rounded-xl font-medium transition cursor-pointer ${
+            className={`px-3 py-1.5 rounded-xl font-medium transition cursor-pointer shrink-0 ${
               filterType === 'all'
-                ? 'bg-teal-50 text-teal-900 border border-teal-200 font-semibold shadow-2xs'
+                ? 'bg-[#11152A] text-white font-semibold shadow-xs'
                 : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
             }`}
           >
-            All Events ({events.length})
+            All ({events.length})
           </button>
           <button
-            onClick={() => setFilterType('human')}
-            className={`px-3 py-1.5 rounded-xl font-medium transition cursor-pointer ${
-              filterType === 'human'
-                ? 'bg-blue-50 text-blue-900 border border-blue-200 font-semibold shadow-2xs'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
+            onClick={() => setFilterType('alex')}
+            className={`px-3 py-1.5 rounded-xl font-medium transition cursor-pointer shrink-0 ${
+              filterType === 'alex'
+                ? 'bg-blue-600 text-white font-semibold shadow-xs'
+                : 'text-blue-700 hover:bg-blue-50'
             }`}
           >
-            Humans ({events.filter((e) => e.actor_type === 'human').length})
+            Alex ({events.filter((e) => (e.actor_id || '').toLowerCase() === 'alex').length})
           </button>
           <button
-            onClick={() => setFilterType('agent')}
-            className={`px-3 py-1.5 rounded-xl font-medium transition cursor-pointer ${
-              filterType === 'agent'
-                ? 'bg-violet-50 text-violet-900 border border-violet-200 font-semibold shadow-2xs'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
+            onClick={() => setFilterType('maya')}
+            className={`px-3 py-1.5 rounded-xl font-medium transition cursor-pointer shrink-0 ${
+              filterType === 'maya'
+                ? 'bg-pink-600 text-white font-semibold shadow-xs'
+                : 'text-pink-700 hover:bg-pink-50'
             }`}
           >
-            AI Agents ({events.filter((e) => e.actor_type === 'agent').length})
+            Maya ({events.filter((e) => (e.actor_id || '').toLowerCase() === 'maya').length})
           </button>
           <button
-            onClick={() => setFilterType('proposals')}
-            className={`px-3 py-1.5 rounded-xl font-medium transition cursor-pointer ${
-              filterType === 'proposals'
-                ? 'bg-amber-50 text-amber-900 border border-amber-200 font-semibold shadow-2xs'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
+            onClick={() => setFilterType('nova')}
+            className={`px-3 py-1.5 rounded-xl font-medium transition cursor-pointer shrink-0 ${
+              filterType === 'nova'
+                ? 'bg-violet-600 text-white font-semibold shadow-xs'
+                : 'text-violet-700 hover:bg-violet-50'
             }`}
           >
-            Proposals ({events.filter((e) => e.event_type.includes('proposal')).length})
+            NOVA ({events.filter((e) => (e.actor_id || '').toLowerCase() === 'nova').length})
+          </button>
+          <button
+            onClick={() => setFilterType('pixel')}
+            className={`px-3 py-1.5 rounded-xl font-medium transition cursor-pointer shrink-0 ${
+              filterType === 'pixel'
+                ? 'bg-teal-600 text-white font-semibold shadow-xs'
+                : 'text-teal-700 hover:bg-teal-50'
+            }`}
+          >
+            PIXEL ({events.filter((e) => (e.actor_id || '').toLowerCase() === 'pixel').length})
+          </button>
+          <button
+            onClick={() => setFilterType('prds')}
+            className={`px-3 py-1.5 rounded-xl font-medium transition cursor-pointer shrink-0 ${
+              filterType === 'prds'
+                ? 'bg-purple-600 text-white font-semibold shadow-xs'
+                : 'text-purple-700 hover:bg-purple-50'
+            }`}
+          >
+            PRDs ({events.filter((e) => (e.event_type || '').includes('prd') || (e.event_type || '').includes('requirement')).length})
+          </button>
+          <button
+            onClick={() => setFilterType('plans')}
+            className={`px-3 py-1.5 rounded-xl font-medium transition cursor-pointer shrink-0 ${
+              filterType === 'plans'
+                ? 'bg-emerald-600 text-white font-semibold shadow-xs'
+                : 'text-emerald-700 hover:bg-emerald-50'
+            }`}
+          >
+            Plans ({events.filter((e) => (e.event_type || '').includes('proposal') || (e.event_type || '').includes('implementation')).length})
+          </button>
+          <button
+            onClick={() => setFilterType('decisions')}
+            className={`px-3 py-1.5 rounded-xl font-medium transition cursor-pointer shrink-0 ${
+              filterType === 'decisions'
+                ? 'bg-amber-600 text-white font-semibold shadow-xs'
+                : 'text-amber-700 hover:bg-amber-50'
+            }`}
+          >
+            Decisions ({events.filter((e) => (e.event_type || '').includes('approved') || (e.event_type || '').includes('rejected') || (e.event_type || '').includes('confirmed')).length})
           </button>
         </div>
 
@@ -234,10 +281,11 @@ export const ActivityHistoryView: React.FC<ActivityHistoryViewProps> = ({ events
         </div>
       ) : (
         <div className="relative pl-6 space-y-3.5 before:absolute before:left-2.5 before:top-3 before:bottom-3 before:w-0.5 before:bg-[#E7ECF2]">
-          {filteredEvents.map((e) => {
-            const isExpanded = expandedId === e.id;
+          {filteredEvents.map((e, idx) => {
+            const eventKey = e.id || e.event_id || `ev_${e.sequence_no || idx}`;
+            const isExpanded = expandedId === (e.id || eventKey);
             return (
-              <div key={e.id} className="relative group">
+              <div key={eventKey} className="relative group">
                 {/* Timeline Node */}
                 <div className="absolute -left-[19px] top-4 w-3 h-3 rounded-full bg-white border-2 border-teal-600 shadow-2xs group-hover:scale-125 transition" />
 

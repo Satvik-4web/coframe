@@ -14,6 +14,7 @@ import {
   GitCompare,
   AlertTriangle,
   Lock,
+  Terminal,
 } from 'lucide-react';
 import { Proposal, HumanIdentity } from '../../types';
 
@@ -26,6 +27,7 @@ interface PixelImplementationCardProps {
   onRedirect: (proposal: Proposal) => void;
   onCompareConflict?: (proposal: Proposal) => void;
   onOpenParentPrd?: (parentProposalId: string) => void;
+  onChooseExecutionEnvironment?: (proposal: Proposal) => void;
 }
 
 export const PixelImplementationCard: React.FC<PixelImplementationCardProps> = ({
@@ -37,6 +39,7 @@ export const PixelImplementationCard: React.FC<PixelImplementationCardProps> = (
   onRedirect,
   onCompareConflict,
   onOpenParentPrd,
+  onChooseExecutionEnvironment,
 }) => {
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
 
@@ -264,6 +267,19 @@ export const PixelImplementationCard: React.FC<PixelImplementationCardProps> = (
 
         {/* Right Side: Primary Review Button & Decisions */}
         <div className="flex flex-wrap items-center gap-2">
+                    {/* Choose Execution Environment */}
+          {onChooseExecutionEnvironment && (
+            <button
+              type="button"
+              onClick={() => onChooseExecutionEnvironment(proposal)}
+              className="px-3.5 py-2 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+              title="Choose execution environment (Connected Agent IDE or Built-in PIXEL)"
+            >
+              <Terminal className="w-3.5 h-3.5 text-violet-600" />
+              <span>Choose Execution Env</span>
+            </button>
+          )}
+
           {/* Primary Action: Review Implementation */}
           <button
             type="button"

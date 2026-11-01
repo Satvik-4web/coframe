@@ -400,25 +400,25 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
             {/* Active Participant Avatars */}
             <div className="flex items-center -space-x-1.5">
               <div
-                className="w-7 h-7 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs ring-2 ring-white"
+                className="w-7 h-7 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
                 title="Alex (Founder / Decision Owner)"
               >
                 A
               </div>
               <div
-                className="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-xs ring-2 ring-white"
+                className="w-7 h-7 rounded-full bg-[#D946A1] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
                 title="Maya (Product Designer)"
               >
                 M
               </div>
               <div
-                className="w-7 h-7 rounded-full bg-violet-600 text-white flex items-center justify-center font-bold text-xs ring-2 ring-white"
+                className="w-7 h-7 rounded-full bg-[#7C3AED] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
                 title="NOVA (AI Product Strategist)"
               >
                 N
               </div>
               <div
-                className="w-7 h-7 rounded-full bg-teal-600 text-white flex items-center justify-center font-bold text-xs ring-2 ring-white"
+                className="w-7 h-7 rounded-full bg-[#0D9488] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
                 title="PIXEL (AI Software Engineer)"
               >
                 P
@@ -471,14 +471,14 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 );
               }
 
-              // Identity avatar & colors
+              // Identity avatar & colors with verified design tokens
               const avatarBg = isNova
-                ? 'bg-violet-600 text-white'
+                ? 'bg-[#7C3AED] text-white'
                 : isPixel
-                ? 'bg-teal-600 text-white'
+                ? 'bg-[#0D9488] text-white'
                 : msg.sender_id === 'maya'
-                ? 'bg-indigo-600 text-white'
-                : 'bg-blue-600 text-white';
+                ? 'bg-[#D946A1] text-white'
+                : 'bg-[#2563EB] text-white';
 
               const roleLabel =
                 msg.sender_role ||
@@ -491,12 +491,12 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                   : 'Product Designer');
 
               const cardBorder = isNova
-                ? 'border-violet-100 bg-white'
+                ? 'border-violet-200/90 bg-white ring-1 ring-violet-100/50'
                 : isPixel
-                ? 'border-teal-100 bg-white'
-                : isHuman
-                ? 'border-blue-100 bg-white'
-                : 'border-[#E7ECF2] bg-white';
+                ? 'border-teal-200/90 bg-white ring-1 ring-teal-100/50'
+                : msg.sender_id === 'maya'
+                ? 'border-pink-200/90 bg-white ring-1 ring-pink-100/50'
+                : 'border-blue-200/90 bg-white ring-1 ring-blue-100/50';
 
               const timeStr = msg.created_at
                 ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -573,37 +573,37 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
                     {/* Embedded Linked Proposal Card if attached */}
                     {(msg.related_proposal_id || msg.related_proposal) && (
-                      <div className="mt-3 p-3.5 rounded-xl bg-gradient-to-r from-teal-950/40 via-[#0B1E28]/50 to-[#0A1626]/60 border border-teal-500/30 shadow-lg space-y-2.5">
+                      <div className="mt-3 p-4 rounded-2xl bg-gradient-to-r from-violet-50/70 via-white to-teal-50/50 border border-violet-200/90 shadow-xs space-y-2.5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="p-1.5 rounded-lg bg-teal-500/20 border border-teal-500/40 animate-pulse">
-                              <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+                            <span className="p-1 rounded-lg bg-violet-100 text-violet-700">
+                              <Sparkles className="w-3.5 h-3.5" />
                             </span>
-                            <span className="text-xs font-bold text-teal-200 tracking-wide uppercase">
+                            <span className="text-xs font-bold text-[#172033] tracking-wide uppercase">
                               {msg.related_proposal?.proposal_type === 'prd_requirement'
                                 ? 'Formal Product Requirements Document (PRD)'
-                                : 'Actionable Proposal'}
+                                : 'Actionable Engineering Proposal'}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                            {msg.related_proposal?.status || 'AWAITING CONFIRMATION'}
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
+                            {msg.related_proposal?.status ? msg.related_proposal.status.toUpperCase() : 'AWAITING CONFIRMATION'}
                           </span>
                         </div>
 
-                        <p className="text-xs text-slate-200 font-semibold leading-relaxed">
+                        <p className="text-xs text-[#172033] font-semibold leading-relaxed">
                           {msg.related_proposal?.summary ||
                             `Proposal #${(msg.related_proposal_id || '').slice(-6)}`}
                         </p>
 
-                        <div className="flex items-center justify-between pt-1 border-t border-slate-700/50">
-                          <span className="text-[11px] text-slate-400">
-                            Author: <strong className="text-slate-200">{msg.related_proposal?.author || msg.sender_name}</strong>
+                        <div className="flex items-center justify-between pt-2 border-t border-[#E8EAF2]">
+                          <span className="text-[11px] text-[#657189]">
+                            Author: <strong className="text-[#172033]">{msg.related_proposal?.author || msg.sender_name}</strong>
                           </span>
                           <button
                             onClick={() =>
                               onNavigateTab('proposals', msg.related_proposal_id || msg.related_proposal?.id)
                             }
-                            className="px-3 py-1.5 rounded-lg bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition shadow-sm cursor-pointer"
+                            className="px-3.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-xs cursor-pointer"
                           >
                             <span>View PRD in Proposals</span>
                             <ArrowRight className="w-3.5 h-3.5" />
