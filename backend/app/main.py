@@ -19,10 +19,26 @@ from backend.app.api.router import api_router, base_router
 from backend.app.websocket.manager import ws_manager
 from backend.app.db.database import SessionLocal
 from backend.app.db.seed import init_db, reset_demo_database, DEMO_PROJECT_ID
-from backend.app.db.models import ProjectModel
+import asyncio
+import json
+import time
+from typing import Optional
+from backend.app.db.models import ProjectModel, ProjectMemberModel
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("coframe")
+
+
+async def reap_stale_sessions_loop(interval_seconds: float = 15.0, timeout_seconds: float = 45.0):
+    while True:
+        try:
+            await asyncio.sleep(interval_seconds)
+            for project_id in list(ws_manager.sessions.keys()):
+                await ws_manager.reap_stale_sessions(project_id, timeout_seconds=timeout_seconds)
+        except asyncio.CancelledError:
+            break
+        except Exception as e:
+            logger.warning(f"Error in reap_stale_sessions_loop: {e}")
 
 
 @asynccontextmanager
@@ -38,7 +54,15 @@ async def lifespan(app: FastAPI):
             reset_demo_database(db, DEMO_PROJECT_ID)
     finally:
         db.close()
+
+    # Schedule stale-session heartbeat cleanup in the FastAPI application lifecycle
+    reaper_task = asyncio.create_task(reap_stale_sessions_loop(interval_seconds=15.0, timeout_seconds=45.0))
     yield
+    reaper_task.cancel()
+    try:
+        await reaper_task
+    except asyncio.CancelledError:
+        pass
     logger.info("Shutting down COFRAME...")
 
 
@@ -75,14 +99,90 @@ async def health_check():
 
 
 @app.websocket("/ws/{project_id}/{identity_key}")
-async def websocket_endpoint(websocket: WebSocket, project_id: str, identity_key: str):
-    await ws_manager.connect(websocket, project_id, identity_key)
+async def websocket_endpoint(
+    websocket: WebSocket,
+    project_id: str,
+    identity_key: str,
+    session_id: Optional[str] = None,
+):
+    # Server-side validation: project exists & participant belongs to project
+    db = SessionLocal()
+    try:
+        project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
+        if not project and project_id != DEMO_PROJECT_ID:
+            await websocket.close(code=4004, reason="Project not found")
+            return
+
+        valid_identities = {"alex", "maya"}
+        if identity_key not in valid_identities:
+            member = (
+                db.query(ProjectMemberModel)
+                .filter(
+                    ProjectMemberModel.project_id == project_id,
+                    ProjectMemberModel.identity_key == identity_key,
+                )
+                .first()
+            )
+            if not member:
+                await websocket.close(code=4003, reason="Unauthorized participant identity")
+                return
+    finally:
+        db.close()
+
+    actual_session_id = await ws_manager.connect(
+        websocket=websocket,
+        project_id=project_id,
+        identity_key=identity_key,
+        session_id=session_id,
+    )
+
     try:
         while True:
-            # Keep socket alive and receive any client ping
             data = await websocket.receive_text()
             if data == "ping":
+                ws_manager.record_heartbeat(websocket)
                 await websocket.send_text("pong")
+            else:
+                try:
+                    msg = json.loads(data)
+                    msg_type = msg.get("type", "")
+                    if msg_type in ("ping", "HEARTBEAT"):
+                        ws_manager.record_heartbeat(websocket)
+                        await websocket.send_text(json.dumps({"type": "PONG", "timestamp": time.time()}))
+                    elif msg_type == "SET_STATUS":
+                        await ws_manager.update_participant_status(
+                            project_id=project_id,
+                            identity_key=identity_key,
+                            status=msg.get("status", "online"),
+                            section_key=msg.get("section_key"),
+                            session_id=actual_session_id,
+                        )
+                    elif msg_type == "SECTION_FOCUS":
+                        await ws_manager.update_participant_status(
+                            project_id=project_id,
+                            identity_key=identity_key,
+                            status="viewing",
+                            section_key=msg.get("section_key"),
+                            session_id=actual_session_id,
+                        )
+                    elif msg_type == "SECTION_EDIT_START":
+                        await ws_manager.update_participant_status(
+                            project_id=project_id,
+                            identity_key=identity_key,
+                            status="editing",
+                            section_key=msg.get("section_key"),
+                            session_id=actual_session_id,
+                        )
+                    elif msg_type == "SECTION_EDIT_END":
+                        await ws_manager.update_participant_status(
+                            project_id=project_id,
+                            identity_key=identity_key,
+                            status="online",
+                            section_key=None,
+                            session_id=actual_session_id,
+                        )
+                except json.JSONDecodeError:
+                    ws_manager.record_heartbeat(websocket)
     except WebSocketDisconnect:
         ws_manager.disconnect(websocket)
         await ws_manager.broadcast_presence(project_id)

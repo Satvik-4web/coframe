@@ -458,6 +458,8 @@ class ProposalModel(Base):
 
     implementation_data = Column(JSON, nullable=True)
 
+    nova_review = Column(JSON, nullable=True)
+
     created_at = Column(String(64), default=utcnow_str, nullable=False)
 
     updated_at = Column(String(64), default=utcnow_str, nullable=False)

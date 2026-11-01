@@ -24,6 +24,7 @@ import {
   User,
   HelpCircle,
   ExternalLink,
+  Loader2,
 } from 'lucide-react';
 
 interface ProposalCardProps {
@@ -35,6 +36,8 @@ interface ProposalCardProps {
   onReconcile: (id: string) => void;
   onCompareConflict: (proposal: Proposal) => void;
   onPublishToGitHub?: (proposalId: string) => void;
+  onReverify?: (id: string) => void;
+  isReverifying?: boolean;
 }
 
 export const ProposalCard: React.FC<ProposalCardProps> = ({
@@ -46,6 +49,8 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
   onReconcile,
   onCompareConflict,
   onPublishToGitHub,
+  onReverify,
+  isReverifying = false,
 }) => {
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
   const [showProvenanceModal, setShowProvenanceModal] = useState(false);
@@ -248,6 +253,25 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
                 <span>Prune Guarded</span>
               </span>
             )}
+
+            {/* NOVA Re-Verification Status Badge */}
+            {proposal.nova_review && (
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border flex items-center gap-1 ${
+                  proposal.nova_review.review_status === 'AFFECTED'
+                    ? 'bg-amber-50 text-amber-800 border-amber-300'
+                    : proposal.nova_review.review_status === 'NOT_AFFECTED'
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
+                    : proposal.nova_review.review_status === 'REVIEW_FAILED'
+                    ? 'bg-red-50 text-red-800 border-red-300'
+                    : 'bg-slate-100 text-slate-700 border-slate-200'
+                }`}
+                title={`NOVA Review: ${proposal.nova_review.impact_explanation}`}
+              >
+                <Brain className="w-3 h-3" />
+                <span>NOVA: {proposal.nova_review.review_status.replace('_', ' ')}</span>
+              </span>
+            )}
           </div>
         </div>
 
@@ -332,6 +356,66 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
           </div>
         )}
 
+        {/* NOVA Independent Re-Verification Callout */}
+        {proposal.nova_review && (
+          <div
+            className={`mb-3.5 p-3.5 rounded-xl border text-xs space-y-2 ${
+              proposal.nova_review.review_status === 'AFFECTED'
+                ? 'bg-amber-50 border-amber-200 text-amber-900'
+                : proposal.nova_review.review_status === 'NOT_AFFECTED'
+                ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
+                : proposal.nova_review.review_status === 'REVIEW_FAILED'
+                ? 'bg-red-50 border-red-200 text-red-900'
+                : 'bg-slate-50 border-slate-200 text-slate-800'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-1.5 font-bold">
+                <Brain className="w-4 h-4" />
+                <span>NOVA Independent Re-Verification</span>
+              </div>
+              <span
+                className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                  proposal.nova_review.review_status === 'AFFECTED'
+                    ? 'bg-amber-100 text-amber-800 border-amber-300'
+                    : proposal.nova_review.review_status === 'NOT_AFFECTED'
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                    : proposal.nova_review.review_status === 'REVIEW_FAILED'
+                    ? 'bg-red-100 text-red-800 border-red-300'
+                    : 'bg-slate-200 text-slate-700 border-slate-300'
+                }`}
+              >
+                {proposal.nova_review.review_status.replace('_', ' ')}
+              </span>
+            </div>
+
+            <p className="leading-relaxed font-medium">{proposal.nova_review.impact_explanation}</p>
+
+            {proposal.nova_review.missing_dependencies.length > 0 && (
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="font-semibold text-[11px]">Missing deps detected:</span>
+                {proposal.nova_review.missing_dependencies.map((dep) => (
+                  <span
+                    key={dep}
+                    className="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-amber-100 text-amber-900 border border-amber-300"
+                  >
+                    {dep}
+                  </span>
+                ))}
+              </div>
+            )}
+
+            <div className="flex items-center justify-between pt-1 border-t border-current/10">
+              <span className="text-[10px] font-semibold">
+                Recommended: <strong>{proposal.nova_review.recommended_action.replace('_', ' ')}</strong>
+              </span>
+              <span className="text-[10px] font-medium">
+                Confidence: {(proposal.nova_review.confidence * 100).toFixed(0)}%
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* 4. Target Sections & Affected Dependencies Chips */}
         <div className="flex flex-wrap items-center gap-1.5 mb-3.5">
           <span className="text-[11px] font-medium text-[#657189]">Targets:</span>
@@ -408,7 +492,7 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
         {/* 6. Review Actions Bar */}
         <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#F0F3F7]">
           {/* Left Side: Conflict Comparison or Reconcile Button */}
-          <div>
+          <div className="flex items-center gap-2">
             {proposal.status === 'conflict' && (
               <button
                 onClick={() => onCompareConflict(proposal)}
@@ -426,6 +510,31 @@ export const ProposalCard: React.FC<ProposalCardProps> = ({
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>Reconcile with Enterprise Context</span>
+              </button>
+            )}
+            {/* NOVA Re-verify button: visible on stale or pending_review proposals */}
+            {(proposal.status === 'stale' || proposal.status === 'pending_review') && onReverify && (
+              <button
+                onClick={() => onReverify(proposal.proposal_id)}
+                disabled={isReverifying}
+                title="Ask NOVA to independently re-verify this proposal's dependencies against current requirements"
+                className={`px-3.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center space-x-1.5 transition ${
+                  isReverifying
+                    ? 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'
+                    : 'bg-violet-50 hover:bg-violet-100 text-violet-700 border-violet-300 cursor-pointer'
+                }`}
+              >
+                {isReverifying ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>NOVA Reviewing…</span>
+                  </>
+                ) : (
+                  <>
+                    <Brain className="w-3.5 h-3.5" />
+                    <span>NOVA Re-verify</span>
+                  </>
+                )}
               </button>
             )}
           </div>

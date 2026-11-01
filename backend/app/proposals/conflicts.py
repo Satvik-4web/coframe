@@ -32,7 +32,10 @@ def evaluate_section_conflicts(
 
     pending_proposals = (
         db.query(ProposalModel)
-        .filter(ProposalModel.project_id == project_id, ProposalModel.status == "pending_review")
+        .filter(
+            ProposalModel.project_id == project_id,
+            ProposalModel.status.in_(["pending_review", "stale"]),
+        )
         .all()
     )
 

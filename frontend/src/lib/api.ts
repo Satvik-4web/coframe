@@ -114,11 +114,16 @@ export async function createHumanProposal(
   return res.json();
 }
 
-export async function approveProposal(projectId: string, proposalId: string, decidedBy: string): Promise<any> {
+export async function approveProposal(
+  projectId: string,
+  proposalId: string,
+  decidedBy: string,
+  manualReview: boolean = false
+): Promise<any> {
   const res = await fetch(`${API_BASE}/projects/${projectId}/proposals/${proposalId}/approve`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ decided_by: decidedBy }),
+    body: JSON.stringify({ decided_by: decidedBy, manual_review: manualReview }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
@@ -170,6 +175,17 @@ export async function reconcileProposal(projectId: string, proposalId: string, r
     body: JSON.stringify({ requested_by: requestedBy }),
   });
   if (!res.ok) throw new Error('Failed to reconcile proposal');
+  return res.json();
+}
+
+export async function reverifyProposal(projectId: string, proposalId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/projects/${projectId}/proposals/${proposalId}/reverify`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to re-verify proposal with NOVA');
+  }
   return res.json();
 }
 

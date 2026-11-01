@@ -4,6 +4,7 @@ from typing import Dict, Any, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from backend.app.db.models import EventModel, ProjectModel, utcnow_str
+from backend.app.websocket.manager import ws_manager
 
 # Canonical event type mapping for backward and forward compatibility
 EVENT_TYPE_MAPPING = {
@@ -27,6 +28,30 @@ EVENT_TYPE_MAPPING = {
     "DELEGATION_COMPLETED": "delegation.completed",
 }
 
+
+
+
+def serialize_event(event: EventModel) -> Dict[str, Any]:
+    return {
+        "id": event.id,
+        "sequence_no": event.sequence_no,
+        "project_id": event.project_id,
+        "actor_type": event.actor_type,
+        "actor_id": event.actor_id,
+        "event_type": event.event_type,
+        "context_version": event.context_version,
+        "artifact_version": event.artifact_version,
+        "payload": event.payload,
+        "created_at": event.created_at,
+    }
+
+
+async def broadcast_event(project_id: str, event: EventModel):
+    """Broadcasts a persisted event to connected project clients."""
+    await ws_manager.broadcast(project_id, {
+        "type": "EVENT_EMITTED",
+        "event": serialize_event(event),
+    })
 
 def log_event(
     db: Session,

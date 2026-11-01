@@ -1,5 +1,5 @@
 from typing import Any, Dict, Optional, List
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 
@@ -11,8 +11,9 @@ from backend.app.db.models import (
     utcnow_str,
 )
 from backend.app.events.logger import log_event
-from backend.app.proposals.staleness import evaluate_selective_staleness
+from backend.app.impact.impact_engine import calculate_requirement_impact
 from backend.app.websocket.manager import ws_manager
+from backend.app.api.auth import get_current_identity, verify_governance_authorization
 
 router = APIRouter(tags=["requirements"])
 
@@ -48,6 +49,7 @@ async def update_requirement(
     project_id: str,
     requirement_key: str,
     body: RequirementUpdateRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ):
     """
@@ -57,13 +59,15 @@ async def update_requirement(
     increments project context_version, appends event,
     and executes selective staleness check on pending proposals.
     """
-    # 1. Trusted identity check
-    editor = (body.editor_id or "alex").strip().lower()
-    if editor not in ALLOWED_EDITORS:
-        raise HTTPException(
-            status_code=403,
-            detail=f"Unauthorized editor: '{body.editor_id}'. Only verified team members can update requirements.",
-        )
+    caller = get_current_identity(request, db)
+    is_founder_req = requirement_key in ("REQ_AUDIENCE", "REQ_GOAL", "REQ_APPROVAL_POLICY")
+    verified_editor = verify_governance_authorization(
+        caller=caller,
+        claimed_identity=body.editor_id,
+        action_type="founder_requirement" if is_founder_req else "requirement_edit",
+        db=db,
+        project_id=project_id,
+    )
 
     project = db.query(ProjectModel).filter(ProjectModel.id == project_id).with_for_update(nowait=False).first()
     if not project:
@@ -120,7 +124,7 @@ async def update_requirement(
     # 4. Update requirement
     req.value = body.value
     req.version += 1
-    req.updated_by = body.editor_id
+    req.updated_by = verified_editor
     req.updated_at = utcnow_str()
     req.status = "approved"
 
@@ -133,7 +137,7 @@ async def update_requirement(
         value=body.value,
         version=req.version,
         status="approved",
-        updated_by=body.editor_id,
+        updated_by=verified_editor,
         created_at=req.updated_at,
     )
     db.add(new_ver_record)
@@ -147,7 +151,7 @@ async def update_requirement(
         db=db,
         project_id=project_id,
         actor_type="human",
-        actor_id=body.editor_id,
+        actor_id=verified_editor,
         event_type="HUMAN_REQUIREMENT_EDITED",
         context_version=project.context_version,
         artifact_version=project.artifact_version,
@@ -155,14 +159,14 @@ async def update_requirement(
             "requirement_key": requirement_key,
             "old_value": old_val,
             "new_value": new_val,
-            "editor_id": body.editor_id,
+            "editor_id": verified_editor,
             "new_context_version": project.context_version,
         },
     )
     db.commit()
 
-    # 7. Trigger selective staleness
-    staled = evaluate_selective_staleness(
+    # 7. Trigger Smart Change Impact Analysis
+    impact_result = calculate_requirement_impact(
         db=db,
         project_id=project_id,
         changed_requirement_keys=[requirement_key],
@@ -170,13 +174,41 @@ async def update_requirement(
         new_value_summary=new_val,
     )
 
-    # 8. Broadcast to connected tabs
+    # 8. Independent NOVA AI re-verification on affected proposals
+    reverification_results = []
+    for prop in impact_result.affected_proposals:
+        if prop.agent_id == "pixel":
+            try:
+                from backend.app.agents.nova import reverify_proposal_with_nova
+                rev_res = await reverify_proposal_with_nova(
+                    db=db,
+                    project_id=project_id,
+                    proposal_id=prop.id,
+                    changed_requirement_keys=[requirement_key],
+                    old_value_summary=old_val,
+                    new_value_summary=new_val,
+                    impact_findings={
+                        "stale_reason": prop.stale_reason,
+                        "conflict_reason": prop.conflict_reason,
+                        "status": prop.status,
+                    },
+                )
+                reverification_results.append({
+                    "proposal_id": prop.id,
+                    "review": rev_res.model_dump(),
+                })
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).warning(f"NOVA re-verification failed for proposal {prop.id}: {e}")
+
+    # 9. Broadcast to connected tabs
     await ws_manager.broadcast(project_id, {
         "type": "REQUIREMENT_UPDATED",
         "requirement_key": requirement_key,
         "new_value": new_val,
         "context_version": project.context_version,
-        "staled_proposals_count": len(staled),
+        "staled_proposals_count": impact_result.stale_count,
+        "reverified_proposals_count": len(reverification_results),
     })
 
     return {
@@ -184,7 +216,8 @@ async def update_requirement(
         "requirement_key": requirement_key,
         "version": req.version,
         "context_version": project.context_version,
-        "staled_proposals": [p.id for p in staled],
+        "staled_proposals": [p.id for p in impact_result.affected_proposals],
+        "reverified_proposals": reverification_results,
     }
 
 

@@ -1,3 +1,13 @@
+export interface NovaReview {
+  review_status: 'AFFECTED' | 'NOT_AFFECTED' | 'UNCERTAIN' | 'REVIEW_FAILED';
+  missing_dependencies: string[];
+  affected_sections: string[];
+  impact_explanation: string;
+  recommended_action: 'REGENERATE' | 'REVIEW_MANUALLY' | 'NO_CHANGE';
+  confidence: number;
+  reviewed_requirement_versions: Record<string, number>;
+}
+
 export type HumanIdentity = 'alex' | 'maya' | null;
 
 export interface ProjectInfo {
@@ -81,6 +91,7 @@ export interface Proposal {
   prune_metadata?: PruneMetadata | null;
   prd_data?: PRDData | null;
   implementation_data?: ImplementationData | null;
+  nova_review?: NovaReview | null;
   created_at: string;
   updated_at: string;
 }

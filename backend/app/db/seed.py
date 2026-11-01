@@ -136,6 +136,7 @@ def init_db(target_engine=None):
                 ("events", "causation_id", "VARCHAR(64)"),
 
                 ("events", "timestamp", "BIGINT"),
+                ("proposals", "nova_review", "JSON"),
 
             ]
 

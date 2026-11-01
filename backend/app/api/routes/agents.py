@@ -59,12 +59,19 @@ async def start_collaboration(project_id: str, db: Session = Depends(get_db)):
 
 
 
-    # Run NOVA and PIXEL tasks
+        # Report agents working
+    await ws_manager.set_agent_status(project_id, "nova", "working", "Analyzing product brief & generating strategy proposals")
+    await ws_manager.set_agent_status(project_id, "pixel", "working", "Synthesizing UI components & drafting prototype proposals")
 
-    nova_proposals = await run_nova_initial(db, project_id)
-    pixel_proposals = await run_pixel_initial(db, project_id)
-
-
+    try:
+        nova_proposals = await run_nova_initial(db, project_id)
+        pixel_proposals = await run_pixel_initial(db, project_id)
+        await ws_manager.set_agent_status(project_id, "nova", "waiting_for_approval", "Proposals submitted; waiting for review")
+        await ws_manager.set_agent_status(project_id, "pixel", "waiting_for_approval", "Proposals submitted; waiting for review")
+    except Exception as e:
+        await ws_manager.set_agent_status(project_id, "nova", "failed", str(e))
+        await ws_manager.set_agent_status(project_id, "pixel", "failed", str(e))
+        raise
 
     all_proposals = nova_proposals + pixel_proposals
 
@@ -138,7 +145,9 @@ async def restart_agent(project_id: str, agent_id: str, db: Session = Depends(ge
 
 
 
+        await ws_manager.set_agent_status(project_id, agent_id, "recovering", "Rebuilding Context Pack from persisted project state")
     new_run, recovery_data = await restart_agent_and_recover(db, project_id, agent_id)
+    await ws_manager.set_agent_status(project_id, agent_id, "idle", "Context restored from checkpoint; standby")
 
 
 

@@ -1,5 +1,48 @@
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, Field
+from enum import Enum
+from pydantic import BaseModel, Field, field_validator
+
+
+class NovaReviewStatus(str, Enum):
+    AFFECTED = "AFFECTED"
+    NOT_AFFECTED = "NOT_AFFECTED"
+    UNCERTAIN = "UNCERTAIN"
+    REVIEW_FAILED = "REVIEW_FAILED"
+
+
+class NovaRecommendedAction(str, Enum):
+    REGENERATE = "REGENERATE"
+    REVIEW_MANUALLY = "REVIEW_MANUALLY"
+    NO_CHANGE = "NO_CHANGE"
+
+
+class NovaReverificationResult(BaseModel):
+    review_status: NovaReviewStatus
+    missing_dependencies: List[str] = Field(default_factory=list)
+    affected_sections: List[str] = Field(default_factory=list)
+    impact_explanation: str
+    recommended_action: NovaRecommendedAction
+    confidence: float = Field(default=1.0, ge=0.0, le=1.0)
+    reviewed_requirement_versions: Dict[str, int] = Field(default_factory=dict)
+
+    @field_validator("review_status", mode="before")
+    @classmethod
+    def normalize_status(cls, v):
+        if isinstance(v, str):
+            v_upper = v.upper()
+            if v_upper in NovaReviewStatus.__members__:
+                return NovaReviewStatus(v_upper)
+        return v
+
+    @field_validator("recommended_action", mode="before")
+    @classmethod
+    def normalize_action(cls, v):
+        if isinstance(v, str):
+            v_upper = v.upper()
+            if v_upper in NovaRecommendedAction.__members__:
+                return NovaRecommendedAction(v_upper)
+        return v
+
 
 
 class ProposalModelOutput(BaseModel):
@@ -34,12 +77,14 @@ class ProposalRecord(BaseModel):
     source: str = "live_llm"  # "live_llm" | "cached_fallback"
     is_simulated: bool = False
     prune_metadata: Optional[Dict[str, Any]] = None
+    nova_review: Optional[Dict[str, Any]] = None
     created_at: str
     updated_at: str
 
 
 class ProposalApproveRequest(BaseModel):
     decided_by: str = "alex"  # "alex" or "maya"
+    manual_review: bool = False
 
 
 class ProposalRejectRequest(BaseModel):

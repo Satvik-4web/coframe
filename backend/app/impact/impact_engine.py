@@ -86,6 +86,48 @@ def get_requirements_for_section(section_key: str) -> List[str]:
     return dependent_reqs
 
 
+def get_backend_inferred_requirements(
+    target_sections: Optional[List[str]] = None,
+    operations: Optional[List[Dict[str, Any]]] = None,
+) -> Set[str]:
+    """
+    Returns all requirement keys inferred from target artifact sections and operations
+    via the backend REQUIREMENT_DEPENDENCIES registry.
+    """
+    inferred: Set[str] = set()
+    secs = set(target_sections or [])
+    if operations:
+        for op in operations:
+            op_name = op.get("op", "")
+            if "hero" in op_name:
+                secs.add("hero")
+            elif "brief" in op_name:
+                secs.add("product_brief")
+            elif "metric" in op_name or "dashboard" in op_name:
+                secs.add("dashboard")
+            elif "approval" in op_name or "queue" in op_name:
+                secs.add("approval_queue")
+    for sec_key in secs:
+        inferred.update(get_requirements_for_section(sec_key))
+    return inferred
+
+
+def get_effective_dependencies(
+    declared_requirements: Optional[List[str]] = None,
+    target_sections: Optional[List[str]] = None,
+    operations: Optional[List[Dict[str, Any]]] = None,
+) -> Set[str]:
+    """
+    Authoritative dependency resolution combining:
+    1. Dependencies declared by the agent (e.g. PIXEL)
+    2. Dependencies inferred through the backend dependency registry
+    effective_dependencies = declared_dependencies UNION backend_inferred_dependencies
+    """
+    declared = set(declared_requirements or [])
+    inferred = get_backend_inferred_requirements(target_sections, operations)
+    return declared.union(inferred)
+
+
 def calculate_requirement_impact(
     db: Session,
     project_id: str,
@@ -132,17 +174,19 @@ def calculate_requirement_impact(
         target_secs = prop.target_sections or []
         base_sec_vers = prop.base_section_versions or {}
 
-        # 1. Check direct requirement intersection
+        # Extract operations if available
+        ops = (prop.changes or {}).get("operations", []) if isinstance(prop.changes, dict) else []
+
+        # 1. Direct requirement intersection
         direct_req_intersect = changed_set.intersection(affected_reqs)
 
-        # 2. Check registry-inferred requirement intersection if undeclared
-        inferred_req_intersect = set()
-        if not affected_reqs:
-            for sec_key in target_secs:
-                dep_reqs = get_requirements_for_section(sec_key)
-                inferred_req_intersect.update(changed_set.intersection(dep_reqs))
+        # 2. Registry-inferred requirement intersection (ALWAYS evaluated, never skipped!)
+        inferred_reqs = get_backend_inferred_requirements(target_secs, ops)
+        inferred_req_intersect = changed_set.intersection(inferred_reqs)
 
-        all_req_intersect = direct_req_intersect.union(inferred_req_intersect)
+        # Authoritative combination: declared UNION backend_inferred
+        effective_dependencies = affected_reqs.union(inferred_reqs)
+        all_req_intersect = changed_set.intersection(effective_dependencies)
         is_stale = len(all_req_intersect) > 0
 
         # 3. Check section version conflict (Human edit vs Agent base section version)
@@ -276,6 +320,17 @@ def revalidate_proposal_at_apply(
     if proposal.status != "pending_review":
         return f"Proposal is not pending review (status: {proposal.status})"
 
+    # Recheck independent NOVA review outcome
+    nova_rev = getattr(proposal, "nova_review", None)
+    if isinstance(nova_rev, dict):
+        rev_status = nova_rev.get("review_status")
+        if rev_status == "REVIEW_FAILED":
+            return f"Independent NOVA review failed ({nova_rev.get('impact_explanation', 'Review failed')})."
+        elif rev_status == "AFFECTED":
+            return f"Proposal is marked AFFECTED by NOVA re-verification ({nova_rev.get('impact_explanation', '')}). Reconcile before applying."
+        elif rev_status == "UNCERTAIN":
+            return f"Proposal review is UNCERTAIN ({nova_rev.get('impact_explanation', '')}). Manual review is required before applying."
+
     # Recheck section versions
     current_sections = {
         s.section_key: s
@@ -289,11 +344,16 @@ def revalidate_proposal_at_apply(
         if current_sec and current_sec.version != expected_ver:
             return f"Section '{sec_key}' was modified to version {current_sec.version} (expected {expected_ver})."
 
-    # Recheck requirement staleness
+    # Recheck requirement staleness using effective dependencies (declared UNION inferred)
     project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
     if project and proposal.base_context_version < project.context_version:
-        # Check if any affected requirements changed
-        for req_key in proposal.affected_requirements or []:
+        ops = (proposal.changes or {}).get("operations", []) if isinstance(proposal.changes, dict) else []
+        effective_reqs = get_effective_dependencies(
+            proposal.affected_requirements,
+            proposal.target_sections,
+            ops,
+        )
+        for req_key in effective_reqs:
             req = (
                 db.query(RequirementModel)
                 .filter(

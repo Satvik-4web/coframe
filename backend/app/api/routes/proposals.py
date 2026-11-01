@@ -1,7 +1,8 @@
 import uuid
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
+from backend.app.api.auth import get_current_identity, verify_governance_authorization
 from backend.app.db.database import get_db
 from backend.app.db.models import (
     ProposalModel,
@@ -345,24 +346,29 @@ async def approve_proposal(
     project_id: str,
     proposal_id: str,
     body: ProposalApproveRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ):
     """
     Step 6/7: Atomic apply-time validation and state update.
     Rechecks versions, stale events, and permissions in a database transaction.
     """
-    if body.decided_by.lower() not in ("alex", "maya"):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid decider identity '{body.decided_by}'. Demo allows only 'alex' or 'maya'.",
-        )
+    caller = get_current_identity(request, db)
+    verified_decider = verify_governance_authorization(
+        caller=caller,
+        claimed_identity=body.decided_by,
+        action_type="proposal_decision",
+        db=db,
+        project_id=project_id,
+    )
 
     try:
         approved_prop = apply_proposal_atomically(
             db=db,
             project_id=project_id,
             proposal_id=proposal_id,
-            decided_by=body.decided_by,
+            decided_by=verified_decider,
+            manual_review=body.manual_review,
         )
     except ApplyValidationError as e:
         status_code = 403 if e.is_forbidden else 409
@@ -371,7 +377,7 @@ async def approve_proposal(
     await ws_manager.broadcast(project_id, {
         "type": "PROPOSAL_APPROVED",
         "proposal_id": approved_prop.id,
-        "decided_by": body.decided_by,
+        "decided_by": verified_decider,
     })
 
     try:
@@ -557,14 +563,18 @@ async def reject_proposal(
     project_id: str,
     proposal_id: str,
     body: ProposalRejectRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ):
     """Preserves proposal, records decision and reason."""
-    if body.decided_by.lower() not in ("alex", "maya"):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid decider identity '{body.decided_by}'. Demo allows only 'alex' or 'maya'.",
-        )
+    caller = get_current_identity(request, db)
+    verified_decider = verify_governance_authorization(
+        caller=caller,
+        claimed_identity=body.decided_by,
+        action_type="proposal_decision",
+        db=db,
+        project_id=project_id,
+    )
 
     p = (
         db.query(ProposalModel)
@@ -624,17 +634,21 @@ async def redirect_proposal(
     project_id: str,
     proposal_id: str,
     body: ProposalRedirectRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ):
     """
     Step 6 Redirect: Human enters required instruction note.
     Originating agent (NOVA or PIXEL) receives note + fresh Context Pack and produces a new linked proposal.
     """
-    if body.decided_by.lower() not in ("alex", "maya"):
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid decider identity '{body.decided_by}'. Demo allows only 'alex' or 'maya'.",
-        )
+    caller = get_current_identity(request, db)
+    verified_decider = verify_governance_authorization(
+        caller=caller,
+        claimed_identity=body.decided_by,
+        action_type="proposal_decision",
+        db=db,
+        project_id=project_id,
+    )
 
     p = (
         db.query(ProposalModel)
@@ -693,8 +707,17 @@ async def reconcile_proposal(
     project_id: str,
     proposal_id: str,
     body: ProposalReconcileRequest,
+    request: Request,
     db: Session = Depends(get_db),
 ):
+    caller = get_current_identity(request, db)
+    verified_requester = verify_governance_authorization(
+        caller=caller,
+        claimed_identity=body.requested_by,
+        action_type="proposal_reconcile",
+        db=db,
+        project_id=project_id,
+    )
     """
     Step 4 Case A Reconcile: Human reconciles a stale or conflicted proposal.
     Routes to PIXEL for engineering proposals or NOVA for PRD proposals.
@@ -717,14 +740,14 @@ async def reconcile_proposal(
             db=db,
             project_id=project_id,
             original_proposal_id=proposal_id,
-            requested_by=body.requested_by,
+            requested_by=verified_requester,
         )
     else:
         new_proposal = await reconcile_pixel_proposal(
             db=db,
             project_id=project_id,
             original_proposal_id=proposal_id,
-            requested_by=body.requested_by,
+            requested_by=verified_requester,
         )
 
     await ws_manager.broadcast(project_id, {
@@ -889,3 +912,47 @@ async def resolve_proposal_conflict(
             status_code=400,
             detail=f"Unknown resolution_mode '{mode}'. Allowed: 'reconcile_pixel', 'keep_human', 'custom_merge'.",
         )
+
+
+@router.post("/projects/{project_id}/proposals/{proposal_id}/reverify")
+async def reverify_proposal(
+    project_id: str,
+    proposal_id: str,
+    db: Session = Depends(get_db),
+):
+    """
+    Independent NOVA AI Re-Verification.
+    NOVA independently evaluates the proposal against current requirements,
+    detecting missed dependencies and assessing impact.
+    """
+    p = (
+        db.query(ProposalModel)
+        .filter(ProposalModel.id == proposal_id, ProposalModel.project_id == project_id)
+        .first()
+    )
+    if not p:
+        raise HTTPException(status_code=404, detail="Proposal not found")
+
+    from backend.app.agents.nova import reverify_proposal_with_nova
+    rev_res = await reverify_proposal_with_nova(
+        db=db,
+        project_id=project_id,
+        proposal_id=proposal_id,
+        changed_requirement_keys=p.affected_requirements or [],
+    )
+
+    await ws_manager.broadcast(project_id, {
+        "type": "PROPOSAL_REVERIFIED",
+        "proposal_id": proposal_id,
+        "review_status": rev_res.review_status.value,
+        "recommended_action": rev_res.recommended_action.value,
+        "nova_review": rev_res.model_dump(),
+        "new_status": p.status,
+    })
+
+    return {
+        "status": "success",
+        "proposal_id": proposal_id,
+        "nova_review": rev_res.model_dump(),
+        "proposal": serialize_proposal_for_api(p),
+    }

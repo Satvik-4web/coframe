@@ -21,6 +21,7 @@ from backend.app.resources.manager import get_all_workspace_resources
 from backend.app.observer_summary.generator import generate_observer_summary
 from backend.app.proposals.serialization import serialize_proposal_for_api
 from backend.app.websocket.manager import ws_manager
+from backend.app.api.auth import create_session
 
 router = APIRouter(tags=["demo"])
 
@@ -90,11 +91,19 @@ async def join_project(project_id: str, req: JoinRequest, db: Session = Depends(
     if not member:
         raise HTTPException(status_code=404, detail="Member identity not found in project.")
 
+    session_token = create_session(
+        project_id=project_id,
+        identity_key=member.identity_key,
+        role=member.role,
+        display_name=member.display_name,
+    )
+
     return {
         "identity_key": member.identity_key,
         "display_name": member.display_name,
         "role": member.role,
         "member_type": member.member_type,
+        "session_token": session_token,
     }
 
 
