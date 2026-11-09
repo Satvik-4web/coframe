@@ -60,23 +60,23 @@ export const SubmitExpenseModal: React.FC<SubmitExpenseModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white border border-[#E7ECF2] rounded-2xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in-50 duration-200">
+      <div className="bg-[#0F1528] border border-[#1A223D] rounded-2xl max-w-lg w-full p-6 shadow-2xl relative animate-in fade-in-50 duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#E7ECF2]">
+        <div className="flex items-center justify-between pb-4 border-b border-[#1A223D]">
           <div className="flex items-center space-x-3">
             <div className="p-2.5 rounded-xl bg-teal-50 text-teal-700 border border-teal-200">
               <Receipt className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#172033]">Submit Expense (LedgerFlow)</h2>
-              <p className="text-xs text-[#657189]">
+              <h2 className="text-base font-bold text-white">Submit Expense (LedgerFlow)</h2>
+              <p className="text-xs text-[#8695B7]">
                 Submit an expense into the live persisted financial workflow
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-[#657189] hover:text-[#172033] p-1.5 rounded-lg hover:bg-slate-100 transition cursor-pointer"
+            className="text-[#8695B7] hover:text-white p-1.5 rounded-lg hover:bg-[#1A223D] transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -92,31 +92,31 @@ export const SubmitExpenseModal: React.FC<SubmitExpenseModalProps> = ({
           {/* Amount & Currency */}
           <div className="grid grid-cols-3 gap-3">
             <div className="col-span-2">
-              <label className="block text-[11px] font-bold text-[#172033] uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-bold text-white uppercase tracking-wider mb-1">
                 Amount
               </label>
               <div className="relative">
-                <span className="absolute left-3 top-2.5 text-[#657189] font-semibold">$</span>
+                <span className="absolute left-3 top-2.5 text-[#8695B7] font-semibold">$</span>
                 <input
                   type="number"
                   step="0.01"
                   min="0.01"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="w-full pl-7 pr-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] text-[#172033] font-bold text-sm focus:outline-none focus:ring-2 focus:ring-teal-200 focus:bg-white"
+                  className="w-full pl-7 pr-3 py-2 rounded-xl bg-[#090D1A] border border-[#1A223D] text-white font-bold text-sm focus:outline-none focus:ring-2 focus:ring-teal-200 focus:bg-[#0F1528]"
                   required
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-[#172033] uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-bold text-white uppercase tracking-wider mb-1">
                 Currency
               </label>
               <select
                 value={currency}
                 onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] text-[#172033] font-semibold text-xs focus:outline-none focus:ring-2 focus:ring-teal-200"
+                className="w-full px-3 py-2 rounded-xl bg-[#090D1A] border border-[#1A223D] text-white font-semibold text-xs focus:outline-none focus:ring-2 focus:ring-teal-200"
               >
                 <option value="USD">USD ($)</option>
                 <option value="EUR">EUR (€)</option>
@@ -143,13 +143,13 @@ export const SubmitExpenseModal: React.FC<SubmitExpenseModalProps> = ({
           {/* Category & Date */}
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-bold text-[#172033] uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-bold text-white uppercase tracking-wider mb-1">
                 Category
               </label>
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] text-[#172033] font-medium text-xs focus:outline-none focus:ring-2 focus:ring-teal-200"
+                className="w-full px-3 py-2 rounded-xl bg-[#090D1A] border border-[#1A223D] text-white font-medium text-xs focus:outline-none focus:ring-2 focus:ring-teal-200"
               >
                 <option value="Meals">Meals & Entertainment</option>
                 <option value="Travel">Travel & Lodging</option>
@@ -160,14 +160,14 @@ export const SubmitExpenseModal: React.FC<SubmitExpenseModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold text-[#172033] uppercase tracking-wider mb-1">
+              <label className="block text-[11px] font-bold text-white uppercase tracking-wider mb-1">
                 Expense Date
               </label>
               <input
                 type="date"
                 value={expenseDate}
                 onChange={(e) => setExpenseDate(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] text-[#172033] font-medium text-xs focus:outline-none focus:ring-2 focus:ring-teal-200"
+                className="w-full px-3 py-2 rounded-xl bg-[#090D1A] border border-[#1A223D] text-white font-medium text-xs focus:outline-none focus:ring-2 focus:ring-teal-200"
                 required
               />
             </div>
@@ -175,14 +175,14 @@ export const SubmitExpenseModal: React.FC<SubmitExpenseModalProps> = ({
 
           {/* Description */}
           <div>
-            <label className="block text-[11px] font-bold text-[#172033] uppercase tracking-wider mb-1">
+            <label className="block text-[11px] font-bold text-white uppercase tracking-wider mb-1">
               Business Purpose / Description
             </label>
             <textarea
               rows={2}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] text-[#172033] text-xs focus:outline-none focus:ring-2 focus:ring-teal-200 focus:bg-white"
+              className="w-full px-3 py-2 rounded-xl bg-[#090D1A] border border-[#1A223D] text-white text-xs focus:outline-none focus:ring-2 focus:ring-teal-200 focus:bg-[#0F1528]"
               placeholder="e.g. Flight to client demo or cloud infrastructure bill"
               required
             />
@@ -190,30 +190,30 @@ export const SubmitExpenseModal: React.FC<SubmitExpenseModalProps> = ({
 
           {/* Reference */}
           <div>
-            <label className="block text-[11px] font-bold text-[#172033] uppercase tracking-wider mb-1">
+            <label className="block text-[11px] font-bold text-white uppercase tracking-wider mb-1">
               Invoice Code / Reference (Optional)
             </label>
             <input
               type="text"
               value={reference}
               onChange={(e) => setReference(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] text-[#172033] text-xs focus:outline-none focus:ring-2 focus:ring-teal-200"
+              className="w-full px-3 py-2 rounded-xl bg-[#090D1A] border border-[#1A223D] text-white text-xs focus:outline-none focus:ring-2 focus:ring-teal-200"
               placeholder="e.g. INV-2026-042"
             />
           </div>
 
           {/* Submitter Info */}
-          <div className="p-2.5 rounded-xl bg-slate-50 border border-[#E7ECF2] flex items-center justify-between text-[#657189]">
+          <div className="p-2.5 rounded-xl bg-[#141A33] border border-[#1A223D] flex items-center justify-between text-[#8695B7]">
             <span>Submitting as:</span>
-            <span className="font-bold text-[#172033] uppercase">{identity || 'alex'}</span>
+            <span className="font-bold text-white uppercase">{identity || 'alex'}</span>
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end space-x-2.5 pt-3 border-t border-[#E7ECF2]">
+          <div className="flex items-center justify-end space-x-2.5 pt-3 border-t border-[#1A223D]">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#657189] hover:text-[#172033] hover:bg-slate-100 transition cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8695B7] hover:text-white hover:bg-[#1A223D] transition cursor-pointer"
             >
               Cancel
             </button>

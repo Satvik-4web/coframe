@@ -221,21 +221,21 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
   return (
     <div className="space-y-6">
       {/* Top Header Card */}
-      <div className="bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="bg-[#0F1528] border border-[#1A223D] p-5 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center space-x-3.5">
           <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-200 flex items-center justify-center text-violet-700 shadow-xs">
             <Cpu className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center space-x-2">
-              <h1 className="text-base font-bold text-[#172033] tracking-tight">
+              <h1 className="text-base font-bold text-white tracking-tight">
                 Context Pack &amp; Recovery Inspector
               </h1>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-100 text-[#CBD5E1] border border-[#1A223D]">
                 Authoritative Persisted State
               </span>
             </div>
-            <p className="text-xs text-[#657189] mt-0.5">
+            <p className="text-xs text-[#8695B7] mt-0.5">
               Deterministic, typed context packs with semantic versioning, offline checkpoint replay, and genuine task resumption.
             </p>
           </div>
@@ -253,13 +253,13 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
             </button>
           )}
           {/* Agent Picker Pill */}
-          <div className="flex items-center bg-[#F8FAFC] p-1 rounded-xl border border-[#E7ECF2]">
+          <div className="flex items-center bg-[#090D1A] p-1 rounded-xl border border-[#1A223D]">
             <button
               onClick={() => setSelectedAgent('nova')}
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 selectedAgent === 'nova'
                   ? 'bg-violet-600 text-white shadow-xs'
-                  : 'text-[#657189] hover:text-[#172033]'
+                  : 'text-[#8695B7] hover:text-white'
               }`}
             >
               NOVA (Strategist)
@@ -269,7 +269,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
               className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 selectedAgent === 'pixel'
                   ? 'bg-teal-600 text-white shadow-xs'
-                  : 'text-[#657189] hover:text-[#172033]'
+                  : 'text-[#8695B7] hover:text-white'
               }`}
             >
               PIXEL (Engineer)
@@ -277,13 +277,13 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
           </div>
 
           {/* Run Picker Dropdown */}
-          <div className="flex items-center bg-white px-2.5 py-1.5 rounded-xl border border-[#E7ECF2] shadow-xs">
-            <span className="text-[11px] font-bold text-[#657189] mr-2">Run:</span>
+          <div className="flex items-center bg-[#0F1528] px-2.5 py-1.5 rounded-xl border border-[#1A223D] shadow-xs">
+            <span className="text-[11px] font-bold text-[#8695B7] mr-2">Run:</span>
             <select
               value={selectedRunId}
               onChange={(e) => handleSelectRun(e.target.value)}
               disabled={loading || runs.length === 0}
-              className="text-xs font-mono font-medium text-[#172033] bg-transparent outline-none cursor-pointer pr-1"
+              className="text-xs font-mono font-medium text-white bg-transparent outline-none cursor-pointer pr-1"
             >
               {runs.map((r, idx) => (
                 <option key={r.id} value={r.id}>
@@ -297,7 +297,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
           <button
             onClick={handleInspect}
             disabled={operating === 'inspect' || !selectedRunId}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-[#E7ECF2] text-xs font-semibold text-[#172033] shadow-xs transition cursor-pointer disabled:opacity-50"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#0F1528] hover:bg-[#141A33] border border-[#1A223D] text-xs font-semibold text-white shadow-xs transition cursor-pointer disabled:opacity-50"
             title="Inspect the exact Context Pack from the selected persisted agent run"
           >
             <Eye className={`w-3.5 h-3.5 text-blue-600 ${operating === 'inspect' ? 'animate-spin' : ''}`} />
@@ -308,7 +308,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
           <button
             onClick={handleRebuild}
             disabled={operating === 'rebuild'}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-[#E7ECF2] text-xs font-semibold text-[#172033] shadow-xs transition cursor-pointer disabled:opacity-50"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-[#0F1528] hover:bg-[#141A33] border border-[#1A223D] text-xs font-semibold text-white shadow-xs transition cursor-pointer disabled:opacity-50"
             title="Reconstruct a fresh Context Pack from latest approved requirements and artifact sections without resuming"
           >
             <RefreshCw className={`w-3.5 h-3.5 text-teal-600 ${operating === 'rebuild' ? 'animate-spin' : ''}`} />
@@ -322,7 +322,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
             className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold shadow-xs transition cursor-pointer disabled:opacity-50 ${
               hasInterrupted
                 ? 'bg-amber-600 hover:bg-amber-700 text-white animate-pulse'
-                : 'bg-white hover:bg-slate-50 border border-[#E7ECF2] text-[#172033]'
+                : 'bg-[#0F1528] hover:bg-[#141A33] border border-[#1A223D] text-white'
             }`}
             title={
               hasInterrupted
@@ -379,15 +379,15 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
 
       {/* Persisted Run Metadata Row */}
       {runMetadata && (
-        <div className="bg-white border border-[#E7ECF2] p-4 rounded-2xl shadow-xs grid grid-cols-2 sm:grid-cols-6 gap-3 text-xs">
+        <div className="bg-[#0F1528] border border-[#1A223D] p-4 rounded-2xl shadow-xs grid grid-cols-2 sm:grid-cols-6 gap-3 text-xs">
           <div>
-            <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Run ID</span>
+            <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-0.5">Run ID</span>
             <span className="font-mono text-violet-700 font-bold text-xs truncate block" title={runMetadata.run_id}>
               {runMetadata.run_id}
             </span>
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Run Status</span>
+            <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-0.5">Run Status</span>
             <span
               className={`inline-block px-2 py-0.5 rounded text-[10px] font-semibold font-mono ${
                 runMetadata.status === 'completed'
@@ -396,33 +396,33 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                   ? 'bg-blue-50 text-blue-700 border border-blue-200'
                   : runMetadata.status === 'interrupted'
                   ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                  : 'bg-slate-100 text-slate-700 border border-slate-200'
+                  : 'bg-slate-100 text-[#CBD5E1] border border-[#1A223D]'
               }`}
             >
               {runMetadata.status?.toUpperCase() || 'IDLE'}
             </span>
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Context / Artifact</span>
+            <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-0.5">Context / Artifact</span>
             <span className="font-mono text-cyan-700 font-bold text-xs block">
               Ctx v{runMetadata.base_context_version} / Art v{runMetadata.base_artifact_version}
             </span>
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Checkpoint</span>
-            <span className="font-mono text-[#172033] font-medium text-xs block truncate" title={JSON.stringify(runMetadata.last_checkpoint || 'None')}>
+            <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-0.5">Checkpoint</span>
+            <span className="font-mono text-white font-medium text-xs block truncate" title={JSON.stringify(runMetadata.last_checkpoint || 'None')}>
               {runMetadata.last_checkpoint?.checkpoint_id || (runMetadata.last_checkpoint ? 'Recorded' : 'None')}
             </span>
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Execution Source</span>
-            <span className="font-mono text-slate-700 font-medium text-xs block">
+            <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-0.5">Execution Source</span>
+            <span className="font-mono text-[#CBD5E1] font-medium text-xs block">
               {runMetadata.source || 'live_llm'}
             </span>
           </div>
           <div>
-            <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Started At</span>
-            <span className="font-mono text-[#657189] text-[11px] block truncate" title={runMetadata.started_at}>
+            <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-0.5">Started At</span>
+            <span className="font-mono text-[#8695B7] text-[11px] block truncate" title={runMetadata.started_at}>
               {runMetadata.started_at ? new Date(runMetadata.started_at).toLocaleTimeString() : 'Baseline'}
             </span>
           </div>
@@ -430,13 +430,13 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
       )}
 
       {/* Main View Selector Navigation */}
-      <div className="flex border-b border-[#E7ECF2] text-xs space-x-2 bg-white px-4 pt-3 rounded-t-2xl">
+      <div className="flex border-b border-[#1A223D] text-xs space-x-2 bg-[#0F1528] px-4 pt-3 rounded-t-2xl">
         <button
           onClick={() => setMainView('inspect')}
           className={`pb-2.5 px-3 font-semibold transition cursor-pointer flex items-center space-x-1.5 ${
             mainView === 'inspect'
               ? 'border-b-2 border-violet-600 text-violet-700'
-              : 'text-[#657189] hover:text-[#172033]'
+              : 'text-[#8695B7] hover:text-white'
           }`}
         >
           <Eye className="w-3.5 h-3.5" />
@@ -448,7 +448,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
           className={`pb-2.5 px-3 font-semibold transition cursor-pointer flex items-center space-x-1.5 ${
             mainView === 'reconstructed'
               ? 'border-b-2 border-teal-600 text-teal-700'
-              : 'text-[#657189] hover:text-[#172033]'
+              : 'text-[#8695B7] hover:text-white'
           }`}
         >
           <GitCompare className="w-3.5 h-3.5" />
@@ -465,14 +465,14 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
           className={`pb-2.5 px-3 font-semibold transition cursor-pointer flex items-center space-x-1.5 ${
             mainView === 'result'
               ? 'border-b-2 border-amber-600 text-amber-700'
-              : 'text-[#657189] hover:text-[#172033]'
+              : 'text-[#8695B7] hover:text-white'
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
           <span>3. Recovery Execution Result</span>
           {recoveryResult && (
             <span className={`px-1.5 py-0.2 rounded-full text-[9px] font-mono ${
-              recoveryResult.task_resumed ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'
+              recoveryResult.task_resumed ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-[#E2E8F0]'
             }`}>
               {recoveryResult.task_resumed ? 'Resumed' : 'Rebuilt'}
             </span>
@@ -484,7 +484,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
           className={`pb-2.5 px-3 font-semibold transition cursor-pointer flex items-center space-x-1.5 ${
             mainView === 'history'
               ? 'border-b-2 border-blue-600 text-blue-700'
-              : 'text-[#657189] hover:text-[#172033]'
+              : 'text-[#8695B7] hover:text-white'
           }`}
         >
           <History className="w-3.5 h-3.5" />
@@ -496,19 +496,19 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
       {mainView === 'inspect' && (
         <div className="space-y-5">
           {loading ? (
-            <div className="text-center py-16 text-xs text-[#657189] bg-white rounded-2xl border border-[#E7ECF2] shadow-sm">
+            <div className="text-center py-16 text-xs text-[#8695B7] bg-[#0F1528] rounded-2xl border border-[#1A223D] shadow-sm">
               Loading exact persisted Context Pack from database...
             </div>
           ) : !packData ? (
-            <div className="text-center py-16 text-xs text-[#657189] bg-white rounded-2xl border border-[#E7ECF2] shadow-sm">
+            <div className="text-center py-16 text-xs text-[#8695B7] bg-[#0F1528] rounded-2xl border border-[#1A223D] shadow-sm">
               No runs found for {selectedAgent.toUpperCase()}. Start collaboration or click Rebuild Context.
             </div>
           ) : (
             <div className="space-y-5">
               {/* Performance Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
-                <div className="bg-white border border-[#E7ECF2] p-3.5 rounded-2xl shadow-xs">
-                  <span className="text-[10px] uppercase font-bold text-[#657189] flex items-center space-x-1 mb-1">
+                <div className="bg-[#0F1528] border border-[#1A223D] p-3.5 rounded-2xl shadow-xs">
+                  <span className="text-[10px] uppercase font-bold text-[#8695B7] flex items-center space-x-1 mb-1">
                     <Clock className="w-3 h-3 text-amber-500 mr-1 inline" />
                     <span>Retrieval Latency</span>
                   </span>
@@ -517,8 +517,8 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                   </span>
                 </div>
 
-                <div className="bg-white border border-[#E7ECF2] p-3.5 rounded-2xl shadow-xs">
-                  <span className="text-[10px] uppercase font-bold text-[#657189] flex items-center space-x-1 mb-1">
+                <div className="bg-[#0F1528] border border-[#1A223D] p-3.5 rounded-2xl shadow-xs">
+                  <span className="text-[10px] uppercase font-bold text-[#8695B7] flex items-center space-x-1 mb-1">
                     <Zap className="w-3 h-3 text-purple-500 mr-1 inline" />
                     <span>Context Tokens</span>
                   </span>
@@ -527,8 +527,8 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                   </span>
                 </div>
 
-                <div className="bg-white border border-[#E7ECF2] p-3.5 rounded-2xl shadow-xs">
-                  <span className="text-[10px] uppercase font-bold text-[#657189] flex items-center space-x-1 mb-1">
+                <div className="bg-[#0F1528] border border-[#1A223D] p-3.5 rounded-2xl shadow-xs">
+                  <span className="text-[10px] uppercase font-bold text-[#8695B7] flex items-center space-x-1 mb-1">
                     <Layers className="w-3 h-3 text-cyan-500 mr-1 inline" />
                     <span>Version Freshness</span>
                   </span>
@@ -537,8 +537,8 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                   </span>
                 </div>
 
-                <div className="bg-white border border-[#E7ECF2] p-3.5 rounded-2xl shadow-xs">
-                  <span className="text-[10px] uppercase font-bold text-[#657189] flex items-center space-x-1 mb-1">
+                <div className="bg-[#0F1528] border border-[#1A223D] p-3.5 rounded-2xl shadow-xs">
+                  <span className="text-[10px] uppercase font-bold text-[#8695B7] flex items-center space-x-1 mb-1">
                     <Search className="w-3 h-3 text-emerald-500 mr-1 inline" />
                     <span>Items Evaluated</span>
                   </span>
@@ -547,8 +547,8 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                   </span>
                 </div>
 
-                <div className="bg-white border border-[#E7ECF2] p-3.5 rounded-2xl shadow-xs">
-                  <span className="text-[10px] uppercase font-bold text-[#657189] flex items-center space-x-1 mb-1">
+                <div className="bg-[#0F1528] border border-[#1A223D] p-3.5 rounded-2xl shadow-xs">
+                  <span className="text-[10px] uppercase font-bold text-[#8695B7] flex items-center space-x-1 mb-1">
                     <ShieldCheck className="w-3 h-3 text-blue-500 mr-1 inline" />
                     <span>Retrieval Mode</span>
                   </span>
@@ -559,13 +559,13 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
               </div>
 
               {/* Sub Navigation Tabs */}
-              <div className="flex border-b border-[#E7ECF2] text-xs space-x-4 bg-white px-4 pt-3 rounded-t-2xl">
+              <div className="flex border-b border-[#1A223D] text-xs space-x-4 bg-[#0F1528] px-4 pt-3 rounded-t-2xl">
                 <button
                   onClick={() => setActiveTab('requirements')}
                   className={`pb-2.5 font-semibold transition cursor-pointer ${
                     activeTab === 'requirements'
                       ? 'border-b-2 border-teal-600 text-teal-700'
-                      : 'text-[#657189] hover:text-[#172033]'
+                      : 'text-[#8695B7] hover:text-white'
                   }`}
                 >
                   Authoritative Requirements ({pack.requirements?.length || 0})
@@ -575,7 +575,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                   className={`pb-2.5 font-semibold transition cursor-pointer flex items-center space-x-1.5 ${
                     activeTab === 'advisory'
                       ? 'border-b-2 border-indigo-600 text-indigo-700'
-                      : 'text-[#657189] hover:text-[#172033]'
+                      : 'text-[#8695B7] hover:text-white'
                   }`}
                 >
                   <AlertCircle className="w-3.5 h-3.5" />
@@ -586,7 +586,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                   className={`pb-2.5 font-semibold transition cursor-pointer flex items-center space-x-1.5 ${
                     activeTab === 'history'
                       ? 'border-b-2 border-amber-600 text-amber-700'
-                      : 'text-[#657189] hover:text-[#172033]'
+                      : 'text-[#8695B7] hover:text-white'
                   }`}
                 >
                   <History className="w-3.5 h-3.5" />
@@ -597,7 +597,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                   className={`pb-2.5 font-semibold transition cursor-pointer flex items-center space-x-1.5 ${
                     activeTab === 'provenance'
                       ? 'border-b-2 border-violet-600 text-violet-700'
-                      : 'text-[#657189] hover:text-[#172033]'
+                      : 'text-[#8695B7] hover:text-white'
                   }`}
                 >
                   <Sparkles className="w-3.5 h-3.5" />
@@ -608,7 +608,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                   className={`pb-2.5 font-semibold transition cursor-pointer flex items-center space-x-1.5 ${
                     activeTab === 'raw'
                       ? 'border-b-2 border-cyan-600 text-cyan-700'
-                      : 'text-[#657189] hover:text-[#172033]'
+                      : 'text-[#8695B7] hover:text-white'
                   }`}
                 >
                   <FileText className="w-3.5 h-3.5" />
@@ -620,8 +620,8 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
               {activeTab === 'requirements' && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
                   <div className="lg:col-span-2 space-y-3">
-                    <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-xs">
-                      <span className="text-xs font-bold uppercase tracking-wider text-[#657189] block mb-3">
+                    <div className="bg-[#0F1528] border border-[#1A223D] rounded-2xl p-5 shadow-xs">
+                      <span className="text-xs font-bold uppercase tracking-wider text-[#8695B7] block mb-3">
                         Supplied Requirements ({pack.requirements?.length || 0})
                       </span>
                       <div className="space-y-3 text-xs">
@@ -633,7 +633,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                           return (
                             <div
                               key={req.id || req.key}
-                              className="bg-[#F8FAFC] border border-[#E7ECF2] rounded-xl p-4 transition hover:border-[#CBD5E1]"
+                              className="bg-[#090D1A] border border-[#1A223D] rounded-xl p-4 transition hover:border-[#CBD5E1]"
                             >
                               <div className="flex items-start justify-between gap-3">
                                 <div className="space-y-1">
@@ -648,7 +648,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                                       {req.status || 'approved'}
                                     </span>
                                   </div>
-                                  <span className="text-xs text-[#172033] font-medium block">
+                                  <span className="text-xs text-white font-medium block">
                                     {req.title}
                                   </span>
                                 </div>
@@ -658,65 +658,65 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                                     className={`px-2 py-0.5 rounded-full text-[11px] font-mono font-bold ${
                                       scorePercent >= 80
                                         ? 'bg-violet-100 text-violet-800 border border-violet-300'
-                                        : 'bg-white text-[#657189] border border-[#E7ECF2]'
+                                        : 'bg-[#0F1528] text-[#8695B7] border border-[#1A223D]'
                                     }`}
                                   >
                                     Score: {scorePercent}%
                                   </span>
                                   <button
                                     onClick={() => setExpandedReq(isExpanded ? null : (req.id || req.key))}
-                                    className="p-1 text-[#657189] hover:text-[#172033] transition cursor-pointer"
+                                    className="p-1 text-[#8695B7] hover:text-white transition cursor-pointer"
                                   >
                                     {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                                   </button>
                                 </div>
                               </div>
 
-                              <div className="mt-2.5 p-2.5 rounded-lg bg-white border border-[#E7ECF2] text-xs text-[#172033]">
+                              <div className="mt-2.5 p-2.5 rounded-lg bg-[#0F1528] border border-[#1A223D] text-xs text-white">
                                 {typeof req.value === 'object' ? JSON.stringify(req.value) : req.value}
                               </div>
 
                               {req.provenance && (
-                                <div className="mt-2 text-[11px] text-[#657189] flex items-center space-x-1.5">
+                                <div className="mt-2 text-[11px] text-[#8695B7] flex items-center space-x-1.5">
                                   <span className="text-violet-700 font-semibold">Retrieval Reason:</span>
                                   <span>{req.provenance.retrieval_reason}</span>
                                 </div>
                               )}
 
                               {isExpanded && req.provenance?.scoring_breakdown && (
-                                <div className="mt-3 pt-3 border-t border-[#E7ECF2] grid grid-cols-2 sm:grid-cols-3 gap-2 text-[10px] font-mono">
-                                  <div className="bg-white p-2 rounded-lg border border-[#E7ECF2]">
-                                    <span className="text-[#657189] block">Keyword Match</span>
+                                <div className="mt-3 pt-3 border-t border-[#1A223D] grid grid-cols-2 sm:grid-cols-3 gap-2 text-[10px] font-mono">
+                                  <div className="bg-[#0F1528] p-2 rounded-lg border border-[#1A223D]">
+                                    <span className="text-[#8695B7] block">Keyword Match</span>
                                     <span className="text-teal-700 font-bold">
                                       {((req.provenance.scoring_breakdown.keyword_score || 0) * 100).toFixed(0)}%
                                     </span>
                                   </div>
-                                  <div className="bg-white p-2 rounded-lg border border-[#E7ECF2]">
-                                    <span className="text-[#657189] block">Semantic Match</span>
+                                  <div className="bg-[#0F1528] p-2 rounded-lg border border-[#1A223D]">
+                                    <span className="text-[#8695B7] block">Semantic Match</span>
                                     <span className="text-violet-700 font-bold">
                                       {((req.provenance.scoring_breakdown.semantic_score || 0) * 100).toFixed(0)}%
                                     </span>
                                   </div>
-                                  <div className="bg-white p-2 rounded-lg border border-[#E7ECF2]">
-                                    <span className="text-[#657189] block">Task Dependency</span>
+                                  <div className="bg-[#0F1528] p-2 rounded-lg border border-[#1A223D]">
+                                    <span className="text-[#8695B7] block">Task Dependency</span>
                                     <span className="text-blue-700 font-bold">
                                       {((req.provenance.scoring_breakdown.task_dependency_score || 0) * 100).toFixed(0)}%
                                     </span>
                                   </div>
-                                  <div className="bg-white p-2 rounded-lg border border-[#E7ECF2]">
-                                    <span className="text-[#657189] block">Freshness</span>
+                                  <div className="bg-[#0F1528] p-2 rounded-lg border border-[#1A223D]">
+                                    <span className="text-[#8695B7] block">Freshness</span>
                                     <span className="text-emerald-700 font-bold">
                                       {((req.provenance.scoring_breakdown.freshness_score || 0) * 100).toFixed(0)}%
                                     </span>
                                   </div>
-                                  <div className="bg-white p-2 rounded-lg border border-[#E7ECF2]">
-                                    <span className="text-[#657189] block">Source Reliability</span>
+                                  <div className="bg-[#0F1528] p-2 rounded-lg border border-[#1A223D]">
+                                    <span className="text-[#8695B7] block">Source Reliability</span>
                                     <span className="text-amber-700 font-bold">
                                       {((req.provenance.scoring_breakdown.source_reliability || 0) * 100).toFixed(0)}%
                                     </span>
                                   </div>
-                                  <div className="bg-white p-2 rounded-lg border border-[#E7ECF2]">
-                                    <span className="text-[#657189] block">Approval Multiplier</span>
+                                  <div className="bg-[#0F1528] p-2 rounded-lg border border-[#1A223D]">
+                                    <span className="text-[#8695B7] block">Approval Multiplier</span>
                                     <span className="text-cyan-700 font-bold">
                                       x{req.provenance.scoring_breakdown.approval_multiplier}
                                     </span>
@@ -742,30 +742,30 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
 
                       <div className="space-y-3.5 text-xs">
                         <div>
-                          <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Task Description</span>
-                          <p className="text-[#172033] font-medium leading-relaxed">
+                          <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-0.5">Task Description</span>
+                          <p className="text-white font-medium leading-relaxed">
                             {pack.agent_task?.description || runMetadata?.task_description || 'Background strategy & engineering'}
                           </p>
                         </div>
 
                         <div>
-                          <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Target Sections</span>
+                          <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-0.5">Target Sections</span>
                           <div className="flex flex-wrap gap-1.5 mt-1">
                             {pack.agent_task?.target_sections?.length > 0 ? (
                               pack.agent_task.target_sections.map((s: string) => (
-                                <span key={s} className="px-2 py-0.5 rounded text-[10px] font-mono bg-white text-teal-700 border border-[#E7ECF2]">
+                                <span key={s} className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0F1528] text-teal-700 border border-[#1A223D]">
                                   {s}
                                 </span>
                               ))
                             ) : (
-                              <span className="text-[#657189]">Auto-bounded from task domain</span>
+                              <span className="text-[#8695B7]">Auto-bounded from task domain</span>
                             )}
                           </div>
                         </div>
 
                         <div>
-                          <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Offline Changes</span>
-                          <p className="text-[#657189] leading-relaxed">
+                          <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-0.5">Offline Changes</span>
+                          <p className="text-[#8695B7] leading-relaxed">
                             {pack.offline_changes?.length > 0
                               ? `${pack.offline_changes.length} event(s) logged since checkpoint`
                               : 'No drift events since run baseline'}
@@ -774,8 +774,8 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                       </div>
                     </div>
 
-                    <div className="p-4 rounded-2xl bg-white border border-[#E7ECF2] text-xs text-[#657189] leading-relaxed shadow-xs">
-                      <strong className="text-[#172033]">Strict Provenance:</strong> The Context Pack shown here is the exact immutable snapshot persisted in the database for Run #{selectedRunId}. It is never modified retroactively.
+                    <div className="p-4 rounded-2xl bg-[#0F1528] border border-[#1A223D] text-xs text-[#8695B7] leading-relaxed shadow-xs">
+                      <strong className="text-white">Strict Provenance:</strong> The Context Pack shown here is the exact immutable snapshot persisted in the database for Run #{selectedRunId}. It is never modified retroactively.
                     </div>
                   </div>
                 </div>
@@ -783,34 +783,34 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
 
               {/* Sub-tab 2: Advisory Context */}
               {activeTab === 'advisory' && (
-                <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-xs space-y-4">
+                <div className="bg-[#0F1528] border border-[#1A223D] rounded-2xl p-5 shadow-xs space-y-4">
                   <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-white">
                       Advisory Context &amp; Open Proposals
                     </h3>
-                    <p className="text-xs text-[#657189] mt-0.5">
+                    <p className="text-xs text-[#8695B7] mt-0.5">
                       Proposals pending review. Kept strictly partitioned from authoritative requirements.
                     </p>
                   </div>
 
                   {openProposals.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-[#657189] bg-[#F8FAFC] rounded-xl border border-[#E7ECF2]">
+                    <div className="p-6 text-center text-xs text-[#8695B7] bg-[#090D1A] rounded-xl border border-[#1A223D]">
                       No open proposals pending decision. All requirements in this pack are approved.
                     </div>
                   ) : (
                     <div className="space-y-3">
                       {openProposals.map((prop: any) => (
-                        <div key={prop.proposal_id} className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] text-xs space-y-2">
+                        <div key={prop.proposal_id} className="p-4 rounded-xl bg-[#090D1A] border border-[#1A223D] text-xs space-y-2">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
                               <span className="font-mono font-bold text-violet-700">{prop.proposal_id}</span>
                               <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                                 {prop.status}
                               </span>
-                              <span className="text-[11px] font-medium text-[#657189]">by {prop.agent_id?.toUpperCase()}</span>
+                              <span className="text-[11px] font-medium text-[#8695B7]">by {prop.agent_id?.toUpperCase()}</span>
                             </div>
                           </div>
-                          <p className="text-[#172033] font-medium">{prop.summary}</p>
+                          <p className="text-white font-medium">{prop.summary}</p>
                         </div>
                       ))}
                     </div>
@@ -820,18 +820,18 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
 
               {/* Sub-tab 3: History */}
               {activeTab === 'history' && (
-                <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-xs space-y-4">
+                <div className="bg-[#0F1528] border border-[#1A223D] rounded-2xl p-5 shadow-xs space-y-4">
                   <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-white">
                       Historical Context &amp; Superseded Snapshots ({historicalItems.length})
                     </h3>
-                    <p className="text-xs text-[#657189] mt-0.5">
+                    <p className="text-xs text-[#8695B7] mt-0.5">
                       Archived versions preserved for reference without polluting active context.
                     </p>
                   </div>
 
                   {historicalItems.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-[#657189] bg-[#F8FAFC] rounded-xl border border-[#E7ECF2]">
+                    <div className="p-6 text-center text-xs text-[#8695B7] bg-[#090D1A] rounded-xl border border-[#1A223D]">
                       No historical versions archived in this run's scope.
                     </div>
                   ) : (
@@ -839,7 +839,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                       {historicalItems.map((item, idx) => (
                         <div
                           key={item.source_id || idx}
-                          className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] text-xs space-y-2"
+                          className="p-4 rounded-xl bg-[#090D1A] border border-[#1A223D] text-xs space-y-2"
                         >
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-2">
@@ -848,9 +848,9 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                                 v{item.version}
                               </span>
                             </div>
-                            <span className="text-[10px] font-mono text-[#657189]">{item.timestamp}</span>
+                            <span className="text-[10px] font-mono text-[#8695B7]">{item.timestamp}</span>
                           </div>
-                          <div className="p-2.5 rounded-lg bg-white border border-[#E7ECF2] text-xs text-[#657189] font-mono">
+                          <div className="p-2.5 rounded-lg bg-[#0F1528] border border-[#1A223D] text-xs text-[#8695B7] font-mono">
                             {typeof item.value === 'object' ? JSON.stringify(item.value) : item.value}
                           </div>
                         </div>
@@ -862,19 +862,19 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
 
               {/* Sub-tab 4: Provenance */}
               {activeTab === 'provenance' && (
-                <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-xs space-y-4">
+                <div className="bg-[#0F1528] border border-[#1A223D] rounded-2xl p-5 shadow-xs space-y-4">
                   <div>
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
+                    <h3 className="text-xs font-bold uppercase tracking-wider text-white">
                       Context Provenance &amp; Multi-Factor Scoring
                     </h3>
-                    <p className="text-xs text-[#657189] mt-0.5">
+                    <p className="text-xs text-[#8695B7] mt-0.5">
                       Audit trail showing why each item was selected into this agent run.
                     </p>
                   </div>
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs text-left">
-                      <thead className="bg-[#F8FAFC] text-[10px] uppercase font-bold text-[#657189] border-b border-[#E7ECF2]">
+                      <thead className="bg-[#090D1A] text-[10px] uppercase font-bold text-[#8695B7] border-b border-[#1A223D]">
                         <tr>
                           <th className="p-3">Source ID</th>
                           <th className="p-3">Type</th>
@@ -885,20 +885,20 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                       </thead>
                       <tbody className="divide-y divide-[#E7ECF2]">
                         {provenanceList.map((prov) => (
-                          <tr key={prov.source_id} className="hover:bg-[#F8FAFC] transition">
+                          <tr key={prov.source_id} className="hover:bg-[#090D1A] transition">
                             <td className="p-3 font-mono text-teal-700 font-semibold">{prov.source_id}</td>
                             <td className="p-3">
-                              <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-slate-700 border border-slate-200">
+                              <span className="px-1.5 py-0.5 rounded text-[10px] bg-slate-100 text-[#CBD5E1] border border-[#1A223D]">
                                 {prov.source_type}
                               </span>
                             </td>
-                            <td className="p-3 font-mono text-[#657189]">v{prov.version}</td>
+                            <td className="p-3 font-mono text-[#8695B7]">v{prov.version}</td>
                             <td className="p-3">
                               <span className="font-mono font-bold text-violet-700">
                                 {(prov.relevance_score * 100).toFixed(0)}%
                               </span>
                             </td>
-                            <td className="p-3 text-[11px] text-[#657189]">{prov.retrieval_reason}</td>
+                            <td className="p-3 text-[11px] text-[#8695B7]">{prov.retrieval_reason}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -909,9 +909,9 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
 
               {/* Sub-tab 5: Raw JSON */}
               {activeTab === 'raw' && (
-                <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-xs space-y-3">
+                <div className="bg-[#0F1528] border border-[#1A223D] rounded-2xl p-5 shadow-xs space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#657189]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#8695B7]">
                       Authoritative Immutable JSON (Run #{selectedRunId})
                     </span>
                     <button
@@ -936,10 +936,10 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
       {mainView === 'reconstructed' && (
         <div className="space-y-5">
           {!reconstructedData ? (
-            <div className="text-center py-16 bg-white border border-[#E7ECF2] rounded-2xl shadow-xs space-y-3">
+            <div className="text-center py-16 bg-[#0F1528] border border-[#1A223D] rounded-2xl shadow-xs space-y-3">
               <GitCompare className="w-8 h-8 text-teal-600 mx-auto opacity-60" />
-              <p className="text-xs text-[#657189]">
-                Click <strong className="text-[#172033]">"Rebuild Context"</strong> in the top controls to reconstruct a fresh Context Pack from the latest approved state.
+              <p className="text-xs text-[#8695B7]">
+                Click <strong className="text-white">"Rebuild Context"</strong> in the top controls to reconstruct a fresh Context Pack from the latest approved state.
               </p>
               <button
                 onClick={handleRebuild}
@@ -952,11 +952,11 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
           ) : (
             <div className="space-y-5">
               {/* Context Diff Banner */}
-              <div className="bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-xs space-y-4">
+              <div className="bg-[#0F1528] border border-[#1A223D] p-5 rounded-2xl shadow-xs space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2 text-teal-700">
                     <GitCompare className="w-5 h-5" />
-                    <h2 className="text-sm font-bold text-[#172033]">
+                    <h2 className="text-sm font-bold text-white">
                       Context Drift &amp; Rebuild Comparison
                     </h2>
                   </div>
@@ -986,26 +986,26 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
 
                 {/* Diff Stat Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                  <div className="bg-[#F8FAFC] border border-[#E7ECF2] p-3 rounded-xl">
-                    <span className="text-[10px] uppercase font-bold text-[#657189] block mb-1">Requirements Changed</span>
+                  <div className="bg-[#090D1A] border border-[#1A223D] p-3 rounded-xl">
+                    <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-1">Requirements Changed</span>
                     <span className="text-sm font-bold font-mono text-amber-700">
                       {diff?.changed_requirements?.length || 0}
                     </span>
                   </div>
-                  <div className="bg-[#F8FAFC] border border-[#E7ECF2] p-3 rounded-xl">
-                    <span className="text-[10px] uppercase font-bold text-[#657189] block mb-1">Sections Updated</span>
+                  <div className="bg-[#090D1A] border border-[#1A223D] p-3 rounded-xl">
+                    <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-1">Sections Updated</span>
                     <span className="text-sm font-bold font-mono text-cyan-700">
                       {diff?.updated_artifact_sections?.length || 0}
                     </span>
                   </div>
-                  <div className="bg-[#F8FAFC] border border-[#E7ECF2] p-3 rounded-xl">
-                    <span className="text-[10px] uppercase font-bold text-[#657189] block mb-1">Events Consumed</span>
+                  <div className="bg-[#090D1A] border border-[#1A223D] p-3 rounded-xl">
+                    <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-1">Events Consumed</span>
                     <span className="text-sm font-bold font-mono text-violet-700">
                       {diff?.events_consumed_count || 0} events
                     </span>
                   </div>
-                  <div className="bg-[#F8FAFC] border border-[#E7ECF2] p-3 rounded-xl">
-                    <span className="text-[10px] uppercase font-bold text-[#657189] block mb-1">Version Evolution</span>
+                  <div className="bg-[#090D1A] border border-[#1A223D] p-3 rounded-xl">
+                    <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-1">Version Evolution</span>
                     <span className="text-xs font-bold font-mono text-emerald-700">
                       Ctx v{diff?.context_drift?.old_context_version} → v{diff?.context_drift?.new_context_version}
                     </span>
@@ -1015,19 +1015,19 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                 {/* Detailed Changed Requirements List */}
                 {diff?.changed_requirements?.length > 0 && (
                   <div className="space-y-2">
-                    <h4 className="text-xs font-bold text-[#172033] uppercase tracking-wide">
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wide">
                       Reconciled Requirement Versions
                     </h4>
                     <div className="space-y-2">
                       {diff.changed_requirements.map((req: any) => (
-                        <div key={req.key} className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] text-xs flex items-center justify-between">
+                        <div key={req.key} className="p-3 rounded-xl bg-[#090D1A] border border-[#1A223D] text-xs flex items-center justify-between">
                           <div className="space-y-0.5">
                             <span className="font-mono font-bold text-teal-700">{req.key}</span>
-                            <p className="text-[11px] text-[#172033] font-medium">{req.title}</p>
+                            <p className="text-[11px] text-white font-medium">{req.title}</p>
                           </div>
                           <div className="flex items-center space-x-2 font-mono text-[11px]">
-                            <span className="px-2 py-0.5 rounded bg-slate-200 text-slate-700">v{req.old_version}</span>
-                            <ArrowRight className="w-3 h-3 text-[#657189]" />
+                            <span className="px-2 py-0.5 rounded bg-slate-200 text-[#CBD5E1]">v{req.old_version}</span>
+                            <ArrowRight className="w-3 h-3 text-[#8695B7]" />
                             <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 font-bold">v{req.new_version}</span>
                           </div>
                         </div>
@@ -1038,9 +1038,9 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
               </div>
 
               {/* Reconstructed Pack Raw JSON Toggle */}
-              <div className="bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-xs space-y-3">
+              <div className="bg-[#0F1528] border border-[#1A223D] p-5 rounded-2xl shadow-xs space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#657189]">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#8695B7]">
                     Reconstructed Authoritative Pack JSON
                   </span>
                   <button
@@ -1064,10 +1064,10 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
       {mainView === 'result' && (
         <div className="space-y-5">
           {!recoveryResult ? (
-            <div className="text-center py-16 bg-white border border-[#E7ECF2] rounded-2xl shadow-xs space-y-3">
+            <div className="text-center py-16 bg-[#0F1528] border border-[#1A223D] rounded-2xl shadow-xs space-y-3">
               <Sparkles className="w-8 h-8 text-amber-600 mx-auto opacity-60" />
-              <p className="text-xs text-[#657189]">
-                Click <strong className="text-[#172033]">"Restart &amp; Recover Context"</strong> or <strong className="text-[#172033]">"Resume Interrupted Task"</strong> to execute genuine recovery.
+              <p className="text-xs text-[#8695B7]">
+                Click <strong className="text-white">"Restart &amp; Recover Context"</strong> or <strong className="text-white">"Resume Interrupted Task"</strong> to execute genuine recovery.
               </p>
               <button
                 onClick={handleResume}
@@ -1079,7 +1079,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
             </div>
           ) : (
             <div className="space-y-5">
-              <div className="bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-xs space-y-4">
+              <div className="bg-[#0F1528] border border-[#1A223D] p-5 rounded-2xl shadow-xs space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     {recoveryResult.task_resumed ? (
@@ -1087,45 +1087,45 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                     ) : (
                       <AlertCircle className="w-5 h-5 text-blue-600" />
                     )}
-                    <h2 className="text-sm font-bold text-[#172033]">
+                    <h2 className="text-sm font-bold text-white">
                       {recoveryResult.task_resumed ? 'Agent Execution Resumed' : 'Context Reconstructed (No Active Task)'}
                     </h2>
                   </div>
                   <span className={`px-2.5 py-1 rounded-full text-xs font-mono font-bold ${
-                    recoveryResult.task_resumed ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'
+                    recoveryResult.task_resumed ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-[#E2E8F0]'
                   }`}>
                     {recoveryResult.recovery_status || (recoveryResult.task_resumed ? 'COMPLETED' : 'NO_TASK_TO_RESUME')}
                   </span>
                 </div>
 
                 {/* Honest Outcome Message */}
-                <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] text-xs text-[#172033] leading-relaxed">
-                  <span className="font-bold text-[#657189] block text-[10px] uppercase mb-1">Backend Trace</span>
+                <div className="p-4 rounded-xl bg-[#090D1A] border border-[#1A223D] text-xs text-white leading-relaxed">
+                  <span className="font-bold text-[#8695B7] block text-[10px] uppercase mb-1">Backend Trace</span>
                   {recoveryResult.message || recoveryResult.recovery_data?.recovery_summary}
                 </div>
 
                 {/* Outcome Metrics */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                  <div className="bg-[#F8FAFC] border border-[#E7ECF2] p-3 rounded-xl">
-                    <span className="text-[10px] uppercase font-bold text-[#657189] block mb-1">Previous Run</span>
+                  <div className="bg-[#090D1A] border border-[#1A223D] p-3 rounded-xl">
+                    <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-1">Previous Run</span>
                     <span className="font-mono text-xs font-bold text-violet-700 truncate block">
                       {recoveryResult.previous_run_id || 'None'}
                     </span>
                   </div>
-                  <div className="bg-[#F8FAFC] border border-[#E7ECF2] p-3 rounded-xl">
-                    <span className="text-[10px] uppercase font-bold text-[#657189] block mb-1">Resulting Run</span>
+                  <div className="bg-[#090D1A] border border-[#1A223D] p-3 rounded-xl">
+                    <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-1">Resulting Run</span>
                     <span className="font-mono text-xs font-bold text-emerald-700 truncate block">
                       {recoveryResult.resulting_run_id || 'None (Not Dispatched)'}
                     </span>
                   </div>
-                  <div className="bg-[#F8FAFC] border border-[#E7ECF2] p-3 rounded-xl">
-                    <span className="text-[10px] uppercase font-bold text-[#657189] block mb-1">Events Discovered</span>
+                  <div className="bg-[#090D1A] border border-[#1A223D] p-3 rounded-xl">
+                    <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-1">Events Discovered</span>
                     <span className="font-mono text-xs font-bold text-amber-700 block">
                       {recoveryResult.events_discovered || recoveryResult.recovery_data?.events_discovered || 0} events
                     </span>
                   </div>
-                  <div className="bg-[#F8FAFC] border border-[#E7ECF2] p-3 rounded-xl">
-                    <span className="text-[10px] uppercase font-bold text-[#657189] block mb-1">Validation Outcome</span>
+                  <div className="bg-[#090D1A] border border-[#1A223D] p-3 rounded-xl">
+                    <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-1">Validation Outcome</span>
                     <span className="font-mono text-xs font-bold text-teal-700 block">
                       {recoveryResult.validation_outcome || 'PASSED'}
                     </span>
@@ -1139,26 +1139,26 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
 
       {/* VIEW 4: RECOVERY HISTORY */}
       {mainView === 'history' && (
-        <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-xs space-y-4">
+        <div className="bg-[#0F1528] border border-[#1A223D] rounded-2xl p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-white">
                 Persisted Recovery History ({recoveryHistory.length})
               </h3>
-              <p className="text-xs text-[#657189] mt-0.5">
+              <p className="text-xs text-[#8695B7] mt-0.5">
                 Every context rebuild and resumption attempt is permanently audited in SQLite.
               </p>
             </div>
           </div>
 
           {recoveryHistory.length === 0 ? (
-            <div className="p-8 text-center text-xs text-[#657189] bg-[#F8FAFC] rounded-xl border border-[#E7ECF2]">
+            <div className="p-8 text-center text-xs text-[#8695B7] bg-[#090D1A] rounded-xl border border-[#1A223D]">
               No recovery attempts recorded for {selectedAgent.toUpperCase()} yet. Click Rebuild or Resume above.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
-                <thead className="bg-[#F8FAFC] text-[10px] uppercase font-bold text-[#657189] border-b border-[#E7ECF2]">
+                <thead className="bg-[#090D1A] text-[10px] uppercase font-bold text-[#8695B7] border-b border-[#1A223D]">
                   <tr>
                     <th className="p-3">Recovery ID</th>
                     <th className="p-3">Status</th>
@@ -1172,7 +1172,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                 </thead>
                 <tbody className="divide-y divide-[#E7ECF2]">
                   {recoveryHistory.map((rec) => (
-                    <tr key={rec.id} className="hover:bg-[#F8FAFC] transition">
+                    <tr key={rec.id} className="hover:bg-[#090D1A] transition">
                       <td className="p-3 font-mono font-bold text-teal-700">{rec.id}</td>
                       <td className="p-3">
                         <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold ${
@@ -1180,7 +1180,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                             : rec.recovery_status === 'REBUILT_ONLY'
                             ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                            : 'bg-slate-100 text-slate-700 border border-slate-200'
+                            : 'bg-slate-100 text-[#CBD5E1] border border-[#1A223D]'
                         }`}>
                           {rec.recovery_status}
                         </span>
@@ -1195,10 +1195,10 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                             <span>Resumed</span>
                           </span>
                         ) : (
-                          <span className="text-[#657189]">Rebuilt Only</span>
+                          <span className="text-[#8695B7]">Rebuilt Only</span>
                         )}
                       </td>
-                      <td className="p-3 font-mono text-[#657189] text-[11px] truncate max-w-[120px]" title={rec.previous_run_id || ''}>
+                      <td className="p-3 font-mono text-[#8695B7] text-[11px] truncate max-w-[120px]" title={rec.previous_run_id || ''}>
                         {rec.previous_run_id || '-'}
                       </td>
                       <td className="p-3 font-mono text-emerald-700 text-[11px] truncate max-w-[120px]" title={rec.resulting_agent_run_id || ''}>
@@ -1207,7 +1207,7 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
                       <td className="p-3 font-mono text-violet-700 font-semibold">
                         {rec.events_consumed_count || 0}
                       </td>
-                      <td className="p-3 font-mono text-[#657189] text-[11px]">
+                      <td className="p-3 font-mono text-[#8695B7] text-[11px]">
                         {new Date(rec.created_at).toLocaleTimeString()}
                       </td>
                     </tr>

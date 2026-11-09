@@ -308,7 +308,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations..."
-              className="w-full pl-8 pr-3 py-1.5 bg-[#141A33] border border-[#1A223D] rounded-xl text-xs text-white placeholder-[#94A3B8] focus:bg-white focus:border-teal-500 outline-hidden transition"
+              className="w-full pl-8 pr-3 py-1.5 bg-[#141A33] border border-[#1A223D] rounded-xl text-xs text-white placeholder-[#94A3B8] focus:bg-[#18203E] focus:border-teal-500 outline-hidden transition"
             />
           </div>
         </div>
@@ -381,13 +381,13 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
       {/* 2. CENTRE COLUMN: Active Chat Stream */}
       <div className="flex-1 flex flex-col h-full bg-[#090D1A] overflow-hidden">
         {/* Stream Top Header */}
-        <div className="h-14 px-6 border-b border-[#1A223D] bg-white flex items-center justify-between shrink-0 shadow-2xs">
+        <div className="h-14 px-6 border-b border-[#1A223D] bg-[#0C1021] flex items-center justify-between shrink-0 shadow-2xs">
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-sm font-bold text-white">
                 {activeConv?.title || 'LedgerFlow Workspace Chat'}
               </h1>
-              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/30">
                 Shared Space
               </span>
             </div>
@@ -400,25 +400,25 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
             {/* Active Participant Avatars */}
             <div className="flex items-center -space-x-1.5">
               <div
-                className="w-7 h-7 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
+                className="w-7 h-7 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#0C1021] shadow-2xs"
                 title="Alex (Founder / Decision Owner)"
               >
                 A
               </div>
               <div
-                className="w-7 h-7 rounded-full bg-[#D946A1] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
+                className="w-7 h-7 rounded-full bg-[#D946A1] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#0C1021] shadow-2xs"
                 title="Maya (Product Designer)"
               >
                 M
               </div>
               <div
-                className="w-7 h-7 rounded-full bg-[#7C3AED] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
+                className="w-7 h-7 rounded-full bg-[#7C3AED] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#0C1021] shadow-2xs"
                 title="NOVA (AI Product Strategist)"
               >
                 N
               </div>
               <div
-                className="w-7 h-7 rounded-full bg-[#0D9488] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
+                className="w-7 h-7 rounded-full bg-[#0D9488] text-white flex items-center justify-center font-bold text-xs ring-2 ring-[#0C1021] shadow-2xs"
                 title="PIXEL (AI Software Engineer)"
               >
                 P
@@ -535,7 +535,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                             className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider ${
                               isNova
                                 ? 'bg-violet-50 text-violet-700 border border-violet-200'
-                                : 'bg-teal-50 text-teal-700 border border-teal-200'
+                                : 'bg-teal-500/10 text-teal-300 border border-teal-500/30'
                             }`}
                           >
                             AI Agent
@@ -642,7 +642,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                   recipient === 'team'
                     ? 'bg-slate-900 text-white font-semibold shadow-2xs'
-                    : 'text-[#8695B7] hover:text-white hover:bg-white'
+                    : 'text-[#8695B7] hover:text-white hover:bg-[#1A223D]'
                 }`}
               >
                 <Users className="w-3 h-3" />
@@ -654,7 +654,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                   recipient === 'nova'
                     ? 'bg-violet-600 text-white font-semibold shadow-2xs'
-                    : 'text-[#8695B7] hover:text-white hover:bg-white'
+                    : 'text-[#8695B7] hover:text-white hover:bg-[#1A223D]'
                 }`}
               >
                 <Bot className="w-3 h-3 text-violet-300" />
@@ -666,7 +666,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                   recipient === 'pixel'
                     ? 'bg-teal-600 text-white font-semibold shadow-2xs'
-                    : 'text-[#8695B7] hover:text-white hover:bg-white'
+                    : 'text-[#8695B7] hover:text-white hover:bg-[#1A223D]'
                 }`}
               >
                 <Code className="w-3 h-3 text-teal-300" />
@@ -680,7 +680,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
           </div>
 
           {/* Textarea Composer */}
-          <div className="relative bg-[#141A33] border border-[#222C52] focus-within:border-teal-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-100 rounded-xl transition shadow-2xs p-3">
+          <div className="relative bg-[#141A33] border border-[#222C52] focus-within:border-teal-500 focus-within:bg-[#18203E] focus-within:ring-1 focus-within:ring-teal-500/40 rounded-xl transition shadow-2xs p-3">
             <textarea
               ref={textareaRef}
               rows={2}
@@ -938,19 +938,19 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                   Default Room Members
                 </label>
                 <div className="grid grid-cols-2 gap-2 text-xs text-[#A0AEC0]">
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-[#141A33] border border-[#222C52] text-[#A0AEC0]">
                     <span className="w-2 h-2 rounded-full bg-blue-500" />
                     <span>Alex (Decision Owner)</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-[#141A33] border border-[#222C52] text-[#A0AEC0]">
                     <span className="w-2 h-2 rounded-full bg-indigo-500" />
                     <span>Maya (Designer)</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-[#141A33] border border-[#222C52] text-[#A0AEC0]">
                     <span className="w-2 h-2 rounded-full bg-violet-500" />
                     <span>NOVA (AI Strategist)</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-[#141A33] border border-[#222C52] text-[#A0AEC0]">
                     <span className="w-2 h-2 rounded-full bg-teal-500" />
                     <span>PIXEL (AI Engineer)</span>
                   </div>
