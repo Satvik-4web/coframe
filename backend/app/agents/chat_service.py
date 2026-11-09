@@ -184,58 +184,51 @@ Instruction for {agent_id.upper()}:
 
 
 def _detect_ambiguity(message: str) -> bool:
-    """
-    Returns True ONLY when the message is a bare unexplained acronym with zero surrounding context.
-    Short messages that contain actual product/UX/feature words are NOT ambiguous.
-    """
+    """Detects whether a product prompt contains ambiguous acronyms or underspecified requests."""
     m_lower = message.lower().strip()
     words = [w.strip(".,!?:;\"'()") for w in m_lower.split()]
 
-    # If any product/feature/improvement intent words are present, it is NOT ambiguous
-    product_intent_words = [
-        "ui", "ux", "design", "better", "improve", "redesign", "feature", "add", "make",
-        "build", "create", "update", "change", "fix", "enhance", "integrate", "workflow",
-        "dashboard", "approval", "expense", "currency", "invoice", "policy", "receipt",
-        "travel", "report", "analytics", "ocr", "sso", "erp", "notification", "alert",
-        "export", "import", "chart", "graph", "table", "filter", "search", "user", "role",
-        "permission", "audit", "compliance", "budget", "spending", "vendor", "category",
+    ambiguous_acronyms = ["sai", "erp", "sso", "ai", "ml", "nlp"]
+    has_ambiguous_acronym = any(acronym in words for acronym in ambiguous_acronyms)
+
+    known_expansions = [
+        "smart automated invoicing",
+        "spend anomaly intelligence",
+        "strategic account integration",
+        "single sign on",
+        "enterprise resource planning",
     ]
-    if any(w in m_lower for w in product_intent_words):
+    if any(exp in m_lower for exp in known_expansions):
         return False
 
-    # A message is ambiguous only if it is essentially JUST an unexplained acronym
-    truly_ambiguous_standalone = ["sai", "nlp", "ml"]
-    if len(words) <= 2 and any(acronym in words for acronym in truly_ambiguous_standalone):
+    if has_ambiguous_acronym:
+        return True
+
+    ui_or_feature_words = [
+        "ui", "ux", "design", "better", "improve", "redesign", "feature", "travel",
+        "currency", "expense", "policy", "receipt", "approval", "workflow", "matrix",
+        "dashboard", "table", "button", "card", "view", "component", "export",
+    ]
+    if any(w in m_lower for w in ui_or_feature_words):
+        return False
+
+    if len(words) <= 5 and not any(t in m_lower for t in ["create proposal", "create prd", "generate prd", "submit prd"]):
         return True
 
     return False
 
 
 def _should_create_proposal(user_message: str, raw_output: dict, agent_id: str) -> bool:
-    """
-    Determines whether a proposal should be created from this agent response.
-
-    For NOVA:
-    - If NOVA itself set proposal_intent=true OR provided prd_data, always create.
-    - If the message contains a product/feature/UX keyword, create even without explicit flag.
-    - Only skip if ambiguity detected AND nova didn't set intent.
-
-    For PIXEL:
-    - Only create when operations are provided AND proposal_intent is set.
-    """
     m_lower = user_message.lower().strip()
 
     if raw_output.get("force_proposal") is True:
         return True
 
     if agent_id == "nova":
-        # If NOVA explicitly decided to create a PRD, always honour it
-        if bool(raw_output.get("proposal_intent")) or bool(raw_output.get("prd_data")):
-            return True
-        # If ambiguity gate triggers and NOVA didn't set intent, respect the clarification mode
         if _detect_ambiguity(user_message):
             return False
-        # Any product/feature keyword in the user message → create proposal
+        if bool(raw_output.get("proposal_intent")) or bool(raw_output.get("prd_data")):
+            return True
         product_triggers = [
             "ui", "ux", "design", "better", "improve", "redesign", "feature", "add", "make",
             "build", "create", "update", "change", "fix", "enhance", "integrate", "workflow",
@@ -249,7 +242,6 @@ def _should_create_proposal(user_message: str, raw_output: dict, agent_id: str) 
             return True
         return bool(raw_output.get("target_sections"))
 
-    # PIXEL: only create if operations present and intent set
     return bool(raw_output.get("proposal_intent")) and bool(
         raw_output.get("target_sections") or raw_output.get("operations")
     )
