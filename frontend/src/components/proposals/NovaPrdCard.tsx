@@ -51,60 +51,61 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
 
   return (
     <div
-      className={`rounded-2xl border transition-all p-5 shadow-xs ${
+      className={`rounded-xl border transition-all p-4.5 shadow-2xs ${
         isConfirmed
-          ? 'bg-gradient-to-br from-white via-white to-violet-50/20 border-violet-200'
+          ? 'bg-white border-emerald-200/80 ring-1 ring-emerald-500/10'
           : proposal.status === 'stale'
-          ? 'bg-white border-amber-300 ring-2 ring-amber-100/60'
-          : 'bg-white border-[#E2E8F0] hover:border-violet-300 hover:shadow-sm'
+          ? 'bg-white border-amber-300 ring-1 ring-amber-500/20'
+          : 'bg-white border-slate-200/80 hover:border-slate-300'
       }`}
     >
-      {/* 1. Header: NOVA Identity, Role, PRD Tag, Confirmation Status */}
-      <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 rounded-xl bg-violet-600 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
-            <Brain className="w-5 h-5 text-violet-100" />
+      {/* 1. Header: NOVA Identity, PRD Tag, Confirmation Status */}
+      <div className="flex flex-wrap items-center justify-between gap-2.5 mb-2.5">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-xs border border-purple-200 shrink-0">
+            <Brain className="w-4 h-4 text-purple-600" />
           </div>
 
           <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-bold text-xs text-[#172033] tracking-tight">NOVA</span>
-              <span className="text-[11px] text-[#657189] font-medium">AI Product Strategist</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200 uppercase tracking-wider">
-                Product Requirements
+            <div className="flex items-center gap-1.5">
+              <span className="font-bold text-xs text-slate-900">NOVA</span>
+              <span className="text-[11px] text-slate-400">•</span>
+              <span className="text-[11px] text-slate-500 font-medium">Product Strategist</span>
+              <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-purple-50 text-purple-700 border border-purple-200/60 uppercase font-mono">
+                PRD
               </span>
             </div>
-            <p className="text-[10px] text-[#657189] mt-0.5 font-mono">
-              Task: {proposal.task_id || proposal.run_id || 'PRD-01'} · Submitted {timeStr}
+            <p className="text-[10px] text-slate-400 font-mono">
+              Task #{proposal.task_id || proposal.run_id || 'PRD'} · {timeStr}
             </p>
           </div>
         </div>
 
         {/* Confirmation Status Pill */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           {isConfirmed ? (
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-2xs">
-              <Check className="w-3.5 h-3.5 text-emerald-600" />
-              <span>{hasLinkedImplementation ? 'CONFIRMED · DELEGATED TO PIXEL' : 'CONFIRMED REQUIREMENTS'}</span>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+              <Check className="w-3 h-3 text-emerald-600" />
+              <span>{hasLinkedImplementation ? 'CONFIRMED · DELEGATED TO PIXEL' : 'CONFIRMED'}</span>
             </span>
           ) : proposal.status === 'stale' ? (
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
-              ⚠️ STALE (REQUIREMENTS DRIFT)
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+              ⚠️ STALE (DRIFT DETECTED)
             </span>
           ) : (
-            <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-violet-50 text-violet-700 border border-violet-300 flex items-center gap-1.5 shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/70 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
               <span>READY FOR REVIEW</span>
             </span>
           )}
 
           {proposal.prune_metadata && (
             <span
-              className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1"
-              title="Verified by Prune Ed25519"
+              className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1"
+              title="Cryptographically signed by Prune Ed25519"
             >
-              <span>🛡️</span>
-              <span>Prune Signed</span>
+              <Shield className="w-3 h-3 text-emerald-600" />
+              <span>Prune</span>
             </span>
           )}
         </div>
@@ -112,128 +113,115 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
 
       {/* 2. PRD Title & Document Headline */}
       <div className="mb-2">
-        <h3 className="font-bold text-sm text-[#172033] leading-snug flex items-center gap-2">
-          <FileText className="w-4 h-4 text-violet-600 shrink-0" />
+        <h3 className="font-semibold text-sm text-slate-900 leading-snug flex items-center gap-2">
+          <FileText className="w-3.5 h-3.5 text-purple-600 shrink-0" />
           <span>{title}</span>
         </h3>
       </div>
 
-      {/* 3. Executive Summary (Human-readable document excerpt) */}
-      <div className="mb-3.5 p-3 rounded-xl bg-[#FAFBFD] border border-[#E7ECF2]">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-violet-800 mb-1">
+      {/* 3. Executive Summary */}
+      <div className="mb-3 p-2.5 rounded-lg bg-slate-50/70 border border-slate-200/60">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-purple-900 mb-0.5">
           Executive Summary
         </p>
-        <p className="text-xs text-[#334155] leading-relaxed line-clamp-3">
+        <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
           {execSummary}
         </p>
       </div>
 
-      {/* 4. Document Metrics Strip: Functional Requirements, Criteria, Target Audience */}
-      <div className="flex flex-wrap items-center gap-3 mb-4 text-xs text-[#657189] pb-3 border-b border-[#F0F3F7]">
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200">
-          <span className="font-bold text-violet-700">{frCount}</span>
-          <span className="text-[11px]">Functional Requirements</span>
+      {/* 4. Document Metrics Strip */}
+      <div className="flex flex-wrap items-center gap-2 mb-3 text-xs text-slate-500 pb-2.5 border-b border-slate-100">
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100/70 text-[11px]">
+          <span className="font-semibold text-purple-700 font-mono">{frCount}</span>
+          <span className="text-slate-600">Requirements</span>
         </div>
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 border border-slate-200">
-          <span className="font-bold text-emerald-700">{acCount}</span>
-          <span className="text-[11px]">Acceptance Criteria</span>
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100/70 text-[11px]">
+          <span className="font-semibold text-emerald-700 font-mono">{acCount}</span>
+          <span className="text-slate-600">Criteria</span>
         </div>
-        {prd?.target_users?.primary_users && (
-          <div className="flex items-center gap-1.5 text-[11px] truncate max-w-xs text-[#475569]">
-            <span className="text-[#94A3B8]">Audience:</span>
-            <span className="font-medium truncate">{prd.target_users.primary_users}</span>
-          </div>
-        )}
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100/70 text-[11px]">
+          <span className="text-slate-400">Audience:</span>
+          <span className="font-medium text-slate-700 truncate max-w-[200px]">{prd?.target_users?.primary_users || (prd as any)?.target_audience || 'Enterprise'}</span>
+        </div>
       </div>
 
-      {/* 5. Collapsible Technical Details (Raw JSON hidden from primary view) */}
-      <div className="mb-4">
+      {/* 5. Raw Technical Details Toggle */}
+      <div className="mb-3">
         <button
           type="button"
           onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
-          className="flex items-center justify-between w-full text-xs font-medium text-[#657189] hover:text-[#172033] py-1 transition cursor-pointer"
+          className="flex items-center justify-between w-full text-[11px] font-medium text-slate-400 hover:text-slate-700 py-0.5 transition cursor-pointer"
         >
-          <span className="text-[11px]">
-            {showTechnicalDetails ? 'Hide Technical Details' : 'Technical Details → View Raw Proposal JSON'}
+          <span>
+            {showTechnicalDetails ? 'Hide technical JSON' : 'Inspect raw proposal JSON'}
           </span>
           {showTechnicalDetails ? (
-            <ChevronUp className="w-3.5 h-3.5" />
+            <ChevronUp className="w-3 h-3" />
           ) : (
-            <ChevronDown className="w-3.5 h-3.5" />
+            <ChevronDown className="w-3 h-3" />
           )}
         </button>
 
         {showTechnicalDetails && (
-          <div className="mt-2 space-y-2 text-xs bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
-            <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#657189]">
-              <span>Context: <strong>v{proposal.base_context_version}</strong></span>
-              <span>•</span>
-              <span>Artifact: <strong>v{proposal.base_artifact_version}</strong></span>
-              <span>•</span>
-              <span>Sections: <strong>{proposal.target_sections.join(', ')}</strong></span>
-            </div>
-            <pre className="font-mono text-[10px] text-[#172033] bg-white p-2.5 rounded-lg border border-[#E7ECF2] overflow-x-auto max-h-48">
-              {JSON.stringify(proposal.changes || proposal, null, 2)}
-            </pre>
+          <div className="mt-2 space-y-1.5 text-xs bg-slate-900 text-slate-200 p-2.5 rounded-lg overflow-x-auto max-h-40 font-mono text-[10px]">
+            <pre>{JSON.stringify(proposal.changes || proposal, null, 2)}</pre>
           </div>
         )}
       </div>
 
-      {/* 6. Primary & Secondary Actions Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#F0F3F7]">
-        <div className="text-[11px] text-[#657189]">
+      {/* 6. Action Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+        <div className="text-[11px] text-slate-500">
           {isConfirmed ? (
-            <span className="text-emerald-700 font-semibold flex items-center gap-1">
+            <span className="text-emerald-700 font-medium flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" />
               {hasLinkedImplementation
-                ? 'Confirmed & Delegated to PIXEL · Implementation Active'
-                : 'Authoritative Product Context'}
+                ? 'Confirmed & Delegated to PIXEL'
+                : 'Authoritative Requirements Baseline'}
             </span>
           ) : (
-            <span>Alex confirmation required to authorize implementation</span>
+            <span>Alex confirmation authorizes implementation</span>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Primary Action: Read PRD Document */}
+          {/* Read PRD */}
           <button
             type="button"
             onClick={() => onOpenPrd(proposal)}
-            className="px-4 py-2 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-xs font-bold flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+            className="px-3 py-1.5 rounded-md bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
           >
-            <FileText className="w-3.5 h-3.5" />
+            <FileText className="w-3 h-3 text-purple-600" />
             <span>Read PRD</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-3 h-3 text-slate-400" />
           </button>
 
-          {/* If confirmed and linked pixel proposal exists, show View PIXEL Task */}
+          {/* Linked PIXEL Task */}
           {isConfirmed && onOpenPixelProposal && (
             <button
               type="button"
               onClick={onOpenPixelProposal}
-              className="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
-              title="View PIXEL implementation proposal and technical diff"
+              className="px-3 py-1.5 rounded-md bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
             >
-              <Code2 className="w-3.5 h-3.5" />
+              <Code2 className="w-3 h-3 text-teal-600" />
               <span>View PIXEL Task</span>
-              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
 
-          {/* Secondary Action: Confirm Requirements if not confirmed */}
+          {/* Confirm Requirements */}
           {!isConfirmed && proposal.status === 'pending_review' && (
             <button
               type="button"
               disabled={!isAlex}
-              onClick={() => onConfirmRequirements(proposal.proposal_id || proposal.id || "")}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
+              onClick={() => onConfirmRequirements(proposal.proposal_id || proposal.id || '')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition cursor-pointer ${
                 isAlex
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-2xs'
+                  ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-2xs'
                   : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
               }`}
-              title={isAlex ? 'Confirm requirements and automatically delegate implementation to PIXEL' : 'Only Alex (Founder / Decision Owner) can confirm requirements'}
+              title={isAlex ? 'Confirm requirements and delegate to PIXEL' : 'Only Alex (Founder / Decision Owner) can confirm'}
             >
-              <Check className="w-3.5 h-3.5" />
+              <Check className="w-3 h-3" />
               <span>Confirm Requirements</span>
             </button>
           )}

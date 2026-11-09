@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Send, Bot, Code, Users, ArrowRight } from 'lucide-react';
+import { Sparkles, Send, Bot, Code2, Users, ArrowRight, CornerDownLeft } from 'lucide-react';
 import { HumanIdentity } from '../../types';
 import { sendChatMessage } from '../../lib/api';
 
@@ -72,119 +72,122 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
   };
 
   return (
-    <div className="bg-white border border-[#E8EAF2] rounded-2xl p-6 shadow-sm relative overflow-hidden">
-      {/* Subtle violet/indigo glow in corner */}
-      <div className="absolute top-0 right-0 w-80 h-80 bg-violet-500/5 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
-
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="p-1 rounded-lg bg-violet-50 border border-violet-200">
-              <Sparkles className="w-4 h-4 text-violet-600" />
-            </span>
-            <h2 className="text-base font-bold text-[#172033]">What would you like to build today?</h2>
+    <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs relative overflow-hidden">
+      {/* Header with Title and Recipient Selector */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 rounded-md bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
+            <Sparkles className="w-3.5 h-3.5" />
           </div>
-          <p className="text-xs text-[#657189] mt-1">
-            Describe a product idea or improvement. NOVA will help turn it into a clear product specification.
-          </p>
+          <div>
+            <h2 className="text-sm font-semibold text-slate-900 tracking-tight">Initiate Product Work</h2>
+            <p className="text-[11px] text-slate-500">
+              Formulate a feature or design idea. NOVA automatically produces a structured PRD.
+            </p>
+          </div>
         </div>
 
-        {/* Recipient Selector */}
-        <div className="flex items-center gap-1.5 p-1 bg-[#F7F8FC] border border-[#E8EAF2] rounded-xl self-start sm:self-auto shadow-2xs">
+        {/* Recipient Selector Tabs */}
+        <div className="flex items-center gap-1 p-0.5 bg-slate-100/80 rounded-lg self-start sm:self-auto border border-slate-200/50">
           <button
             type="button"
             onClick={() => setRecipient('nova')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
               recipient === 'nova'
-                ? 'bg-violet-600 text-white font-semibold shadow-2xs'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-white'
+                ? 'bg-white text-indigo-700 font-semibold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Bot className="w-3.5 h-3.5" />
-            <span>NOVA (Product)</span>
+            <Bot className="w-3 h-3 text-indigo-500" />
+            <span>NOVA</span>
           </button>
           <button
             type="button"
             onClick={() => setRecipient('pixel')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
               recipient === 'pixel'
-                ? 'bg-teal-600 text-white font-semibold shadow-2xs'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-white'
+                ? 'bg-white text-teal-700 font-semibold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Code className="w-3.5 h-3.5" />
-            <span>PIXEL (Eng)</span>
+            <Code2 className="w-3 h-3 text-teal-500" />
+            <span>PIXEL</span>
           </button>
           <button
             type="button"
             onClick={() => setRecipient('team')}
-            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
               recipient === 'team'
-                ? 'bg-slate-900 text-white font-semibold shadow-2xs'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-white'
+                ? 'bg-white text-slate-900 font-semibold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Users className="w-3.5 h-3.5" />
-            <span>Entire Team</span>
+            <Users className="w-3 h-3 text-slate-400" />
+            <span>Team</span>
           </button>
         </div>
       </div>
 
       {/* Input Composer Box */}
-      <div className="relative bg-[#F7F8FC] border border-[#E8EAF2] focus-within:border-violet-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-violet-100 rounded-xl transition shadow-2xs p-3">
+      <div className="relative bg-slate-50/70 border border-slate-200/80 focus-within:border-slate-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-slate-900/5 rounded-lg transition p-3">
         <textarea
           rows={2}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="e.g. Introduce a multi-currency expense approval workflow into LedgerFlow..."
-          className="w-full text-xs text-[#172033] placeholder-[#94A3B8] resize-none outline-hidden bg-transparent"
+          className="w-full text-xs text-slate-900 placeholder-slate-400 resize-none outline-none bg-transparent"
         />
 
-        <div className="flex items-center justify-between pt-2 border-t border-[#E8EAF2] mt-2">
-          <span className="text-[11px] text-[#94A3B8]">
-            Press <kbd className="px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 font-mono text-[10px]">Enter</kbd> to start collaboration
+        <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 mt-1">
+          <span className="text-[10px] text-slate-400 flex items-center gap-1">
+            <span>Press</span>
+            <kbd className="px-1 py-0.5 rounded bg-slate-200/70 text-slate-600 font-mono text-[9px]">Enter ↵</kbd>
+            <span>to collaborate</span>
           </span>
 
           <button
             type="button"
             onClick={() => handleSend()}
             disabled={!message.trim() || isSending}
-            className={`px-4 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-2xs cursor-pointer ${
+            className={`px-3 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition cursor-pointer ${
               message.trim() && !isSending
-                ? 'bg-violet-600 hover:bg-violet-700 text-white'
-                : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-2xs'
+                : 'bg-slate-200/70 text-slate-400 cursor-not-allowed'
             }`}
           >
-            <span>{isSending ? 'Dispatching...' : 'Start Collaboration'}</span>
-            <Send className="w-3.5 h-3.5" />
+            <span>{isSending ? 'Dispatching...' : 'Dispatch'}</span>
+            <CornerDownLeft className="w-3 h-3" />
           </button>
         </div>
       </div>
 
       {/* Suggested Prompts */}
-      <div className="mt-4 pt-3 border-t border-[#E8EAF2]">
-        <span className="text-[11px] font-bold text-[#657189] uppercase tracking-wider block mb-2">
-          Suggested Features & Prompts:
-        </span>
+      <div className="mt-3 pt-2.5 border-t border-slate-100">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            Quick Prompts
+          </span>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
           {suggestedPrompts.map((item) => (
             <button
               key={item.label}
               type="button"
               onClick={() => handleSend(item.text, item.recipient)}
-              className="text-left p-2.5 rounded-xl bg-[#F7F8FC] hover:bg-violet-50/60 border border-[#E8EAF2] hover:border-violet-200 text-xs transition cursor-pointer group flex flex-col justify-between"
+              className="text-left p-2.5 rounded-lg bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/60 hover:border-slate-300 text-xs transition cursor-pointer group flex flex-col justify-between"
             >
-              <span className="font-bold text-[#172033] group-hover:text-violet-900 block truncate">
-                {item.label}
-              </span>
-              <p className="text-[11px] text-[#657189] group-hover:text-[#475569] line-clamp-2 mt-1">
-                {item.text}
-              </p>
-              <div className="flex items-center gap-1 text-[10px] text-violet-600 font-semibold mt-2 group-hover:translate-x-0.5 transition-transform">
-                <span>Dispatch to NOVA</span>
-                <ArrowRight className="w-3 h-3" />
+              <div>
+                <span className="font-semibold text-slate-900 group-hover:text-indigo-600 block text-xs truncate">
+                  {item.label}
+                </span>
+                <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-snug">
+                  {item.text}
+                </p>
+              </div>
+              <div className="flex items-center gap-1 text-[10px] text-indigo-600 font-medium mt-2">
+                <span>Start</span>
+                <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
               </div>
             </button>
           ))}

@@ -71,7 +71,7 @@ export function App() {
 
   if (loading && !state) {
     return (
-      <div className="min-h-screen bg-[#F6F8FB] flex items-center justify-center text-teal-600 font-medium text-sm">
+      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-teal-600 font-medium text-sm">
         Initializing COFRAME Multiplayer Engine...
       </div>
     );
@@ -84,7 +84,7 @@ export function App() {
   ).length;
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F6F8FB] text-[#172033] font-sans antialiased selection:bg-teal-500 selection:text-white">
+    <div className="h-screen flex flex-col overflow-hidden bg-[#F8FAFC] text-[#172033] font-sans antialiased selection:bg-teal-500 selection:text-white">
       {/* 1. Global Top Navigation */}
       <TopBar
         project={state?.project}

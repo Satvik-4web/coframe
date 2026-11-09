@@ -16,69 +16,66 @@ export const ObserverSummaryBanner: React.FC<ObserverSummaryBannerProps> = ({
   if (!summary || isDismissed) return null;
 
   return (
-    <div className="bg-gradient-to-r from-violet-50/70 via-indigo-50/50 to-teal-50/50 border-b border-[#E8EAF2] px-6 transition-all duration-200 text-xs">
-      <div className="max-w-7xl mx-auto py-2">
+    <div className="bg-slate-50/90 border-b border-slate-200/70 px-4 transition-all duration-150 text-xs">
+      <div className="max-w-7xl mx-auto py-1.5">
         {/* Compact Strip Header */}
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <span className="w-2 h-2 rounded-full bg-violet-600 animate-pulse shrink-0" />
-            <span className="text-[10px] font-bold uppercase tracking-wider text-violet-800 bg-violet-100 px-2 py-0.5 rounded-full shrink-0">
-              Live Synthesis
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse shrink-0" />
+            <span className="text-[9px] font-semibold uppercase tracking-wider text-indigo-700 bg-indigo-50 border border-indigo-200/60 px-1.5 py-0.2 rounded font-mono shrink-0">
+              Observer
             </span>
-            <p className="text-xs text-[#172033] font-medium truncate">
+            <p className="text-xs text-slate-700 font-medium truncate">
               {summary.what_changed || 'Collaboration update available'}
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold text-[#657189] hover:text-[#172033] hover:bg-white/80 transition cursor-pointer"
+              className="flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 transition cursor-pointer"
             >
-              <span>{isExpanded ? 'Less details' : 'View context'}</span>
-              {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+              <span>{isExpanded ? 'Hide' : 'Context'}</span>
+              {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
 
             <button
               onClick={() => setIsDismissed(true)}
-              className="p-1 rounded-lg text-[#657189] hover:text-[#172033] hover:bg-white/80 transition cursor-pointer"
+              className="p-1 rounded text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 transition cursor-pointer"
               title="Dismiss notification"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-3 h-3" />
             </button>
           </div>
         </div>
 
-        {/* Expandable 3-Pillar Context Panel (What Changed / Why / Next Steps) */}
+        {/* Expandable 3-Pillar Context Panel */}
         {isExpanded && (
-          <div className="mt-3 pt-3 border-t border-violet-100 grid grid-cols-1 md:grid-cols-3 gap-4 pb-1 animate-in fade-in duration-150">
-            {/* 1. What Changed */}
-            <div className="space-y-1">
-              <span className="text-[10px] font-bold text-violet-800 uppercase tracking-wider">
+          <div className="mt-2 pt-2 border-t border-slate-200/60 grid grid-cols-1 md:grid-cols-3 gap-3 pb-1 animate-in fade-in duration-150">
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
                 1. What Changed
               </span>
-              <p className="text-xs text-[#172033] leading-relaxed">
+              <p className="text-xs text-slate-800 leading-relaxed">
                 {summary.what_changed}
               </p>
             </div>
 
-            {/* 2. Why */}
-            <div className="space-y-1 md:border-l md:border-violet-100 md:pl-4">
-              <span className="text-[10px] font-bold text-[#2563EB] uppercase tracking-wider">
-                2. Rationale & Context
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
+                2. Strategic Context
               </span>
-              <p className="text-xs text-[#475569] leading-relaxed">
-                {summary.why}
+              <p className="text-xs text-slate-600 leading-relaxed">
+                {summary.why || 'Maintains strict requirement provenance and contract alignment.'}
               </p>
             </div>
 
-            {/* 3. What Happens Next */}
-            <div className="space-y-1 md:border-l md:border-violet-100 md:pl-4">
-              <span className="text-[10px] font-bold text-[#0D9488] uppercase tracking-wider">
-                3. What Happens Next
+            <div className="space-y-0.5">
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
+                3. Authoritative Next Step
               </span>
-              <p className="text-xs text-[#475569] leading-relaxed">
-                {summary.what_happens_next}
+              <p className="text-xs text-indigo-700 font-medium leading-relaxed">
+                {summary.what_happens_next || 'Review active proposals in the Proposals tab.'}
               </p>
             </div>
           </div>

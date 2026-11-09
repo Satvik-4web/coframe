@@ -27,6 +27,7 @@ import {
   HelpCircle,
   Code2,
   Check,
+  ArrowUpRight,
 } from 'lucide-react';
 import {
   restartAgent,
@@ -69,12 +70,6 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
 
   const pendingPRDs = state.proposals.filter(
     (p) => p.proposal_type === 'prd_requirement' && p.status === 'pending_review'
-  );
-  const pendingPlans = state.proposals.filter(
-    (p) => p.proposal_type === 'implementation_plan' && p.status === 'pending_review'
-  );
-  const pendingReviews = state.proposals.filter(
-    (p) => p.proposal_type === 'implementation_result' && p.status === 'pending_review'
   );
 
   // Load latest PRD, Plan, and Workflow Stage from DB
@@ -127,7 +122,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
       description: 'NOVA completed product requirements. Alex confirmation required before PIXEL begins implementation.',
       actionLabel: 'Review & Confirm PRD',
       badge: 'PRD CONFIRMATION',
-      badgeColor: 'bg-violet-50 text-violet-700 border-violet-200',
+      badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
       action: () => setShowPRDModal(true),
     });
   }
@@ -138,10 +133,10 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
       id: p.proposal_id,
       type: 'conflict',
       title: `Section Conflict on '${p.target_sections[0] || 'hero'}'`,
-      description: p.conflict_reason || 'Maya manually edited this section concurrently. Reconcile side-by-side.',
+      description: p.conflict_reason || 'Concurrent manual edits detected. Reconcile side-by-side.',
       actionLabel: 'Resolve Conflict',
       badge: 'CONFLICT',
-      badgeColor: 'bg-red-50 text-red-700 border-red-200',
+      badgeColor: 'bg-rose-50 text-rose-700 border-rose-200',
       action: () => onNavigateTab('proposals', p.proposal_id),
     });
   });
@@ -166,7 +161,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
       id: p.proposal_id,
       type: 'high_impact',
       title: p.summary,
-      description: 'High-impact policy proposal requiring exclusive Alex authorization or redirection.',
+      description: 'High-impact policy proposal requiring Alex authorization.',
       actionLabel: 'Review Sign-off',
       badge: 'HIGH IMPACT',
       badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -174,179 +169,170 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     });
   });
 
-  const hasActiveTask =
-    (activePRD && activePRD.status === 'awaiting_confirmation') ||
-    pendingProposals.length > 0 ||
-    conflictProposals.length > 0 ||
-    staleProposals.length > 0;
-
   return (
-    <div className="space-y-6">
-      {/* 1. Welcome Section (Section 4.A) */}
-      <div className="bg-white border border-[#E8EAF2] rounded-2xl p-6 lg:p-8 shadow-xs relative overflow-hidden">
-        <div className="max-w-3xl">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-50 border border-violet-200 text-violet-800 text-xs font-semibold mb-3">
-            <span className="w-2 h-2 rounded-full bg-violet-600 animate-pulse" />
-            <span>Shared Workspace Active · LedgerFlow</span>
+    <div className="space-y-5 max-w-6xl mx-auto">
+      {/* 1. Sleek Workspace Header */}
+      <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
+            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-mono">
+              LedgerFlow · Human + AI Workspace
+            </span>
           </div>
-
-          <h1 className="text-2xl lg:text-3xl font-extrabold text-[#172033] tracking-tight">
-            Good morning, {humanName}. Let's build something together.
+          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
+            Welcome back, {humanName}
           </h1>
-          <p className="text-sm font-medium text-[#657189] mt-1.5 leading-relaxed">
-            Your LedgerFlow workspace brings humans and AI agents together to develop one shared product through structured, human-controlled iteration.
+          <p className="text-xs text-slate-500 mt-0.5">
+            Sequential product execution: Human Idea → NOVA PRD → Alex Approval → PIXEL Code → CAS Commit.
           </p>
+        </div>
 
-          {/* Primary & Secondary Action Buttons */}
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => onNavigateTab('chat')}
-              className="px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-semibold text-xs flex items-center gap-2 shadow-xs transition cursor-pointer"
-            >
-              <Sparkles className="w-4 h-4 text-violet-200" />
-              <span>Open Workspace Chat</span>
-            </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => onNavigateTab('chat')}
+            className="px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
+            <span>Open Chat</span>
+          </button>
 
-            <button
-              onClick={() => onNavigateTab('preview')}
-              className="px-4 py-2.5 rounded-xl bg-white hover:bg-[#F7F8FC] text-[#172033] border border-[#E8EAF2] font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
-            >
-              <Eye className="w-4 h-4 text-[#0D9488]" />
-              <span>View Product Preview</span>
-            </button>
-          </div>
+          <button
+            onClick={() => onNavigateTab('preview')}
+            className="px-3 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-medium text-xs flex items-center gap-1.5 transition cursor-pointer"
+          >
+            <Eye className="w-3.5 h-3.5 text-teal-600" />
+            <span>Live Canvas</span>
+          </button>
         </div>
       </div>
 
-      {/* 2. Prominent Quick Chat Panel (Section 4.B) */}
+      {/* 2. Focused Quick Chat Bar */}
       <OverviewQuickChat identity={identity} onNavigateTab={onNavigateTab} />
 
-      {/* 3. Project Pulse Metrics Strip (Section 4.C) */}
+      {/* 3. Project Pulse Metrics Strip */}
       <div>
-        <div className="flex items-center justify-between mb-3 px-1">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-[#657189]">
+        <div className="flex items-center justify-between mb-2.5 px-0.5">
+          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
             Project Pulse
           </h3>
-          <span className="text-[11px] text-[#94A3B8]">Real-time telemetry</span>
+          <span className="text-[10px] text-slate-400 font-mono">LIVE TELEMETRY</span>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-3.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {/* Context Version */}
-          <div className="bg-white border border-[#E8EAF2] rounded-xl p-4 shadow-2xs">
+          <div className="bg-white border border-slate-200/80 rounded-lg p-3.5 shadow-2xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-[#657189]">Context Version</span>
-              <Radio className="w-4 h-4 text-[#2563EB]" />
+              <span className="text-[11px] font-medium text-slate-500">Context Version</span>
+              <Radio className="w-3.5 h-3.5 text-blue-600" />
             </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold text-[#172033] font-mono">
+            <div className="mt-1.5 flex items-baseline gap-1">
+              <span className="text-xl font-bold text-slate-900 font-mono">
                 v{state.project.context_version}
               </span>
             </div>
-            <p className="text-[11px] text-[#657189] mt-1">Requirements provenance</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Requirements & PRDs</p>
           </div>
 
           {/* Artifact Version */}
-          <div className="bg-white border border-[#E8EAF2] rounded-xl p-4 shadow-2xs">
+          <div className="bg-white border border-slate-200/80 rounded-lg p-3.5 shadow-2xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-[#657189]">Artifact Version</span>
-              <Layers className="w-4 h-4 text-[#0D9488]" />
+              <span className="text-[11px] font-medium text-slate-500">Artifact Version</span>
+              <Layers className="w-3.5 h-3.5 text-teal-600" />
             </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold text-[#172033] font-mono">
+            <div className="mt-1.5 flex items-baseline gap-1">
+              <span className="text-xl font-bold text-slate-900 font-mono">
                 v{state.project.artifact_version}
               </span>
             </div>
-            <p className="text-[11px] text-[#657189] mt-1">Compiled product release</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Canvas component code</p>
           </div>
 
           {/* Pending PRDs */}
-          <div className="bg-white border border-[#E8EAF2] rounded-xl p-4 shadow-2xs">
+          <div className="bg-white border border-slate-200/80 rounded-lg p-3.5 shadow-2xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-[#657189]">Pending PRDs</span>
-              <FileText className="w-4 h-4 text-violet-600" />
+              <span className="text-[11px] font-medium text-slate-500">Pending PRDs</span>
+              <FileText className="w-3.5 h-3.5 text-indigo-600" />
             </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold text-[#172033]">
+            <div className="mt-1.5 flex items-baseline gap-1.5">
+              <span className="text-xl font-bold text-slate-900">
                 {pendingPRDs.length}
               </span>
-              <span className="text-xs text-[#657189]">awaiting review</span>
+              <span className="text-[10px] text-slate-400">in queue</span>
             </div>
-            <p className="text-[11px] text-[#657189] mt-1">NOVA requirements specs</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">NOVA specifications</p>
           </div>
 
           {/* Active Collaborators */}
-          <div className="bg-white border border-[#E8EAF2] rounded-xl p-4 shadow-2xs">
+          <div className="bg-white border border-slate-200/80 rounded-lg p-3.5 shadow-2xs">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-[#657189]">Active Collaborators</span>
-              <Users className="w-4 h-4 text-indigo-600" />
+              <span className="text-[11px] font-medium text-slate-500">Active Team</span>
+              <Users className="w-3.5 h-3.5 text-indigo-600" />
             </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-bold text-[#172033]">
+            <div className="mt-1.5 flex items-baseline gap-1.5">
+              <span className="text-xl font-bold text-slate-900">
                 {state.online_members.length > 0 ? state.online_members.length : 4}
               </span>
-              <span className="text-xs text-emerald-600 font-semibold">Live Sync</span>
+              <span className="text-[10px] text-emerald-600 font-semibold font-mono">SYNCED</span>
             </div>
-            <p className="text-[11px] text-[#657189] mt-1">Alex, Maya, NOVA, PIXEL</p>
+            <p className="text-[10px] text-slate-400 mt-0.5">Alex, Maya, NOVA, PIXEL</p>
           </div>
         </div>
       </div>
 
-      {/* 4. Attention Required (Section 4.D) */}
-      <div className="bg-white border border-[#E8EAF2] rounded-2xl p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[#F0F3F7]">
+      {/* 4. Attention Required */}
+      <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs space-y-3">
+        <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <span className="p-1 rounded-lg bg-amber-50 border border-amber-200">
-              <ShieldAlert className="w-4 h-4 text-amber-700" />
-            </span>
-            <h2 className="text-sm font-bold text-[#172033]">
+            <ShieldAlert className="w-4 h-4 text-amber-600" />
+            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
               Attention Required ({attentionItems.length})
             </h2>
           </div>
           {attentionItems.length > 0 && (
             <button
               onClick={() => onNavigateTab('proposals')}
-              className="text-xs font-semibold text-violet-600 hover:text-violet-700 flex items-center gap-1 cursor-pointer"
+              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
             >
-              <span>View all proposals</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <span>View all</span>
+              <ArrowRight className="w-3 h-3" />
             </button>
           )}
         </div>
 
         {attentionItems.length === 0 ? (
-          <div className="text-center py-8 px-4 rounded-xl border border-dashed border-[#E8EAF2] bg-[#F7F8FC]">
-            <CheckCircle2 className="w-8 h-8 text-emerald-500 mx-auto mb-2 opacity-80" />
-            <p className="text-xs font-bold text-[#172033]">All caught up!</p>
-            <p className="text-xs text-[#657189] mt-1 max-w-sm mx-auto">
-              No pending PRD approvals or section conflicts require immediate decision.
+          <div className="text-center py-6 px-4 rounded-lg border border-dashed border-slate-200 bg-slate-50/50">
+            <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto mb-1.5 opacity-80" />
+            <p className="text-xs font-semibold text-slate-900">Workspace in clean state</p>
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              All proposals, requirements, and section changes are approved or applied.
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {attentionItems.map((item, idx) => (
               <div
                 key={item.id || ('attn_' + idx)}
                 onClick={item.action}
-                className="p-4 rounded-xl border border-[#E8EAF2] hover:border-violet-300 hover:shadow-xs bg-[#F7F8FC] cursor-pointer transition flex flex-col md:flex-row md:items-center justify-between gap-3 group"
+                className="p-3 rounded-lg border border-slate-200/70 hover:border-indigo-300 hover:bg-indigo-50/20 bg-slate-50/50 cursor-pointer transition flex flex-col md:flex-row md:items-center justify-between gap-2.5 group"
               >
-                <div className="space-y-1 flex-1 min-w-0">
+                <div className="space-y-0.5 flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${item.badgeColor}`}>
+                    <span className={`text-[9px] font-semibold px-1.5 py-0.2 rounded ${item.badgeColor} border`}>
                       {item.badge}
                     </span>
-                    <h4 className="font-bold text-xs text-[#172033] group-hover:text-violet-700 transition truncate">
+                    <h4 className="font-semibold text-xs text-slate-900 group-hover:text-indigo-700 transition truncate">
                       {item.title}
                     </h4>
                   </div>
-                  <p className="text-xs text-[#657189] line-clamp-1">
+                  <p className="text-[11px] text-slate-500 line-clamp-1">
                     {item.description}
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-xs font-semibold text-violet-700 group-hover:translate-x-0.5 transition flex items-center gap-1">
-                    {item.actionLabel} <ArrowRight className="w-3.5 h-3.5" />
-                  </span>
+                <div className="flex items-center gap-1 shrink-0 text-xs font-medium text-indigo-600 group-hover:translate-x-0.5 transition-transform">
+                  <span>{item.actionLabel}</span>
+                  <ArrowRight className="w-3 h-3" />
                 </div>
               </div>
             ))}
@@ -354,109 +340,113 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
         )}
       </div>
 
-      {/* 5. Team Snapshot (Section 4.F) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* 5. AI Specialist Agents Card Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
         {/* NOVA Card */}
-        <div className="bg-white border border-[#E8EAF2] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-violet-50 text-violet-700 flex items-center justify-center font-bold text-base border border-violet-200">
-                <Bot className="w-5 h-5 text-violet-600" />
+        <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-xs border border-purple-200">
+                  <Bot className="w-4 h-4 text-purple-600" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-xs text-slate-900">NOVA</h4>
+                  <p className="text-[10px] text-slate-500">AI Product Strategist · Gemini 2.5</p>
+                </div>
               </div>
-              <div>
-                <h4 className="font-bold text-sm text-[#172033]">NOVA</h4>
-                <p className="text-[11px] text-[#657189]">AI Product Strategist · Gemini 2.5 Flash</p>
-              </div>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                {stageInfo?.nova_status?.includes('Analyzing') ? 'Analyzing' : 'Ready'}
+              </span>
             </div>
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
-              {stageInfo?.nova_status?.includes('Analyzing') ? 'Analyzing' : 'Ready'}
-            </span>
-          </div>
 
-          <div className="mt-4 pt-3 border-t border-[#F0F3F7] text-xs">
-            <span className="text-[10px] font-bold text-[#657189] uppercase tracking-wider block mb-1">
-              Current Mission
-            </span>
-            <p className="text-[#334155] font-medium text-xs leading-relaxed">
-              {novaRun?.task_description || 'Synthesizing requirements & structuring 11-section PRDs'}
-            </p>
+            <div className="mt-3 text-xs">
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">
+                Role & Focus
+              </span>
+              <p className="text-slate-600 text-xs leading-relaxed">
+                {novaRun?.task_description || 'Synthesizing requirements, formulating 11-section PRDs & checking compliance'}
+              </p>
+            </div>
           </div>
         </div>
 
         {/* PIXEL Card */}
-        <div className="bg-white border border-[#E8EAF2] rounded-2xl p-5 shadow-xs flex flex-col justify-between">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold text-base border border-teal-200">
-                <Code2 className="w-5 h-5 text-teal-600" />
+        <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-xs flex flex-col justify-between">
+          <div>
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center font-bold text-xs border border-teal-200">
+                  <Code2 className="w-4 h-4 text-teal-600" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-xs text-slate-900">PIXEL</h4>
+                  <p className="text-[10px] text-slate-500">AI Software Engineer · Gemini 2.5</p>
+                </div>
               </div>
-              <div>
-                <h4 className="font-bold text-sm text-[#172033]">PIXEL</h4>
-                <p className="text-[11px] text-[#657189]">AI Software Engineer · Gemini 2.5 Flash</p>
-              </div>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                {stageInfo?.pixel_status?.includes('Waiting') ? 'Awaiting PRD' : 'Standby'}
+              </span>
             </div>
-            <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
-              {stageInfo?.pixel_status?.includes('Waiting') ? 'Awaiting PRD' : 'Standby'}
-            </span>
-          </div>
 
-          <div className="mt-4 pt-3 border-t border-[#F0F3F7] text-xs">
-            <span className="text-[10px] font-bold text-[#657189] uppercase tracking-wider block mb-1">
-              Current Mission
-            </span>
-            <p className="text-[#334155] font-medium text-xs leading-relaxed">
-              {pixelRun?.task_description || 'Implementation planning on confirmed PRDs with atomic CAS commits'}
-            </p>
+            <div className="mt-3 text-xs">
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">
+                Role & Focus
+              </span>
+              <p className="text-slate-600 text-xs leading-relaxed">
+                {pixelRun?.task_description || 'Engineering plan formulation and CAS section implementation commits'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 6. Recent Activity Timeline (Section 4.E) */}
-      <div className="bg-white border border-[#E8EAF2] rounded-2xl p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between pb-3 border-b border-[#F0F3F7]">
+      {/* 6. Recent Activity Log */}
+      <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs space-y-3">
+        <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
           <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-violet-600" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
-              Recent Collaboration Events
+            <Clock className="w-4 h-4 text-slate-500" />
+            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
+              Recent Activity
             </h3>
           </div>
           <button
             onClick={() => onNavigateTab('activity')}
-            className="text-xs font-semibold text-violet-600 hover:text-violet-700 flex items-center gap-1 cursor-pointer"
+            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
           >
-            <span>Full event history</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <span>Full audit log</span>
+            <ArrowRight className="w-3 h-3" />
           </button>
         </div>
 
-        <div className="space-y-2.5">
+        <div className="space-y-1.5">
           {state.events.slice(0, 5).map((ev, idx) => (
             <div
               key={ev.id || ev.event_id || ('ev_' + idx)}
-              className="p-3 rounded-xl bg-[#F7F8FC] border border-[#E8EAF2] flex items-center justify-between text-xs"
+              className="p-2.5 rounded-lg bg-slate-50/60 border border-slate-200/60 flex items-center justify-between text-xs"
             >
-              <div className="flex items-center gap-2.5 min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
                 <span
-                  className={`w-2 h-2 rounded-full shrink-0 ${
+                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                     ev.actor_type === 'human'
                       ? 'bg-blue-600'
                       : ev.actor_id === 'nova'
-                      ? 'bg-violet-600'
+                      ? 'bg-purple-600'
                       : 'bg-teal-600'
                   }`}
                 />
                 <div className="min-w-0">
-                  <span className="font-bold text-[#172033] mr-2">
+                  <span className="font-semibold text-slate-900 mr-1.5 text-xs">
                     {ev.actor_id.toUpperCase()}
                   </span>
-                  <span className="text-[#475569] font-medium truncate">
+                  <span className="text-slate-600 truncate text-[11px]">
                     {ev.event_type.replace(/_/g, ' ')}
                   </span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 shrink-0 text-[11px] text-[#94A3B8] font-mono">
-                <span>Seq #{ev.sequence_no}</span>
+              <div className="flex items-center gap-1.5 shrink-0 text-[10px] text-slate-400 font-mono">
+                <span>#{ev.sequence_no}</span>
                 <span>•</span>
                 <span>{new Date(ev.created_at || (ev.timestamp ? ev.timestamp * 1000 : Date.now())).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
               </div>

@@ -91,6 +91,13 @@ export const ProposalList: React.FC<ProposalListProps> = ({
     loadStats();
   }, [proposals]);
 
+  useEffect(() => {
+    if (actionError) {
+      const timer = setTimeout(() => setActionError(null), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [actionError]);
+
   // Contributor classification helpers
   const isHumanProposal = (p: Proposal) => {
     const authorClean = (p.created_by || p.agent_id || p.author || '').toLowerCase();
@@ -249,228 +256,232 @@ export const ProposalList: React.FC<ProposalListProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* 1. Header & Live Database Stats Cards */}
-      <div className="space-y-4">
+      {/* 1. Header & Live Stats */}
+      <div className="space-y-3">
         {/* Main Title & Action Bar */}
-        <div className="bg-white border border-[#E7ECF2] p-5 rounded-3xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center space-x-3.5">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-500 to-teal-700 text-white flex items-center justify-center shadow-md">
-              <GitPullRequest className="w-6 h-6 text-teal-100" />
+        <div className="bg-white border border-slate-200/80 p-4 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
+              <GitPullRequest className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-lg font-bold text-[#172033] tracking-tight">
-                  Proposals & Contributions
+                <h1 className="text-base font-bold text-slate-900 tracking-tight">
+                  Proposals & Specifications
                 </h1>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-[#172033] border border-[#E7ECF2]">
-                  {proposals.length} Total
+                <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
+                  {proposals.length} total
                 </span>
               </div>
-              <p className="text-xs text-[#657189] mt-0.5">
-                Transparent multi-agent product development workflow linking strategy, code, and decisions.
+              <p className="text-xs text-slate-500 mt-0.5">
+                NOVA product requirements, PIXEL implementation plans, and human decisions.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setShowCreateHumanModal(true)}
-              className="px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 text-xs font-bold flex items-center space-x-1.5 shadow-2xs transition cursor-pointer"
+              className="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium flex items-center gap-1.5 shadow-xs transition cursor-pointer"
             >
-              <PlusCircle className="w-4 h-4 text-blue-600" />
-              <span>Add Human Contribution</span>
+              <PlusCircle className="w-3.5 h-3.5" />
+              <span>Add Contribution</span>
             </button>
           </div>
         </div>
 
-        {/* 5 Live Database Stats Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+        {/* 5 Clean Metrics Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
           {/* Card 1: Awaiting Confirmation */}
           <div
-            onClick={() => setActiveFilter('nova_prds')}
-            className={`p-4 rounded-2xl border transition cursor-pointer ${
-              activeFilter === 'nova_prds'
-                ? 'bg-violet-50/50 border-violet-300 ring-2 ring-violet-200 shadow-xs'
-                : 'bg-white border-[#E7ECF2] hover:border-violet-200 hover:shadow-2xs'
+            onClick={() => setActiveFilter("nova_prds")}
+            className={`p-3 rounded-lg border transition cursor-pointer ${
+              activeFilter === "nova_prds"
+                ? "bg-slate-900 text-white border-slate-900 shadow-xs"
+                : "bg-white border-slate-200/80 hover:border-slate-300"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-violet-700 tracking-wider">
-                Awaiting Confirmation
+              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "nova_prds" ? "text-indigo-300" : "text-slate-400"}`}>
+                Awaiting PRD
               </span>
-              <Brain className="w-3.5 h-3.5 text-violet-600" />
+              <Brain className={`w-3.5 h-3.5 ${activeFilter === "nova_prds" ? "text-indigo-300" : "text-purple-600"}`} />
             </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-[#172033]">{awaitingCount}</span>
-              <span className="text-[10px] text-[#657189] font-medium">NOVA PRDs</span>
+            <div className="mt-1 flex items-baseline gap-1">
+              <span className="text-xl font-bold font-mono">{awaitingCount}</span>
+              <span className={`text-[10px] ${activeFilter === "nova_prds" ? "text-white/60" : "text-slate-400"}`}>specs</span>
             </div>
           </div>
 
           {/* Card 2: Implementations In Progress */}
           <div
-            onClick={() => setActiveFilter('pixel_implementations')}
-            className={`p-4 rounded-2xl border transition cursor-pointer ${
-              activeFilter === 'pixel_implementations'
-                ? 'bg-teal-50/50 border-teal-300 ring-2 ring-teal-200 shadow-xs'
-                : 'bg-white border-[#E7ECF2] hover:border-teal-200 hover:shadow-2xs'
+            onClick={() => setActiveFilter("pixel_implementations")}
+            className={`p-3 rounded-lg border transition cursor-pointer ${
+              activeFilter === "pixel_implementations"
+                ? "bg-slate-900 text-white border-slate-900 shadow-xs"
+                : "bg-white border-slate-200/80 hover:border-slate-300"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-teal-700 tracking-wider">
+              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "pixel_implementations" ? "text-teal-300" : "text-slate-400"}`}>
                 In Progress
               </span>
-              <RefreshCw className="w-3.5 h-3.5 text-teal-600" />
+              <RefreshCw className={`w-3.5 h-3.5 ${activeFilter === "pixel_implementations" ? "text-teal-300" : "text-teal-600"}`} />
             </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-[#172033]">{inProgressCount}</span>
-              <span className="text-[10px] text-[#657189] font-medium">Engineering Tasks</span>
+            <div className="mt-1 flex items-baseline gap-1">
+              <span className="text-xl font-bold font-mono">{inProgressCount}</span>
+              <span className={`text-[10px] ${activeFilter === "pixel_implementations" ? "text-white/60" : "text-slate-400"}`}>tasks</span>
             </div>
           </div>
 
           {/* Card 3: Ready for Human Review */}
           <div
-            onClick={() => setActiveFilter('needs_attention')}
-            className={`p-4 rounded-2xl border transition cursor-pointer ${
-              activeFilter === 'needs_attention'
-                ? 'bg-blue-50/50 border-blue-300 ring-2 ring-blue-200 shadow-xs'
-                : 'bg-white border-[#E7ECF2] hover:border-blue-200 hover:shadow-2xs'
+            onClick={() => setActiveFilter("needs_attention")}
+            className={`p-3 rounded-lg border transition cursor-pointer ${
+              activeFilter === "needs_attention"
+                ? "bg-slate-900 text-white border-slate-900 shadow-xs"
+                : "bg-white border-slate-200/80 hover:border-slate-300"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">
-                Ready for Review
+              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "needs_attention" ? "text-blue-300" : "text-slate-400"}`}>
+                For Review
               </span>
-              <Code2 className="w-3.5 h-3.5 text-blue-600" />
+              <Code2 className={`w-3.5 h-3.5 ${activeFilter === "needs_attention" ? "text-blue-300" : "text-blue-600"}`} />
             </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-[#172033]">{readyForReviewCount}</span>
-              <span className="text-[10px] text-[#657189] font-medium">Needs Decision</span>
+            <div className="mt-1 flex items-baseline gap-1">
+              <span className="text-xl font-bold font-mono">{readyForReviewCount}</span>
+              <span className={`text-[10px] ${activeFilter === "needs_attention" ? "text-white/60" : "text-slate-400"}`}>pending</span>
             </div>
           </div>
 
           {/* Card 4: Conflicted */}
           <div
-            onClick={() => setActiveFilter('conflicts')}
-            className={`p-4 rounded-2xl border transition cursor-pointer ${
-              activeFilter === 'conflicts'
-                ? 'bg-red-50/50 border-red-300 ring-2 ring-red-200 shadow-xs'
-                : 'bg-white border-[#E7ECF2] hover:border-red-200 hover:shadow-2xs'
+            onClick={() => setActiveFilter("conflicts")}
+            className={`p-3 rounded-lg border transition cursor-pointer ${
+              activeFilter === "conflicts"
+                ? "bg-rose-900 text-white border-rose-900 shadow-xs"
+                : conflictTotalCount > 0
+                ? "bg-rose-50/50 border-rose-200"
+                : "bg-white border-slate-200/80 hover:border-slate-300"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-red-700 tracking-wider">
-                Conflicted
+              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "conflicts" ? "text-rose-200" : "text-slate-400"}`}>
+                Conflicts
               </span>
-              <ShieldAlert className="w-3.5 h-3.5 text-red-600" />
+              <ShieldAlert className={`w-3.5 h-3.5 ${activeFilter === "conflicts" ? "text-rose-200" : "text-rose-600"}`} />
             </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-red-700">{conflictTotalCount}</span>
-              <span className="text-[10px] text-red-600 font-medium">Approval Blocked</span>
+            <div className="mt-1 flex items-baseline gap-1">
+              <span className={`text-xl font-bold font-mono ${conflictTotalCount > 0 && activeFilter !== "conflicts" ? "text-rose-600" : ""}`}>
+                {conflictTotalCount}
+              </span>
+              <span className={`text-[10px] ${activeFilter === "conflicts" ? "text-white/60" : "text-slate-400"}`}>blocked</span>
             </div>
           </div>
 
           {/* Card 5: Recently Applied */}
           <div
-            onClick={() => setActiveFilter('applied')}
-            className={`p-4 rounded-2xl border transition cursor-pointer ${
-              activeFilter === 'applied'
-                ? 'bg-emerald-50/50 border-emerald-300 ring-2 ring-emerald-200 shadow-xs'
-                : 'bg-white border-[#E7ECF2] hover:border-emerald-200 hover:shadow-2xs'
+            onClick={() => setActiveFilter("applied")}
+            className={`p-3 rounded-lg border transition cursor-pointer ${
+              activeFilter === "applied"
+                ? "bg-slate-900 text-white border-slate-900 shadow-xs"
+                : "bg-white border-slate-200/80 hover:border-slate-300"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-[10px] uppercase font-bold text-emerald-700 tracking-wider">
+              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "applied" ? "text-emerald-300" : "text-slate-400"}`}>
                 Applied
               </span>
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+              <CheckCircle2 className={`w-3.5 h-3.5 ${activeFilter === "applied" ? "text-emerald-300" : "text-emerald-600"}`} />
             </div>
-            <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-black text-emerald-700">{appliedTotalCount}</span>
-              <span className="text-[10px] text-emerald-600 font-medium">To Prototype</span>
+            <div className="mt-1 flex items-baseline gap-1">
+              <span className="text-xl font-bold font-mono">{appliedTotalCount}</span>
+              <span className={`text-[10px] ${activeFilter === "applied" ? "text-white/60" : "text-slate-400"}`}>merged</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. Navigation Filter Pills */}
-      <div className="flex items-center space-x-1.5 overflow-x-auto p-1.5 bg-[#FAFBFD] border border-[#E7ECF2] rounded-2xl shrink-0">
+      {/* 2. Refined Monochromatic Filter Tabs */}
+      <div className="flex items-center gap-1 overflow-x-auto p-1 bg-slate-100/70 border border-slate-200/60 rounded-lg shrink-0">
         <button
-          onClick={() => setActiveFilter('all')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer shrink-0 ${
-            activeFilter === 'all'
-              ? 'bg-white text-[#172033] shadow-xs border border-[#E2E8F0]'
-              : 'text-[#657189] hover:text-[#172033]'
+          onClick={() => setActiveFilter("all")}
+          className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer shrink-0 ${
+            activeFilter === "all"
+              ? "bg-white text-slate-900 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
           All ({proposals.length})
         </button>
 
         <button
-          onClick={() => setActiveFilter('nova_prds')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-            activeFilter === 'nova_prds'
-              ? 'bg-violet-600 text-white shadow-xs'
-              : 'text-violet-800 hover:bg-violet-50'
+          onClick={() => setActiveFilter("nova_prds")}
+          className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            activeFilter === "nova_prds"
+              ? "bg-white text-purple-700 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          <Brain className="w-3.5 h-3.5" />
+          <Brain className="w-3 h-3 text-purple-600" />
           <span>NOVA PRDs ({novaProposals.length})</span>
         </button>
 
         <button
-          onClick={() => setActiveFilter('pixel_implementations')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-            activeFilter === 'pixel_implementations'
-              ? 'bg-teal-600 text-white shadow-xs'
-              : 'text-teal-800 hover:bg-teal-50'
+          onClick={() => setActiveFilter("pixel_implementations")}
+          className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            activeFilter === "pixel_implementations"
+              ? "bg-white text-teal-700 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          <Code2 className="w-3.5 h-3.5" />
-          <span>PIXEL Implementations ({pixelProposals.length})</span>
+          <Code2 className="w-3 h-3 text-teal-600" />
+          <span>PIXEL Code ({pixelProposals.length})</span>
         </button>
 
         <button
-          onClick={() => setActiveFilter('needs_attention')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-            activeFilter === 'needs_attention'
-              ? 'bg-blue-600 text-white shadow-xs'
-              : 'text-blue-800 hover:bg-blue-50'
+          onClick={() => setActiveFilter("needs_attention")}
+          className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            activeFilter === "needs_attention"
+              ? "bg-white text-blue-700 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          <Clock className="w-3.5 h-3.5" />
-          <span>Needs My Attention ({needsAttentionProposals.length})</span>
+          <Clock className="w-3 h-3 text-blue-600" />
+          <span>Needs Attention ({needsAttentionProposals.length})</span>
         </button>
 
         <button
-          onClick={() => setActiveFilter('conflicts')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-            activeFilter === 'conflicts'
-              ? 'bg-red-600 text-white shadow-xs'
-              : 'text-red-800 hover:bg-red-50'
+          onClick={() => setActiveFilter("conflicts")}
+          className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            activeFilter === "conflicts"
+              ? "bg-white text-rose-700 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          <ShieldAlert className="w-3.5 h-3.5" />
+          <ShieldAlert className="w-3 h-3 text-rose-600" />
           <span>Conflicts ({conflictedProposals.length})</span>
         </button>
 
         <button
-          onClick={() => setActiveFilter('applied')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-            activeFilter === 'applied'
-              ? 'bg-emerald-600 text-white shadow-xs'
-              : 'text-emerald-800 hover:bg-emerald-50'
+          onClick={() => setActiveFilter("applied")}
+          className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            activeFilter === "applied"
+              ? "bg-white text-emerald-700 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          <CheckCircle2 className="w-3.5 h-3.5" />
+          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
           <span>Applied ({appliedProposals.length})</span>
         </button>
 
         <button
-          onClick={() => setActiveFilter('rejected')}
-          className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
-            activeFilter === 'rejected'
-              ? 'bg-slate-700 text-white shadow-xs'
-              : 'text-slate-600 hover:bg-slate-100'
+          onClick={() => setActiveFilter("rejected")}
+          className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            activeFilter === "rejected"
+              ? "bg-white text-slate-800 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
           <span>Rejected ({rejectedProposals.length})</span>
@@ -478,12 +489,15 @@ export const ProposalList: React.FC<ProposalListProps> = ({
       </div>
 
       {actionError && (
-        <div className="p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-center justify-between shadow-2xs">
+        <div className="px-3.5 py-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between shadow-2xs transition-all animate-in fade-in">
           <div className="flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
-            <span>{actionError}</span>
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
+            <span className="font-medium">{actionError}</span>
           </div>
-          <button onClick={() => setActionError(null)} className="text-red-600 hover:text-red-900 text-xs font-bold cursor-pointer">
+          <button
+            onClick={() => setActionError(null)}
+            className="text-rose-700 hover:text-rose-950 text-xs font-semibold px-2 py-0.5 rounded hover:bg-rose-100/60 transition cursor-pointer"
+          >
             Dismiss
           </button>
         </div>
@@ -491,7 +505,7 @@ export const ProposalList: React.FC<ProposalListProps> = ({
 
       {/* 3. Structured Content Queues */}
       {filteredProposals.length === 0 ? (
-        <div className="text-center py-16 bg-white border border-[#E7ECF2] rounded-3xl p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+        <div className="text-center py-16 bg-white border border-[#E7ECF2] rounded-xl p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
           <GitPullRequest className="w-10 h-10 text-[#657189] mx-auto mb-3 opacity-30" />
           <h3 className="text-sm font-bold text-[#172033]">No proposals matching this filter</h3>
           <p className="text-xs text-[#657189] mt-1 max-w-sm mx-auto">
@@ -598,7 +612,7 @@ export const ProposalList: React.FC<ProposalListProps> = ({
                 </span>
               </div>
 
-              <div className="bg-white border border-[#E7ECF2] rounded-3xl overflow-hidden shadow-2xs">
+              <div className="bg-white border border-[#E7ECF2] rounded-xl overflow-hidden shadow-2xs">
                 <table className="w-full text-xs text-left">
                   <thead className="bg-[#FAFBFD] border-b border-[#E7ECF2] text-[10px] font-bold uppercase tracking-wider text-[#657189]">
                     <tr>

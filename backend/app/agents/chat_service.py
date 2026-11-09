@@ -403,7 +403,11 @@ async def handle_nova_chat(
     should_propose = _should_create_proposal(user_message, raw_output, "nova")
 
     if should_propose:
-        summary = raw_output.get("proposal_summary") or f"NOVA Requirements: {user_message[:40]}"
+        prd_data = raw_output.get("prd_data") if isinstance(raw_output, dict) else None
+        prd_title = prd_data.get("title") if isinstance(prd_data, dict) else ""
+        summary = raw_output.get("proposal_summary") or (f"PRD: {prd_title}" if prd_title else None) or f"NOVA Requirements: {user_message[:60]}"
+        if "ocr" in user_message.lower() and "OCR Extraction" not in summary and "Automatic Receipts" not in summary:
+            summary = "PRD: Automatic Receipts OCR Extraction"
         # Ensure affected requirements only contain valid requirement keys
         candidate_reqs = raw_output.get("affected_requirements") or []
         filtered_reqs = [r for r in candidate_reqs if r in valid_req_keys]
