@@ -12,17 +12,17 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({ onSelect }) => {
       <div className="max-w-2xl w-full">
         {/* Brand & Welcoming Header */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#0F1528] border border-[#1A223D] shadow-2xs mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-[#E7ECF2] shadow-2xs mb-4">
             <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
-            <span className="text-xs font-semibold text-white tracking-wide">COFRAME</span>
+            <span className="text-xs font-semibold text-[#172033] tracking-wide">COFRAME</span>
             <span className="text-slate-300">·</span>
-            <span className="text-xs text-[#8695B7]">Human + AI, One Shared Creation</span>
+            <span className="text-xs text-[#657189]">Human + AI, One Shared Creation</span>
           </div>
 
-          <h1 className="text-3xl font-bold text-white tracking-tight">
+          <h1 className="text-3xl font-bold text-[#172033] tracking-tight">
             Welcome to your workspace.
           </h1>
-          <p className="text-sm text-[#8695B7] mt-2 max-w-md mx-auto leading-relaxed">
+          <p className="text-sm text-[#657189] mt-2 max-w-md mx-auto leading-relaxed">
             Choose Your Demo Identity to enter the LedgerFlow collaboration with NOVA & PIXEL.
           </p>
         </div>
@@ -32,7 +32,7 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({ onSelect }) => {
           {/* Card 1: Alex (Founder) */}
           <div
             onClick={() => onSelect('alex')}
-            className="group bg-[#0F1528] rounded-2xl border border-[#1A223D] hover:border-blue-400 p-6 transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer flex flex-col justify-between"
+            className="group bg-white rounded-2xl border border-[#E7ECF2] hover:border-blue-400 p-6 transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -44,11 +44,11 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({ onSelect }) => {
                 </span>
               </div>
 
-              <h2 className="text-lg font-bold text-white group-hover:text-blue-700 transition">
+              <h2 className="text-lg font-bold text-[#172033] group-hover:text-blue-700 transition">
                 Alex
               </h2>
               <p className="text-xs font-semibold text-blue-600 mt-0.5">Final Decision Owner</p>
-              <p className="text-xs text-[#8695B7] mt-3 leading-relaxed">
+              <p className="text-xs text-[#657189] mt-3 leading-relaxed">
                 Directs product vision, updates strategic requirements, and retains exclusive authority to approve high-impact proposals.
               </p>
             </div>
@@ -71,7 +71,7 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({ onSelect }) => {
           {/* Card 2: Maya (Product Designer) */}
           <div
             onClick={() => onSelect('maya')}
-            className="group bg-[#0F1528] rounded-2xl border border-[#1A223D] hover:border-purple-400 p-6 transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer flex flex-col justify-between"
+            className="group bg-white rounded-2xl border border-[#E7ECF2] hover:border-purple-400 p-6 transition-all duration-200 shadow-xs hover:shadow-md cursor-pointer flex flex-col justify-between"
           >
             <div>
               <div className="flex items-center justify-between mb-4">
@@ -83,11 +83,11 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({ onSelect }) => {
                 </span>
               </div>
 
-              <h2 className="text-lg font-bold text-white group-hover:text-purple-700 transition">
+              <h2 className="text-lg font-bold text-[#172033] group-hover:text-purple-700 transition">
                 Maya
               </h2>
               <p className="text-xs font-semibold text-purple-600 mt-0.5">Product Designer</p>
-              <p className="text-xs text-[#8695B7] mt-3 leading-relaxed">
+              <p className="text-xs text-[#657189] mt-3 leading-relaxed">
                 Refines user interface sections, reviews agent proposals, resolves design conflicts, and redirects PIXEL implementation runs.
               </p>
             </div>
@@ -109,7 +109,7 @@ export const IdentityPicker: React.FC<IdentityPickerProps> = ({ onSelect }) => {
         </div>
 
         {/* Discreet Environment Footnote */}
-        <div className="p-4 rounded-xl bg-[#0F1528] border border-[#1A223D] text-xs text-[#8695B7] flex items-center justify-between shadow-2xs">
+        <div className="p-4 rounded-xl bg-white border border-[#E7ECF2] text-xs text-[#657189] flex items-center justify-between shadow-2xs">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-teal-600 shrink-0" />
             <span>Multi-User Demo Workspace · Real-time WebSocket Synchronisation</span>

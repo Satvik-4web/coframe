@@ -95,7 +95,7 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 overflow-hidden animate-in fade-in duration-150">
-      <div className="bg-[#0F1528] rounded-3xl border border-[#E8EAF2] shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-3xl border border-[#E8EAF2] shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="p-6 border-b border-[#E8EAF2] flex items-center justify-between bg-gradient-to-r from-white via-white to-violet-50/30">
           <div className="flex items-center gap-3">
@@ -109,7 +109,7 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
                 </span>
                 <span className="text-xs font-mono text-slate-400">Plan #{proposal.proposal_id.slice(-6)}</span>
               </div>
-              <h2 className="text-lg font-extrabold text-white mt-0.5">
+              <h2 className="text-lg font-extrabold text-[#172033] mt-0.5">
                 Where should we execute this implementation?
               </h2>
             </div>
@@ -118,7 +118,7 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
           <button
             onClick={onClose}
             disabled={isExecuting}
-            className="p-2 rounded-xl text-slate-400 hover:text-[#CBD5E1] hover:bg-[#1A223D] transition cursor-pointer"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -128,7 +128,7 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
         <div className="p-6 overflow-y-auto space-y-6 text-xs">
           {executionState === 'idle' ? (
             <>
-              <p className="text-xs text-[#8695B7] leading-relaxed">
+              <p className="text-xs text-[#657189] leading-relaxed">
                 Developer approval confirmed. Choose whether to dispatch this engineering task to your external
                 connected Agent IDE or execute via COFRAME's built-in PIXEL runtime.
               </p>
@@ -141,7 +141,7 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
                   className={`p-5 rounded-2xl border-2 cursor-pointer transition flex flex-col justify-between space-y-4 ${
                     selectedEnv === 'ide'
                       ? 'border-violet-600 bg-violet-50/20 shadow-md ring-2 ring-violet-200'
-                      : 'border-[#E8EAF2] hover:border-slate-300 bg-[#0F1528]'
+                      : 'border-[#E8EAF2] hover:border-slate-300 bg-white'
                   }`}
                 >
                   <div className="space-y-3">
@@ -155,8 +155,8 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
                     </div>
 
                     <div>
-                      <h3 className="font-bold text-sm text-white">Antigravity Agent IDE</h3>
-                      <p className="text-[11px] text-[#8695B7] mt-0.5">
+                      <h3 className="font-bold text-sm text-[#172033]">Antigravity Agent IDE</h3>
+                      <p className="text-[11px] text-[#657189] mt-0.5">
                         Connected external coding environment with native shell & file tools.
                       </p>
                     </div>
@@ -180,7 +180,7 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
                   <div className="pt-2">
                     <span
                       className={`text-[11px] font-bold inline-flex items-center gap-1 ${
-                        selectedEnv === 'ide' ? 'text-violet-700' : 'text-[#8695B7]'
+                        selectedEnv === 'ide' ? 'text-violet-700' : 'text-[#657189]'
                       }`}
                     >
                       {selectedEnv === 'ide' ? 'Selected Environment' : 'Select Option A'}
@@ -194,7 +194,7 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
                   className={`p-5 rounded-2xl border-2 cursor-pointer transition flex flex-col justify-between space-y-4 ${
                     selectedEnv === 'pixel'
                       ? 'border-teal-600 bg-teal-50/20 shadow-md ring-2 ring-teal-200'
-                      : 'border-[#E8EAF2] hover:border-slate-300 bg-[#0F1528]'
+                      : 'border-[#E8EAF2] hover:border-slate-300 bg-white'
                   }`}
                 >
                   <div className="space-y-3">
@@ -208,8 +208,8 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
                     </div>
 
                     <div>
-                      <h3 className="font-bold text-sm text-white">PIXEL Autonomous Runtime</h3>
-                      <p className="text-[11px] text-[#8695B7] mt-0.5">
+                      <h3 className="font-bold text-sm text-[#172033]">PIXEL Autonomous Runtime</h3>
+                      <p className="text-[11px] text-[#657189] mt-0.5">
                         Native COFRAME in-browser software engineer.
                       </p>
                     </div>
@@ -233,7 +233,7 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
                   <div className="pt-2">
                     <span
                       className={`text-[11px] font-bold inline-flex items-center gap-1 ${
-                        selectedEnv === 'pixel' ? 'text-teal-700' : 'text-[#8695B7]'
+                        selectedEnv === 'pixel' ? 'text-teal-700' : 'text-[#657189]'
                       }`}
                     >
                       {selectedEnv === 'pixel' ? 'Selected Environment' : 'Select Option B'}
@@ -243,12 +243,12 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
               </div>
 
               {/* Target Artifact Sections Preview */}
-              <div className="p-3.5 rounded-xl bg-[#090D1A] border border-[#E8EAF2] flex items-center justify-between">
+              <div className="p-3.5 rounded-xl bg-[#F7F8FC] border border-[#E8EAF2] flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-[#8695B7] uppercase tracking-wider block">
+                  <span className="text-[10px] font-bold text-[#657189] uppercase tracking-wider block">
                     Target Artifact Scope
                   </span>
-                  <span className="font-semibold text-xs text-white">
+                  <span className="font-semibold text-xs text-[#172033]">
                     Sections: {(proposal.target_sections || ['hero']).map((s) => `§ ${s}`).join(', ')}
                   </span>
                 </div>
@@ -276,12 +276,12 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
                           ? 'bg-emerald-600 text-white'
                           : activeStep === s.step
                           ? 'bg-violet-600 text-white ring-2 ring-violet-200 animate-pulse'
-                          : 'bg-slate-200 text-[#94A3B8]'
+                          : 'bg-slate-200 text-slate-600'
                       }`}
                     >
                       {activeStep > s.step ? <Check className="w-3.5 h-3.5" /> : s.step}
                     </div>
-                    <span className="text-[10px] text-[#8695B7] mt-1 font-medium">{s.label}</span>
+                    <span className="text-[10px] text-[#657189] mt-1 font-medium">{s.label}</span>
                   </div>
                 ))}
               </div>
@@ -306,13 +306,13 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 border-t border-[#E8EAF2] flex items-center justify-end gap-2.5 bg-[#090D1A]">
+        <div className="p-4 border-t border-[#E8EAF2] flex items-center justify-end gap-2.5 bg-[#F7F8FC]">
           {executionState === 'idle' ? (
             <>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8695B7] hover:bg-[#0F1528] transition cursor-pointer"
+                className="px-4 py-2 rounded-xl text-xs font-semibold text-[#657189] hover:bg-white transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -335,7 +335,7 @@ export const ExecutionEnvironmentModal: React.FC<ExecutionEnvironmentModalProps>
               <span>Proceed to Final Implementation Review</span>
             </button>
           ) : (
-            <div className="text-xs text-[#8695B7] font-medium flex items-center gap-2">
+            <div className="text-xs text-[#657189] font-medium flex items-center gap-2">
               <span className="w-3 h-3 rounded-full border-2 border-violet-600 border-t-transparent animate-spin" />
               <span>Execution in progress...</span>
             </div>

@@ -142,11 +142,11 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
 
-      <div className="bg-[#0F1528] rounded-2xl shadow-2xl border border-[#1A223D] w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
+      <div className="bg-white rounded-2xl shadow-2xl border border-[#E7ECF2] w-full max-w-2xl max-h-[90vh] overflow-y-auto flex flex-col">
 
         {/* Modal Header */}
 
-        <div className="p-5 border-b border-[#F0F3F7] flex items-center justify-between sticky top-0 bg-[#0F1528] z-10">
+        <div className="p-5 border-b border-[#F0F3F7] flex items-center justify-between sticky top-0 bg-white z-10">
 
           <div className="flex items-center space-x-3">
 
@@ -170,7 +170,7 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
                   ? 'bg-purple-100 text-purple-700 border border-purple-200'
 
-                  : 'bg-slate-100 text-[#CBD5E1] border border-[#1A223D]'
+                  : 'bg-slate-100 text-slate-700 border border-slate-200'
 
               }`}
 
@@ -184,9 +184,9 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
               <div className="flex items-center gap-2">
 
-                <h2 className="text-base font-bold text-white">Contribution Provenance</h2>
+                <h2 className="text-base font-bold text-[#172033]">Contribution Provenance</h2>
 
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#F0F3F7] text-[#8695B7] border border-[#1A223D]">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#F0F3F7] text-[#657189] border border-[#E5EAF0]">
 
                   #{proposal.proposal_id.slice(-8)}
 
@@ -194,7 +194,7 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
               </div>
 
-              <p className="text-xs text-[#8695B7]">
+              <p className="text-xs text-[#657189]">
 
                 Verified attribution separating Author, Reviewer, and Decision Owner
 
@@ -208,7 +208,7 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
             onClick={onClose}
 
-            className="p-1.5 rounded-lg text-[#8695B7] hover:text-white hover:bg-[#F0F3F7] transition cursor-pointer"
+            className="p-1.5 rounded-lg text-[#657189] hover:text-[#172033] hover:bg-[#F0F3F7] transition cursor-pointer"
 
           >
 
@@ -226,7 +226,7 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
           {/* Proposal Summary & Category */}
 
-          <div className="p-4 rounded-xl bg-[#090D1A] border border-[#1A223D]">
+          <div className="p-4 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2]">
 
             <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
 
@@ -272,7 +272,7 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
                     : proposal.status === 'rejected'
 
-                    ? 'bg-slate-100 text-[#CBD5E1] border-[#1A223D]'
+                    ? 'bg-slate-100 text-slate-700 border-slate-200'
 
                     : 'bg-blue-50 text-blue-700 border-blue-200'
 
@@ -286,9 +286,9 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
             </div>
 
-            <h3 className="text-sm font-bold text-white mb-1">{proposal.summary}</h3>
+            <h3 className="text-sm font-bold text-[#172033] mb-1">{proposal.summary}</h3>
 
-            <p className="text-xs text-[#8695B7] leading-relaxed">{proposal.reasoning}</p>
+            <p className="text-xs text-[#657189] leading-relaxed">{proposal.reasoning}</p>
 
           </div>
 
@@ -300,7 +300,7 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
             <div className="flex items-center justify-between mb-2">
 
-              <span className="text-[11px] font-bold text-[#8695B7] uppercase tracking-wider">
+              <span className="text-[11px] font-bold text-[#657189] uppercase tracking-wider">
 
                 Identity & Responsibility Pillars
 
@@ -320,13 +320,13 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
               {/* 1. ORIGINAL AUTHOR */}
 
-              <div className="p-3.5 rounded-xl border border-[#1A223D] bg-[#0F1528] shadow-2xs space-y-2">
+              <div className="p-3.5 rounded-xl border border-[#E7ECF2] bg-white shadow-2xs space-y-2">
 
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[#8695B7] flex items-center justify-between">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#657189] flex items-center justify-between">
 
                   <span>1. Author</span>
 
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-[#CBD5E1] font-medium">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">
 
                     Originator
 
@@ -356,7 +356,7 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
                         ? 'bg-purple-100 text-purple-700'
 
-                        : 'bg-slate-100 text-[#94A3B8]'
+                        : 'bg-slate-100 text-slate-600'
 
                     }`}
 
@@ -368,17 +368,17 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
                   <div>
 
-                    <h4 className="font-bold text-xs text-white">{authorName}</h4>
+                    <h4 className="font-bold text-xs text-[#172033]">{authorName}</h4>
 
-                    <p className="text-[10px] text-[#8695B7]">{authorRole}</p>
+                    <p className="text-[10px] text-[#657189]">{authorRole}</p>
 
                   </div>
 
                 </div>
 
-                <div className="pt-2 border-t border-[#F0F3F7] text-[10px] text-[#8695B7]">
+                <div className="pt-2 border-t border-[#F0F3F7] text-[10px] text-[#657189]">
 
-                  Type: <strong className="text-white">{authorTypeLabel}</strong>
+                  Type: <strong className="text-[#172033]">{authorTypeLabel}</strong>
 
                 </div>
 
@@ -388,9 +388,9 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
               {/* 2. REVIEWER */}
 
-              <div className="p-3.5 rounded-xl border border-[#1A223D] bg-[#0F1528] shadow-2xs space-y-2">
+              <div className="p-3.5 rounded-xl border border-[#E7ECF2] bg-white shadow-2xs space-y-2">
 
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[#8695B7] flex items-center justify-between">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#657189] flex items-center justify-between">
 
                   <span>2. Reviewer</span>
 
@@ -410,7 +410,7 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
                         ? 'bg-red-50 text-red-700 border border-red-200'
 
-                        : 'bg-slate-100 text-[#94A3B8]'
+                        : 'bg-slate-100 text-slate-600'
 
                     }`}
 
@@ -432,13 +432,13 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
                   <div>
 
-                    <h4 className="font-bold text-xs text-white">
+                    <h4 className="font-bold text-xs text-[#172033]">
 
                       {reviewerName || 'None Required'}
 
                     </h4>
 
-                    <p className="text-[10px] text-[#8695B7]">
+                    <p className="text-[10px] text-[#657189]">
 
                       {reviewerName === 'NOVA'
 
@@ -452,7 +452,7 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
                 </div>
 
-                <div className="pt-2 border-t border-[#F0F3F7] text-[10px] text-[#8695B7]">
+                <div className="pt-2 border-t border-[#F0F3F7] text-[10px] text-[#657189]">
 
                   {novaReview ? (
 
@@ -530,9 +530,9 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
               {/* 3. DECISION OWNER */}
 
-              <div className="p-3.5 rounded-xl border border-[#1A223D] bg-[#0F1528] shadow-2xs space-y-2">
+              <div className="p-3.5 rounded-xl border border-[#E7ECF2] bg-white shadow-2xs space-y-2">
 
-                <div className="text-[10px] font-bold uppercase tracking-wider text-[#8695B7] flex items-center justify-between">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-[#657189] flex items-center justify-between">
 
                   <span>3. Decision Owner</span>
 
@@ -554,19 +554,19 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
                   <div>
 
-                    <h4 className="font-bold text-xs text-white">{decisionOwner}</h4>
+                    <h4 className="font-bold text-xs text-[#172033]">{decisionOwner}</h4>
 
-                    <p className="text-[10px] text-[#8695B7]">Founder / Decision Owner</p>
+                    <p className="text-[10px] text-[#657189]">Founder / Decision Owner</p>
 
                   </div>
 
                 </div>
 
-                <div className="pt-2 border-t border-[#F0F3F7] text-[10px] text-[#8695B7]">
+                <div className="pt-2 border-t border-[#F0F3F7] text-[10px] text-[#657189]">
 
                   Authority:{' '}
 
-                  <strong className="text-white">
+                  <strong className="text-[#172033]">
 
                     {proposal.requires_decision ? 'Sign-off Required' : 'Standard Governance'}
 
@@ -586,19 +586,19 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
           <div>
 
-            <h4 className="text-[11px] font-bold text-[#8695B7] uppercase tracking-wider mb-2">
+            <h4 className="text-[11px] font-bold text-[#657189] uppercase tracking-wider mb-2">
 
               Traceability & Context Anchors
 
             </h4>
 
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-[#090D1A] p-3.5 rounded-xl border border-[#1A223D]">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 bg-[#F8FAFC] p-3.5 rounded-xl border border-[#E7ECF2]">
 
               <div>
 
-                <span className="text-[10px] text-[#8695B7] block">Originating Task</span>
+                <span className="text-[10px] text-[#657189] block">Originating Task</span>
 
-                <strong className="font-mono text-xs text-white truncate block" title={proposal.task_id || proposal.run_id}>
+                <strong className="font-mono text-xs text-[#172033] truncate block" title={proposal.task_id || proposal.run_id}>
 
                   {proposal.task_id || proposal.run_id || 'task_init'}
 
@@ -608,7 +608,7 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
               <div>
 
-                <span className="text-[10px] text-[#8695B7] block">Base Context</span>
+                <span className="text-[10px] text-[#657189] block">Base Context</span>
 
                 <strong className="text-xs text-blue-700">v{proposal.base_context_version}</strong>
 
@@ -616,7 +616,7 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
               <div>
 
-                <span className="text-[10px] text-[#8695B7] block">Base Artifact</span>
+                <span className="text-[10px] text-[#657189] block">Base Artifact</span>
 
                 <strong className="text-xs text-emerald-700">v{proposal.base_artifact_version}</strong>
 
@@ -624,9 +624,9 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
               <div>
 
-                <span className="text-[10px] text-[#8695B7] block">Submission Time</span>
+                <span className="text-[10px] text-[#657189] block">Submission Time</span>
 
-                <strong className="text-xs text-white">
+                <strong className="text-xs text-[#172033]">
 
                   {new Date(proposal.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
 
@@ -658,7 +658,7 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
               </div>
 
-              <span className="text-[10px] font-semibold bg-[#0F1528] px-2 py-0.5 rounded border border-teal-200 text-teal-800">
+              <span className="text-[10px] font-semibold bg-white px-2 py-0.5 rounded border border-teal-200 text-teal-800">
 
                 Revision Chain
 
@@ -674,7 +674,7 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
           <div>
 
-            <h4 className="text-[11px] font-bold text-[#8695B7] uppercase tracking-wider mb-2">
+            <h4 className="text-[11px] font-bold text-[#657189] uppercase tracking-wider mb-2">
 
               Target Artifact Sections & Base Versions
 
@@ -688,15 +688,15 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
                   key={sec}
 
-                  className="px-3 py-1.5 rounded-lg bg-[#0F1528] border border-[#1A223D] shadow-2xs flex items-center space-x-2"
+                  className="px-3 py-1.5 rounded-lg bg-white border border-[#E7ECF2] shadow-2xs flex items-center space-x-2"
 
                 >
 
                   <span className="font-semibold text-teal-800">§ {sec}</span>
 
-                  <span className="text-[#8695B7]">•</span>
+                  <span className="text-[#657189]">•</span>
 
-                  <span className="text-[10px] font-mono text-[#8695B7]">
+                  <span className="text-[10px] font-mono text-[#657189]">
 
                     Base: v{proposal.base_section_versions[sec] || 1}
 
@@ -716,11 +716,11 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
           <div>
 
-            <h4 className="text-[11px] font-bold text-[#8695B7] uppercase tracking-wider mb-2 flex items-center justify-between">
+            <h4 className="text-[11px] font-bold text-[#657189] uppercase tracking-wider mb-2 flex items-center justify-between">
 
               <span>Proposed Changes (JSON Allowlist Payload)</span>
 
-              <span className="text-[10px] font-normal text-[#8695B7]">
+              <span className="text-[10px] font-normal text-[#657189]">
 
                 {proposal.changes.operations?.length || 0} Operations
 
@@ -742,13 +742,13 @@ export const ProposalProvenanceModal: React.FC<ProposalProvenanceModalProps> = (
 
         {/* Modal Footer */}
 
-        <div className="p-4 border-t border-[#F0F3F7] flex items-center justify-end bg-[#0F1528] rounded-b-2xl">
+        <div className="p-4 border-t border-[#F0F3F7] flex items-center justify-end bg-white rounded-b-2xl">
 
           <button
 
             onClick={onClose}
 
-            className="px-4 py-2 rounded-xl bg-[#F0F3F7] hover:bg-[#E5EAF0] text-white font-semibold transition cursor-pointer text-xs"
+            className="px-4 py-2 rounded-xl bg-[#F0F3F7] hover:bg-[#E5EAF0] text-[#172033] font-semibold transition cursor-pointer text-xs"
 
           >
 

@@ -24,13 +24,13 @@ export const GovernanceDashboard: React.FC<GovernanceDashboardProps> = ({
   return (
     <div className="space-y-6">
       {/* Sub navigation pills */}
-      <div className="flex items-center gap-2 p-1.5 bg-[#0F1528] border border-[#1A223D] rounded-xl w-fit shadow-xs">
+      <div className="flex items-center gap-2 p-1.5 bg-white border border-[#E5EAF0] rounded-xl w-fit shadow-xs">
         <button
           onClick={() => setSubTab('approvals')}
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition ${
             subTab === 'approvals'
               ? 'bg-teal-50 text-teal-900 border border-teal-200 shadow-2xs'
-              : 'text-[#8695B7] hover:text-white'
+              : 'text-[#657189] hover:text-[#172033]'
           }`}
         >
           <ShieldCheck className="w-4 h-4 text-teal-600" />
@@ -47,12 +47,12 @@ export const GovernanceDashboard: React.FC<GovernanceDashboardProps> = ({
           className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition ${
             subTab === 'delegations'
               ? 'bg-teal-50 text-teal-900 border border-teal-200 shadow-2xs'
-              : 'text-[#8695B7] hover:text-white'
+              : 'text-[#657189] hover:text-[#172033]'
           }`}
         >
           <GitFork className="w-4 h-4 text-teal-600" />
           <span>Agent-to-Agent Delegation</span>
-          <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-[#CBD5E1]">
+          <span className="px-2 py-0.2 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
             {delegations.length}
           </span>
         </button>

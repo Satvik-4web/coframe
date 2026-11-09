@@ -64,7 +64,7 @@ export const CreateHumanProposalModal: React.FC<CreateHumanProposalModalProps> =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-[#0F1528] rounded-2xl shadow-2xl border border-[#1A223D] w-full max-w-lg overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-2xl border border-[#E7ECF2] w-full max-w-lg overflow-hidden">
         {/* Header */}
         <div className="p-5 border-b border-[#F0F3F7] flex items-center justify-between">
           <div className="flex items-center space-x-3">
@@ -72,15 +72,15 @@ export const CreateHumanProposalModal: React.FC<CreateHumanProposalModalProps> =
               <User className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">New Human Contribution</h2>
-              <p className="text-xs text-[#8695B7]">
+              <h2 className="text-base font-bold text-[#172033]">New Human Contribution</h2>
+              <p className="text-xs text-[#657189]">
                 Submit a proposal authored by {currentAuthor.toUpperCase()} ({currentAuthor === 'alex' ? 'Founder / Decision Owner' : 'Product Designer'})
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#8695B7] hover:text-white hover:bg-[#F0F3F7] transition cursor-pointer"
+            className="p-1.5 rounded-lg text-[#657189] hover:text-[#172033] hover:bg-[#F0F3F7] transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -96,7 +96,7 @@ export const CreateHumanProposalModal: React.FC<CreateHumanProposalModalProps> =
           )}
 
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#8695B7] mb-1">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#657189] mb-1">
               Proposal Summary / Title
             </label>
             <input
@@ -104,13 +104,13 @@ export const CreateHumanProposalModal: React.FC<CreateHumanProposalModalProps> =
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
               placeholder="e.g., Introduce simplified expense categories for consultants"
-              className="w-full px-3.5 py-2 rounded-xl border border-[#1A223D] text-white text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+              className="w-full px-3.5 py-2 rounded-xl border border-[#E5EAF0] text-[#172033] text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
               required
             />
           </div>
 
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#8695B7] mb-1">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#657189] mb-1">
               Plain Language Rationale
             </label>
             <textarea
@@ -118,20 +118,20 @@ export const CreateHumanProposalModal: React.FC<CreateHumanProposalModalProps> =
               value={reasoning}
               onChange={(e) => setReasoning(e.target.value)}
               placeholder="Explain why this human contribution is being introduced and what product impact it brings..."
-              className="w-full px-3.5 py-2 rounded-xl border border-[#1A223D] text-white text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"
+              className="w-full px-3.5 py-2 rounded-xl border border-[#E5EAF0] text-[#172033] text-xs focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none resize-none"
               required
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#8695B7] mb-1">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#657189] mb-1">
                 Target Artifact Section
               </label>
               <select
                 value={targetSection}
                 onChange={(e) => setTargetSection(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl border border-[#1A223D] text-white text-xs bg-[#0F1528] focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
+                className="w-full px-3 py-2 rounded-xl border border-[#E5EAF0] text-[#172033] text-xs bg-white focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none"
               >
                 <option value="product_brief">product_brief</option>
                 <option value="hero">hero</option>
@@ -141,10 +141,10 @@ export const CreateHumanProposalModal: React.FC<CreateHumanProposalModalProps> =
             </div>
 
             <div>
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#8695B7] mb-1">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-[#657189] mb-1">
                 Author Attribution
               </label>
-              <div className="px-3 py-2 rounded-xl bg-[#141A33] border border-[#1A223D] text-white font-semibold flex items-center justify-between">
+              <div className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-[#172033] font-semibold flex items-center justify-between">
                 <span>{currentAuthor.toUpperCase()}</span>
                 <span className="text-[10px] text-blue-700 bg-blue-50 px-2 py-0.5 rounded font-bold">
                   Human Author
@@ -161,7 +161,7 @@ export const CreateHumanProposalModal: React.FC<CreateHumanProposalModalProps> =
                 onChange={(e) => setRequiresDecision(e.target.checked)}
                 className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300"
               />
-              <span className="text-xs text-white font-medium">
+              <span className="text-xs text-[#172033] font-medium">
                 Requires Alex founder sign-off before applying
               </span>
             </label>
@@ -172,7 +172,7 @@ export const CreateHumanProposalModal: React.FC<CreateHumanProposalModalProps> =
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl bg-[#F0F3F7] hover:bg-[#E5EAF0] text-white font-semibold transition cursor-pointer text-xs"
+              className="px-4 py-2 rounded-xl bg-[#F0F3F7] hover:bg-[#E5EAF0] text-[#172033] font-semibold transition cursor-pointer text-xs"
             >
               Cancel
             </button>

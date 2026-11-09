@@ -94,9 +94,9 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 sm:p-6 overflow-hidden animate-in fade-in duration-200">
-      <div className="bg-[#0F1528] rounded-3xl border border-[#D9E1EC] shadow-2xl w-full max-w-5xl h-[92vh] flex flex-col overflow-hidden">
+      <div className="bg-white rounded-3xl border border-[#D9E1EC] shadow-2xl w-full max-w-5xl h-[92vh] flex flex-col overflow-hidden">
         {/* Modal Top Header */}
-        <div className="p-6 border-b border-[#1A223D] bg-gradient-to-r from-white via-white to-teal-50/40 flex items-center justify-between shrink-0">
+        <div className="p-6 border-b border-[#E7ECF2] bg-gradient-to-r from-white via-white to-teal-50/40 flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-3.5">
             <div className="w-11 h-11 rounded-2xl bg-teal-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
               <Code2 className="w-6 h-6 text-teal-100" />
@@ -104,12 +104,12 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
 
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-extrabold text-sm text-white">PIXEL</span>
-                <span className="text-xs text-[#8695B7] font-semibold">AI Software Engineer</span>
+                <span className="font-extrabold text-sm text-[#172033]">PIXEL</span>
+                <span className="text-xs text-[#657189] font-semibold">AI Software Engineer</span>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 uppercase tracking-wider">
                   Engineering Contribution
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-[#CBD5E1]">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
                   #{proposal.proposal_id.slice(-6)}
                 </span>
                 {isConflict && (
@@ -119,7 +119,7 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
                   </span>
                 )}
               </div>
-              <h2 className="text-base font-bold text-white mt-0.5">{title}</h2>
+              <h2 className="text-base font-bold text-[#172033] mt-0.5">{title}</h2>
             </div>
           </div>
 
@@ -138,7 +138,7 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
 
             <button
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-[#CBD5E1] hover:bg-[#1A223D] transition cursor-pointer"
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
             >
               <X className="w-5 h-5" />
             </button>
@@ -167,7 +167,7 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
         )}
 
         {/* Tab Navigation Bar */}
-        <div className="px-6 border-b border-[#1A223D] bg-[#FAFBFD] flex items-center gap-2 overflow-x-auto shrink-0">
+        <div className="px-6 border-b border-[#E7ECF2] bg-[#FAFBFD] flex items-center gap-2 overflow-x-auto shrink-0">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -177,11 +177,11 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
                 onClick={() => setActiveTab(tab.id as any)}
                 className={`py-3 px-3.5 text-xs font-semibold border-b-2 flex items-center gap-2 transition cursor-pointer shrink-0 ${
                   isActive
-                    ? 'border-teal-600 text-teal-900 bg-[#0F1528] shadow-2xs'
-                    : 'border-transparent text-[#8695B7] hover:text-white hover:bg-[#1A223D]/60'
+                    ? 'border-teal-600 text-teal-900 bg-white shadow-2xs'
+                    : 'border-transparent text-[#657189] hover:text-[#172033] hover:bg-slate-100/60'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-teal-600' : 'text-[#8695B7]'}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-teal-600' : 'text-[#657189]'}`} />
                 <span>{tab.label}</span>
               </button>
             );
@@ -189,13 +189,13 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
         </div>
 
         {/* Modal Main Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-[#0F1528]">
+        <div className="flex-1 overflow-y-auto p-6 md:p-8 space-y-6 bg-white">
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
             <div className="space-y-6 max-w-3xl">
               {/* Implementation Summary Cards */}
               <div className="space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
                   Implementation Summary
                 </h3>
 
@@ -207,8 +207,8 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
                     </p>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-[#141A33] border border-[#1A223D] space-y-1">
-                    <h4 className="text-xs font-bold text-white">Why were these changes made?</h4>
+                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+                    <h4 className="text-xs font-bold text-[#172033]">Why were these changes made?</h4>
                     <p className="text-xs text-[#334155] leading-relaxed">
                       {impl?.implementation_summary?.why_changes_made || proposal.reasoning}
                     </p>
@@ -228,7 +228,7 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
 
               {/* Implementation Tasks Plan */}
               <div className="space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
                   Engineering Implementation Plan
                 </h3>
 
@@ -238,14 +238,14 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
                   ]).map((t) => (
                     <div
                       key={t.id}
-                      className="p-3 rounded-xl border border-[#1A223D] bg-[#FAFBFD] flex items-center justify-between"
+                      className="p-3 rounded-xl border border-[#E7ECF2] bg-[#FAFBFD] flex items-center justify-between"
                     >
                       <div className="flex items-center gap-2.5">
                         <span className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-[10px]">
                           ✓
                         </span>
-                        <span className="font-mono text-[10px] font-bold text-[#94A3B8]">{t.id}</span>
-                        <span className="text-xs font-medium text-white">{t.title}</span>
+                        <span className="font-mono text-[10px] font-bold text-slate-600">{t.id}</span>
+                        <span className="text-xs font-medium text-[#172033]">{t.title}</span>
                       </div>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 uppercase">
                         {t.status || 'Completed'}
@@ -257,7 +257,7 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
 
               {/* Changed Files or Artifact Sections */}
               <div className="space-y-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
                   Affected Sections & Components
                 </h3>
 
@@ -265,17 +265,17 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
                   {(impl?.changed_files_or_sections || [
                     { name: `LedgerFlow (section: '${sections[0]}')`, type: 'artifact_section', change_type: 'Modified', description: proposal.summary }
                   ]).map((f, i) => (
-                    <div key={i} className="p-3.5 rounded-xl border border-[#1A223D] bg-[#0F1528] space-y-1">
+                    <div key={i} className="p-3.5 rounded-xl border border-slate-200 bg-white space-y-1">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <FileCode className="w-4 h-4 text-teal-600" />
-                          <span className="text-xs font-bold text-white font-mono">{f.name}</span>
+                          <span className="text-xs font-bold text-[#172033] font-mono">{f.name}</span>
                         </div>
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
                           {f.change_type}
                         </span>
                       </div>
-                      <p className="text-xs text-[#8695B7]">{f.description}</p>
+                      <p className="text-xs text-[#657189]">{f.description}</p>
                     </div>
                   ))}
                 </div>
@@ -287,10 +287,10 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
           {activeTab === 'requirements' && (
             <div className="space-y-6 max-w-3xl">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white mb-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033] mb-1">
                   Confirmed Requirements Traceability Matrix
                 </h3>
-                <p className="text-xs text-[#8695B7]">
+                <p className="text-xs text-[#657189]">
                   Explicit mapping demonstrating how every confirmed NOVA product requirement is fulfilled by PIXEL's changes.
                 </p>
               </div>
@@ -302,13 +302,13 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
                   implementation: `Integrated into ${sections.join(', ')} via allowlisted operations`,
                   validation: 'Passed',
                 }))).map((item, idx) => (
-                  <div key={idx} className="p-4 rounded-2xl border border-[#1A223D] bg-[#0F1528] space-y-2 shadow-2xs">
+                  <div key={idx} className="p-4 rounded-2xl border border-[#E7ECF2] bg-white space-y-2 shadow-2xs">
                     <div className="flex items-center justify-between pb-2 border-b border-[#F0F3F7]">
                       <div className="flex items-center space-x-2">
                         <span className="px-2 py-0.5 rounded-md bg-violet-100 text-violet-800 font-mono text-[10px] font-bold">
                           {item.requirement_id}
                         </span>
-                        <span className="text-xs font-bold text-white capitalize">{item.title}</span>
+                        <span className="text-xs font-bold text-[#172033] capitalize">{item.title}</span>
                       </div>
                       <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold flex items-center gap-1">
                         <CheckCircle2 className="w-3 h-3 text-emerald-600" />
@@ -318,13 +318,13 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs pt-1">
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-0.5">
+                        <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">
                           Implementation Mechanism
                         </span>
                         <p className="text-[#334155]">{item.implementation}</p>
                       </div>
                       <div>
-                        <span className="text-[10px] uppercase font-bold text-[#8695B7] block mb-0.5">
+                        <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">
                           Target Section
                         </span>
                         <p className="font-mono text-teal-800 text-xs">{sections.join(', ')}</p>
@@ -351,10 +351,10 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
           {activeTab === 'diff' && (
             <div className="space-y-6 max-w-3xl">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white mb-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033] mb-1">
                   Readable Component Diff
                 </h3>
-                <p className="text-xs text-[#8695B7]">
+                <p className="text-xs text-[#657189]">
                   Review exactly what changes are being proposed before they are applied to the canonical canvas.
                 </p>
               </div>
@@ -363,10 +363,10 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
                 {(impl?.artifact_diff || [
                   { section: sections[0], label: 'Configuration', before: 'Seed state', after: 'Updated state', diff_type: 'changed' }
                 ]).map((d, idx) => (
-                  <div key={idx} className="rounded-2xl border border-[#1A223D] bg-[#FAFBFD] p-4 space-y-3 shadow-2xs">
+                  <div key={idx} className="rounded-2xl border border-[#E7ECF2] bg-[#FAFBFD] p-4 space-y-3 shadow-2xs">
                     <div className="flex items-center justify-between pb-2 border-b border-[#F0F3F7]">
-                      <span className="text-xs font-bold text-white">
-                        {d.label} <span className="text-[10px] font-mono text-[#8695B7]">({d.section})</span>
+                      <span className="text-xs font-bold text-[#172033]">
+                        {d.label} <span className="text-[10px] font-mono text-[#657189]">({d.section})</span>
                       </span>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200 uppercase">
                         {d.diff_type}
@@ -399,19 +399,19 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
             <div className="space-y-5 max-w-4xl">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xs font-bold uppercase tracking-wider text-white">
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
                     Rendered Artifact Preview (Isolated Staging)
                   </h3>
-                  <p className="text-xs text-[#8695B7]">
+                  <p className="text-xs text-[#657189]">
                     Simulates proposed component changes without mutating the live canonical prototype.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-[#1A223D] text-xs">
+                <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-xl border border-slate-200 text-xs">
                   <button
                     onClick={() => setPreviewMode('proposed')}
                     className={`px-3 py-1 rounded-lg font-bold transition cursor-pointer ${
-                      previewMode === 'proposed' ? 'bg-teal-600 text-white shadow-2xs' : 'text-[#94A3B8]'
+                      previewMode === 'proposed' ? 'bg-teal-600 text-white shadow-2xs' : 'text-slate-600'
                     }`}
                   >
                     Proposed Version
@@ -419,7 +419,7 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
                   <button
                     onClick={() => setPreviewMode('canonical')}
                     className={`px-3 py-1 rounded-lg font-bold transition cursor-pointer ${
-                      previewMode === 'canonical' ? 'bg-slate-800 text-white shadow-2xs' : 'text-[#94A3B8]'
+                      previewMode === 'canonical' ? 'bg-slate-800 text-white shadow-2xs' : 'text-slate-600'
                     }`}
                   >
                     Current Canonical
@@ -428,7 +428,7 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
               </div>
 
               {/* Rendered Component Box */}
-              <div className="border border-slate-300 rounded-2xl p-6 bg-[#0F1528] shadow-inner min-h-[300px]">
+              <div className="border border-slate-300 rounded-2xl p-6 bg-white shadow-inner min-h-[300px]">
                 {previewMode === 'proposed' ? (
                   <div className="space-y-4">
                     <div className="flex items-center justify-between pb-3 border-b border-teal-100">
@@ -462,15 +462,15 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
                   </div>
                 ) : (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between pb-3 border-b border-[#1A223D]">
-                      <span className="text-xs font-bold text-[#CBD5E1]">Current Production Version</span>
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-[#94A3B8]">
+                    <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                      <span className="text-xs font-bold text-slate-700">Current Production Version</span>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-600">
                         v{proposal.base_artifact_version}
                       </span>
                     </div>
-                    <div className="p-6 rounded-2xl bg-slate-100 text-[#E2E8F0] space-y-2">
-                      <h3 className="text-sm font-bold text-white">Current Canonical State</h3>
-                      <p className="text-xs text-[#94A3B8]">
+                    <div className="p-6 rounded-2xl bg-slate-100 text-slate-800 space-y-2">
+                      <h3 className="text-sm font-bold text-slate-900">Current Canonical State</h3>
+                      <p className="text-xs text-slate-600">
                         This section reflects the live production canvas prior to applying PIXEL's changes.
                       </p>
                     </div>
@@ -484,10 +484,10 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
           {activeTab === 'validation' && (
             <div className="space-y-6 max-w-3xl">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white mb-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033] mb-1">
                   Automated Engineering Verification Evidence
                 </h3>
-                <p className="text-xs text-[#8695B7]">
+                <p className="text-xs text-[#657189]">
                   Verifies that proposed operations conform to allowlists, compile with zero type regressions, and pass automated tests.
                 </p>
               </div>
@@ -525,10 +525,10 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
           {activeTab === 'review' && (
             <div className="space-y-6 max-w-3xl">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white mb-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033] mb-1">
                   NOVA Multi-Layer Architectural Review
                 </h3>
-                <p className="text-xs text-[#8695B7]">
+                <p className="text-xs text-[#657189]">
                   Strategic evaluation ensuring engineering contributions strictly satisfy the product requirements document.
                 </p>
               </div>
@@ -550,10 +550,10 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
                     <Brain className="w-5 h-5" />
                   </div>
                   <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#8695B7] block">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#657189] block">
                       Advisory Review Outcome
                     </span>
-                    <h4 className="text-sm font-bold text-white">
+                    <h4 className="text-sm font-bold text-[#172033]">
                       Verdict: {novaReview} (Eligible for Human Sign-off)
                     </h4>
                   </div>
@@ -563,13 +563,13 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
               {/* Findings */}
               {findings.length > 0 && (
                 <div className="space-y-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-white">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
                     Review Findings & Observations
                   </h4>
                   {findings.map((f, i) => (
-                    <div key={i} className="p-3 rounded-xl border border-[#1A223D] bg-[#141A33] text-xs">
-                      <span className="font-mono text-[10px] font-bold text-[#CBD5E1] mr-2">[{f.code}]</span>
-                      <span className="text-[#E2E8F0]">{f.message}</span>
+                    <div key={i} className="p-3 rounded-xl border border-slate-200 bg-slate-50 text-xs">
+                      <span className="font-mono text-[10px] font-bold text-slate-700 mr-2">[{f.code}]</span>
+                      <span className="text-slate-800">{f.message}</span>
                     </div>
                   ))}
                 </div>
@@ -581,39 +581,39 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
           {activeTab === 'technical' && (
             <div className="space-y-4 max-w-3xl">
               <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-white mb-1">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033] mb-1">
                   Raw Technical Metadata & Cryptographic Provenance
                 </h3>
-                <p className="text-xs text-[#8695B7]">
+                <p className="text-xs text-[#657189]">
                   Authoritative payload stored in SQLite and broadcast across active multiplayer sessions.
                 </p>
               </div>
 
-              <div className="p-4 rounded-xl bg-[#141A33] border border-[#1A223D] space-y-3">
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div>
-                    <span className="text-[10px] text-[#8695B7] block">Context Version:</span>
+                    <span className="text-[10px] text-[#657189] block">Context Version:</span>
                     <strong className="text-blue-700 font-mono">v{proposal.base_context_version}</strong>
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#8695B7] block">Artifact Version:</span>
+                    <span className="text-[10px] text-[#657189] block">Artifact Version:</span>
                     <strong className="text-emerald-700 font-mono">v{proposal.base_artifact_version}</strong>
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#8695B7] block">Author:</span>
+                    <span className="text-[10px] text-[#657189] block">Author:</span>
                     <strong className="text-teal-700">{proposal.created_by || 'PIXEL'}</strong>
                   </div>
                   <div>
-                    <span className="text-[10px] text-[#8695B7] block">Run ID:</span>
-                    <strong className="text-[#E2E8F0] font-mono text-[10px]">{proposal.run_id || 'run_default'}</strong>
+                    <span className="text-[10px] text-[#657189] block">Run ID:</span>
+                    <strong className="text-slate-800 font-mono text-[10px]">{proposal.run_id || 'run_default'}</strong>
                   </div>
                 </div>
 
                 <div className="pt-2">
-                  <span className="text-[10px] font-bold uppercase text-[#8695B7] block mb-1">
+                  <span className="text-[10px] font-bold uppercase text-[#657189] block mb-1">
                     Raw Proposal JSON Payload:
                   </span>
-                  <pre className="font-mono text-[10px] text-white bg-[#0F1528] p-3 rounded-lg border border-[#1A223D] overflow-x-auto max-h-64">
+                  <pre className="font-mono text-[10px] text-[#172033] bg-white p-3 rounded-lg border border-slate-200 overflow-x-auto max-h-64">
                     {JSON.stringify(proposal, null, 2)}
                   </pre>
                 </div>
@@ -623,8 +623,8 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
         </div>
 
         {/* Modal Bottom Actions Footer */}
-        <div className="p-4 px-6 border-t border-[#1A223D] bg-[#0F1528] flex flex-wrap items-center justify-between gap-3 shrink-0">
-          <div className="text-xs text-[#8695B7]">
+        <div className="p-4 px-6 border-t border-[#E7ECF2] bg-white flex flex-wrap items-center justify-between gap-3 shrink-0">
+          <div className="text-xs text-[#657189]">
             {isApproved ? (
               <span className="text-emerald-700 font-bold flex items-center gap-1.5">
                 <CheckCircle2 className="w-4 h-4" />
@@ -648,7 +648,7 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
           <div className="flex items-center gap-2.5">
             <button
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8695B7] hover:bg-[#090D1A] transition cursor-pointer"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#657189] hover:bg-[#F8FAFC] transition cursor-pointer"
             >
               Close
             </button>
@@ -689,7 +689,7 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
                     onClose();
                     onRedirect(proposal);
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#CBD5E1] text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 >
                   <CornerDownRight className="w-3.5 h-3.5" />
                   <span>Redirect to PIXEL</span>
@@ -713,7 +713,7 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
                   onClick={handleApprove}
                   className={`px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 shadow-xs ${
                     isRestrictedByAlex || isApplying || isConflict
-                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-[#1A223D]'
+                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
                       : 'bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer'
                   }`}
                   title={

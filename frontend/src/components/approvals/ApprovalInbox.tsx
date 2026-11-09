@@ -127,15 +127,15 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner & Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#1A223D]">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-white">Decisions & Governance Inbox</h1>
+            <h1 className="text-xl font-bold text-[#172033]">Decisions & Governance Inbox</h1>
             <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-100">
               OpenAgents Escalation Protocol
             </span>
           </div>
-          <p className="text-sm text-[#8695B7] mt-1">
+          <p className="text-sm text-[#657189] mt-1">
             Authoritative human review and sign-off queue for high-impact agent contributions.
           </p>
         </div>
@@ -146,7 +146,7 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
               filter === 'all'
                 ? 'bg-teal-50 text-teal-900 border border-teal-200 font-semibold'
-                : 'text-[#8695B7] hover:bg-[#141A33] hover:text-white'
+                : 'text-[#657189] hover:bg-white hover:text-[#172033]'
             }`}
           >
             All ({approvals.length})
@@ -156,7 +156,7 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
               filter === 'pending'
                 ? 'bg-amber-50 text-amber-900 border border-amber-200 font-semibold'
-                : 'text-[#8695B7] hover:bg-[#141A33] hover:text-white'
+                : 'text-[#657189] hover:bg-white hover:text-[#172033]'
             }`}
           >
             Pending ({approvals.filter((a) => a.status === 'pending').length})
@@ -166,7 +166,7 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
             className={`px-3 py-1.5 rounded-lg text-xs font-medium transition ${
               filter === 'resolved'
                 ? 'bg-emerald-50 text-emerald-900 border border-emerald-200 font-semibold'
-                : 'text-[#8695B7] hover:bg-[#141A33] hover:text-white'
+                : 'text-[#657189] hover:bg-white hover:text-[#172033]'
             }`}
           >
             Resolved ({approvals.filter((a) => a.status !== 'pending').length})
@@ -192,12 +192,12 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
 
       {/* Approvals List */}
       {filteredApprovals.length === 0 ? (
-        <div className="bg-[#0F1528] border border-[#1A223D] rounded-2xl p-12 text-center">
-          <div className="w-12 h-12 rounded-xl bg-[#141A33] border border-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
+        <div className="bg-white border border-[#E5EAF0] rounded-2xl p-12 text-center">
+          <div className="w-12 h-12 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center mx-auto mb-3 text-slate-400">
             <ShieldCheck className="w-6 h-6" />
           </div>
-          <h3 className="text-sm font-semibold text-white">No approval requests in this view</h3>
-          <p className="text-xs text-[#8695B7] mt-1">
+          <h3 className="text-sm font-semibold text-[#172033]">No approval requests in this view</h3>
+          <p className="text-xs text-[#657189] mt-1">
             All agent contributions are currently reconciled and compliant with decision policies.
           </p>
         </div>
@@ -210,10 +210,10 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
             return (
               <div
                 key={appr.id}
-                className={`bg-[#0F1528] border rounded-2xl p-5 transition-all shadow-xs ${
+                className={`bg-white border rounded-2xl p-5 transition-all shadow-xs ${
                   isPending
                     ? 'border-amber-200 hover:border-amber-300'
-                    : 'border-[#1A223D] hover:border-slate-300'
+                    : 'border-[#E5EAF0] hover:border-slate-300'
                 }`}
               >
                 {/* Header Row */}
@@ -222,7 +222,7 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
                     <span className="p-1.5 rounded-lg bg-teal-50 border border-teal-100">
                       <ShieldAlert className="w-4 h-4 text-teal-700" />
                     </span>
-                    <h3 className="text-sm font-bold text-white">{appr.title}</h3>
+                    <h3 className="text-sm font-bold text-[#172033]">{appr.title}</h3>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -234,10 +234,10 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
                 {/* Body Details */}
                 <div className="py-3 space-y-3">
                   <div>
-                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#8695B7]">
+                    <h4 className="text-[11px] font-bold uppercase tracking-wider text-[#657189]">
                       Explanation & Context
                     </h4>
-                    <p className="text-xs text-white mt-1 leading-relaxed bg-[#090D1A] p-3 rounded-xl border border-[#1A223D]">
+                    <p className="text-xs text-[#172033] mt-1 leading-relaxed bg-[#F8FAFC] p-3 rounded-xl border border-[#E5EAF0]">
                       {appr.explanation}
                     </p>
                   </div>
@@ -253,14 +253,14 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
 
                   {/* Metadata Chips */}
                   <div className="flex flex-wrap items-center gap-2 pt-1 text-xs">
-                    <span className="text-[#8695B7] text-[11px] font-medium">Requested By:</span>
+                    <span className="text-[#657189] text-[11px] font-medium">Requested By:</span>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-violet-50 text-violet-700 border border-violet-100 text-xs font-semibold">
                       <Bot className="w-3 h-3" /> {appr.requested_by.toUpperCase()}
                     </span>
 
                     <span className="text-slate-300">•</span>
 
-                    <span className="text-[#8695B7] text-[11px] font-medium">Assigned Decider:</span>
+                    <span className="text-[#657189] text-[11px] font-medium">Assigned Decider:</span>
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-100 text-xs font-semibold">
                       <User className="w-3 h-3" /> {appr.assigned_decider_id.toUpperCase()} (Founder)
                     </span>
@@ -268,7 +268,7 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
                     {appr.proposal_id && (
                       <>
                         <span className="text-slate-300">•</span>
-                        <span className="text-[#8695B7] text-[11px] font-medium">Linked Proposal:</span>
+                        <span className="text-[#657189] text-[11px] font-medium">Linked Proposal:</span>
                         <span className="font-mono text-xs text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
                           {appr.proposal_id}
                         </span>
@@ -278,7 +278,7 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
                     {appr.resolved_by && (
                       <>
                         <span className="text-slate-300">•</span>
-                        <span className="text-[#8695B7] text-[11px] font-medium">Signed By:</span>
+                        <span className="text-[#657189] text-[11px] font-medium">Signed By:</span>
                         <span className="font-semibold text-emerald-700">
                           {appr.resolved_by.toUpperCase()}
                         </span>
@@ -291,9 +291,9 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
                 {isPending && (
                   <div className="pt-3 border-t border-[#F0F3F7]">
                     {isResolving ? (
-                      <div className="bg-[#090D1A] p-4 rounded-xl border border-[#1A223D] space-y-3">
+                      <div className="bg-[#F8FAFC] p-4 rounded-xl border border-[#E5EAF0] space-y-3">
                         <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-white">
+                          <span className="text-xs font-bold text-[#172033]">
                             Confirm Decision: <span className="uppercase text-teal-700">{actionType}</span>
                           </span>
                           <button
@@ -301,7 +301,7 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
                               setResolvingId(null);
                               setActionType(null);
                             }}
-                            className="text-xs text-[#8695B7] hover:text-white"
+                            className="text-xs text-[#657189] hover:text-[#172033]"
                           >
                             Cancel
                           </button>
@@ -311,7 +311,7 @@ export const ApprovalInbox: React.FC<ApprovalInboxProps> = ({
                           placeholder="Optional decision note / guidance..."
                           value={resolutionNote}
                           onChange={(e) => setResolutionNote(e.target.value)}
-                          className="w-full px-3 py-2 text-xs bg-[#0F1528] border border-[#1A223D] rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 text-white"
+                          className="w-full px-3 py-2 text-xs bg-white border border-[#E5EAF0] rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500/20 text-[#172033]"
                         />
                         <div className="flex justify-end gap-2">
                           <button

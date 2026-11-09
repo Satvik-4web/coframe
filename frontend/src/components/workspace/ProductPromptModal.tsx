@@ -86,25 +86,25 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-[#0F1528] rounded-2xl max-w-2xl w-full border border-[#1A223D] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-2xl max-w-2xl w-full border border-[#E5EAF0] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="p-6 border-b border-[#1A223D] flex items-center justify-between">
+        <div className="p-6 border-b border-[#E5EAF0] flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-200 text-violet-700 flex items-center justify-center">
               <Bot className="w-5 h-5 text-violet-700" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">
+              <h2 className="text-base font-bold text-[#172033]">
                 What would you like to create?
               </h2>
-              <p className="text-xs text-[#8695B7] mt-0.5">
+              <p className="text-xs text-[#657189] mt-0.5">
                 Describe your idea. NOVA will turn it into a structured product plan.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-[#8695B7] hover:bg-[#1A223D] hover:text-white transition"
+            className="p-2 rounded-xl text-[#657189] hover:bg-slate-100 hover:text-[#172033] transition"
           >
             <X className="w-4 h-4" />
           </button>
@@ -120,7 +120,7 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
 
           {/* Quick Presets */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#8695B7] mb-2">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#657189] mb-2">
               Fast Presets
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -129,12 +129,12 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
                   key={idx}
                   type="button"
                   onClick={() => handleApplyPreset(preset)}
-                  className="p-3 text-left rounded-xl border border-[#1A223D] bg-[#090D1A] hover:border-violet-300 hover:bg-violet-50/30 transition text-xs group"
+                  className="p-3 text-left rounded-xl border border-[#E5EAF0] bg-[#F8FAFC] hover:border-violet-300 hover:bg-violet-50/30 transition text-xs group"
                 >
-                  <p className="font-bold text-white group-hover:text-violet-700">
+                  <p className="font-bold text-[#172033] group-hover:text-violet-700">
                     {preset.title}
                   </p>
-                  <p className="text-[10px] text-[#8695B7] mt-1 line-clamp-2">
+                  <p className="text-[10px] text-[#657189] mt-1 line-clamp-2">
                     {preset.prompt}
                   </p>
                 </button>
@@ -144,7 +144,7 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
 
           {/* Main Prompt Textarea */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-white">
+            <label className="block text-xs font-bold text-[#172033]">
               Product Objective & Functional Scope *
             </label>
             <textarea
@@ -153,9 +153,9 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
               disabled={isSubmitting}
               rows={4}
               placeholder="e.g. We need to implement tiered manager expense approvals where any spend exceeding $500 requires Alex's explicit decision..."
-              className="w-full p-3.5 rounded-xl border border-[#1A223D] text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 bg-[#0F1528]"
+              className="w-full p-3.5 rounded-xl border border-[#E5EAF0] text-xs text-[#172033] placeholder:text-slate-400 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 bg-white"
             />
-            <p className="text-[11px] text-[#8695B7]">
+            <p className="text-[11px] text-[#657189]">
               NOVA will analyze target audience, functional constraints, and acceptance criteria.
             </p>
           </div>
@@ -173,7 +173,7 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
             {showAdvanced && (
               <div className="mt-3 space-y-3 pl-3 border-l-2 border-teal-200">
                 <div>
-                  <label className="block text-xs font-semibold text-white mb-1">
+                  <label className="block text-xs font-semibold text-[#172033] mb-1">
                     System Constraints
                   </label>
                   <input
@@ -181,12 +181,12 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
                     value={constraints}
                     onChange={(e) => setConstraints(e.target.value)}
                     placeholder="e.g. Strict role validation; compare-and-swap atomic update"
-                    className="w-full p-2.5 rounded-xl border border-[#1A223D] text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-teal-500"
+                    className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs text-[#172033] placeholder:text-slate-400 focus:outline-none focus:border-teal-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-white mb-1">
+                  <label className="block text-xs font-semibold text-[#172033] mb-1">
                     Reference Context Notes
                   </label>
                   <input
@@ -194,7 +194,7 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
                     value={referenceNote}
                     onChange={(e) => setReferenceNote(e.target.value)}
                     placeholder="e.g. Aligns with LedgerFlow approval_queue component v1"
-                    className="w-full p-2.5 rounded-xl border border-[#1A223D] text-xs text-white placeholder:text-slate-400 focus:outline-none focus:border-teal-500"
+                    className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs text-[#172033] placeholder:text-slate-400 focus:outline-none focus:border-teal-500"
                   />
                 </div>
               </div>
@@ -203,8 +203,8 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-[#090D1A] border-t border-[#1A223D] flex items-center justify-between">
-          <div className="text-xs text-[#8695B7] flex items-center gap-1.5">
+        <div className="p-4 bg-[#F8FAFC] border-t border-[#E5EAF0] flex items-center justify-between">
+          <div className="text-xs text-[#657189] flex items-center gap-1.5">
             <Bot className="w-3.5 h-3.5 text-violet-600" />
             <span>NOVA acts as your AI Product Strategist</span>
           </div>
@@ -214,7 +214,7 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#8695B7] hover:bg-slate-200 transition"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#657189] hover:bg-slate-200 transition"
             >
               Cancel
             </button>
