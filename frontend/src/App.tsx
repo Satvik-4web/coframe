@@ -84,7 +84,7 @@ export function App() {
   ).length;
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-[#F8FAFC] text-[#172033] font-sans antialiased selection:bg-teal-500 selection:text-white">
+    <div className="h-screen flex flex-col overflow-hidden bg-[#090D1A] text-[#F8FAFC] font-sans antialiased selection:bg-teal-500 selection:text-white">
       {/* 1. Global Top Navigation */}
       <TopBar
         project={state?.project}

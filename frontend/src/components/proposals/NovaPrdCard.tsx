@@ -53,29 +53,29 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
     <div
       className={`rounded-xl border transition-all p-4.5 shadow-2xs ${
         isConfirmed
-          ? 'bg-white border-emerald-200/80 ring-1 ring-emerald-500/10'
+          ? 'bg-[#0F1A28] border-emerald-500/40 ring-1 ring-emerald-500/20'
           : proposal.status === 'stale'
-          ? 'bg-white border-amber-300 ring-1 ring-amber-500/20'
-          : 'bg-white border-slate-200/80 hover:border-slate-300'
+          ? 'bg-[#1C1622] border-amber-500/40 ring-1 ring-amber-500/20'
+          : 'bg-[#0F1528] border-[#1A223D] hover:border-[#283766]'
       }`}
     >
       {/* 1. Header: NOVA Identity, PRD Tag, Confirmation Status */}
       <div className="flex flex-wrap items-center justify-between gap-2.5 mb-2.5">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-xs border border-purple-200 shrink-0">
-            <Brain className="w-4 h-4 text-purple-600" />
+          <div className="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center font-bold text-xs border border-purple-500/30 shrink-0">
+            <Brain className="w-4 h-4 text-purple-400" />
           </div>
 
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-bold text-xs text-slate-900">NOVA</span>
-              <span className="text-[11px] text-slate-400">•</span>
-              <span className="text-[11px] text-slate-500 font-medium">Product Strategist</span>
-              <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-purple-50 text-purple-700 border border-purple-200/60 uppercase font-mono">
+              <span className="font-bold text-xs text-white">NOVA</span>
+              <span className="text-[11px] text-[#5D6D93]">•</span>
+              <span className="text-[11px] text-[#7888AB] font-medium">Product Strategist</span>
+              <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 uppercase font-mono">
                 PRD
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 font-mono">
+            <p className="text-[10px] text-[#5D6D93] font-mono">
               Task #{proposal.task_id || proposal.run_id || 'PRD'} · {timeStr}
             </p>
           </div>
@@ -93,7 +93,7 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
               ⚠️ STALE (DRIFT DETECTED)
             </span>
           ) : (
-            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/70 flex items-center gap-1">
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
               <span>READY FOR REVIEW</span>
             </span>
@@ -101,7 +101,7 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
 
           {proposal.prune_metadata && (
             <span
-              className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1"
+              className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-[#8695B7] border border-slate-200 flex items-center gap-1"
               title="Cryptographically signed by Prune Ed25519"
             >
               <Shield className="w-3 h-3 text-emerald-600" />
@@ -113,34 +113,34 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
 
       {/* 2. PRD Title & Document Headline */}
       <div className="mb-2">
-        <h3 className="font-semibold text-sm text-slate-900 leading-snug flex items-center gap-2">
-          <FileText className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+        <h3 className="font-semibold text-sm text-white leading-snug flex items-center gap-2">
+          <FileText className="w-3.5 h-3.5 text-purple-400 shrink-0" />
           <span>{title}</span>
         </h3>
       </div>
 
       {/* 3. Executive Summary */}
-      <div className="mb-3 p-2.5 rounded-lg bg-slate-50/70 border border-slate-200/60">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-purple-900 mb-0.5">
+      <div className="mb-3 p-2.5 rounded-lg bg-[#141A33] border border-[#222C52]">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-purple-300 mb-0.5">
           Executive Summary
         </p>
-        <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
+        <p className="text-xs text-[#8695B7] leading-relaxed line-clamp-3">
           {execSummary}
         </p>
       </div>
 
       {/* 4. Document Metrics Strip */}
-      <div className="flex flex-wrap items-center gap-2 mb-3 text-xs text-slate-500 pb-2.5 border-b border-slate-100">
-        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100/70 text-[11px]">
+      <div className="flex flex-wrap items-center gap-2 mb-3 text-xs text-[#7888AB] pb-2.5 border-b border-[#1A223D]">
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#141A33] border border-[#222C52] text-[11px]">
           <span className="font-semibold text-purple-700 font-mono">{frCount}</span>
-          <span className="text-slate-600">Requirements</span>
+          <span className="text-[#8695B7]">Requirements</span>
         </div>
-        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100/70 text-[11px]">
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#141A33] border border-[#222C52] text-[11px]">
           <span className="font-semibold text-emerald-700 font-mono">{acCount}</span>
-          <span className="text-slate-600">Criteria</span>
+          <span className="text-[#8695B7]">Criteria</span>
         </div>
-        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100/70 text-[11px]">
-          <span className="text-slate-400">Audience:</span>
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-[#141A33] border border-[#222C52] text-[11px]">
+          <span className="text-[#5D6D93]">Audience:</span>
           <span className="font-medium text-slate-700 truncate max-w-[200px]">{prd?.target_users?.primary_users || (prd as any)?.target_audience || 'Enterprise'}</span>
         </div>
       </div>
@@ -150,7 +150,7 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
         <button
           type="button"
           onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
-          className="flex items-center justify-between w-full text-[11px] font-medium text-slate-400 hover:text-slate-700 py-0.5 transition cursor-pointer"
+          className="flex items-center justify-between w-full text-[11px] font-medium text-[#5D6D93] hover:text-slate-700 py-0.5 transition cursor-pointer"
         >
           <span>
             {showTechnicalDetails ? 'Hide technical JSON' : 'Inspect raw proposal JSON'}
@@ -171,7 +171,7 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
 
       {/* 6. Action Bar */}
       <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-        <div className="text-[11px] text-slate-500">
+        <div className="text-[11px] text-[#7888AB]">
           {isConfirmed ? (
             <span className="text-emerald-700 font-medium flex items-center gap-1">
               <CheckCircle2 className="w-3.5 h-3.5" />
@@ -189,11 +189,11 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
           <button
             type="button"
             onClick={() => onOpenPrd(proposal)}
-            className="px-3 py-1.5 rounded-md bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+            className="px-3 py-1.5 rounded-md bg-[#141A33] hover:bg-[#19213F] text-slate-200 border border-[#222C52] text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
           >
-            <FileText className="w-3 h-3 text-purple-600" />
+            <FileText className="w-3 h-3 text-purple-400" />
             <span>Read PRD</span>
-            <ArrowRight className="w-3 h-3 text-slate-400" />
+            <ArrowRight className="w-3 h-3 text-[#5D6D93]" />
           </button>
 
           {/* Linked PIXEL Task */}
@@ -201,7 +201,7 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
             <button
               type="button"
               onClick={onOpenPixelProposal}
-              className="px-3 py-1.5 rounded-md bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+              className="px-3 py-1.5 rounded-md bg-teal-500/20 hover:bg-teal-500/30 text-teal-300 border border-teal-500/30 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
             >
               <Code2 className="w-3 h-3 text-teal-600" />
               <span>View PIXEL Task</span>
@@ -216,8 +216,8 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
               onClick={() => onConfirmRequirements(proposal.proposal_id || proposal.id || '')}
               className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition cursor-pointer ${
                 isAlex
-                  ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-2xs'
-                  : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                  ? 'bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-500 hover:to-blue-500 text-white shadow-md shadow-2xs'
+                  : 'bg-slate-100 text-[#5D6D93] cursor-not-allowed border border-slate-200'
               }`}
               title={isAlex ? 'Confirm requirements and delegate to PIXEL' : 'Only Alex (Founder / Decision Owner) can confirm'}
             >
