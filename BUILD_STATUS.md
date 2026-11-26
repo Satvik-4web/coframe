@@ -1,5 +1,7 @@
 # COFRAME — BUILD STATUS & P0 IMPLEMENTATION TRACKER
 
+> Historical hackathon checklist. The current repository contains additional features and tests. Use the build and test commands in README for current verification; the pass counts below are archival, not a current result.
+
 **Project:** COFRAME — Human + AI, One Shared Creation  
 **Hackathon:** BIOS FORGE (24-Hour Scope)  
 **Demo Artifact:** LedgerFlow (Enterprise Expense Management)  

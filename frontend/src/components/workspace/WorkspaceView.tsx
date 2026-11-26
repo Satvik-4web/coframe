@@ -1,41 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  FullProjectState,
-  HumanIdentity,
-  AgentRun,
-  Proposal,
-  PRD,
-  ImplementationPlan,
-  WorkflowStageInfo,
-} from '../../types';
-import {
-  Users,
-  Bot,
-  Sparkles,
-  GitPullRequest,
-  CheckCircle2,
-  Clock,
-  RotateCcw,
-  ArrowRight,
-  ShieldAlert,
-  ShieldCheck,
-  Layers,
-  Activity,
-  FileText,
-  Radio,
-  Eye,
-  HelpCircle,
-  Code2,
-  Check,
-  ArrowUpRight,
+  Activity, ArrowRight, ArrowUpRight, Bot, Check, ChevronRight, CircleAlert,
+  Clock3, Code2, FileText, GitPullRequest, Layers3, Plus, Radio, ShieldCheck,
+  Sparkles, Users, WandSparkles,
 } from 'lucide-react';
-import {
-  restartAgent,
-  fetchLatestPRD,
-  fetchLatestPlan,
-  fetchWorkflowStage,
-} from '../../lib/api';
-import { WorkflowStageIndicator } from './WorkflowStageIndicator';
+import { FullProjectState, HumanIdentity, ImplementationPlan, PRD, WorkflowStageInfo } from '../../types';
+import { fetchLatestPRD, fetchLatestPlan, fetchWorkflowStage } from '../../lib/api';
 import { ProductPromptModal } from './ProductPromptModal';
 import { PRDReviewModal } from './PRDReviewModal';
 import { ImplementationPlanCard } from './ImplementationPlanCard';
@@ -48,440 +18,180 @@ interface WorkspaceViewProps {
   onNavigateTab: (tab: any, param?: string) => void;
 }
 
-export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
-  state,
-  identity,
-  onRefresh,
-  onNavigateTab,
-}) => {
+const stageNames: Record<string, string> = {
+  discovery: 'Discovery', requirements_review: 'Requirements review',
+  implementation_planning: 'Implementation planning', prototype_development: 'Prototype development',
+  agent_review: 'Agent review', human_approval: 'Human approval', completed: 'Completed',
+};
+
+export const WorkspaceView: React.FC<WorkspaceViewProps> = ({ state, identity, onRefresh, onNavigateTab }) => {
   const [showPromptModal, setShowPromptModal] = useState(false);
   const [showPRDModal, setShowPRDModal] = useState(false);
   const [activePRD, setActivePRD] = useState<PRD | null>(null);
   const [activePlan, setActivePlan] = useState<ImplementationPlan | null>(null);
-  const [stageInfo, setStageInfo] = useState<WorkflowStageInfo | undefined>(undefined);
+  const [stageInfo, setStageInfo] = useState<WorkflowStageInfo | undefined>();
+  const workflowRequestId = useRef(0);
 
-  const novaRun = state.agent_runs.find((r) => r.agent_id === 'nova');
-  const pixelRun = state.agent_runs.find((r) => r.agent_id === 'pixel');
-
-  const pendingProposals = state.proposals.filter((p) => p.status === 'pending_review');
-  const staleProposals = state.proposals.filter((p) => p.status === 'stale');
-  const conflictProposals = state.proposals.filter((p) => p.status === 'conflict');
-  const highImpactProposals = pendingProposals.filter((p) => p.requires_decision);
-
-  const pendingPRDs = state.proposals.filter(
-    (p) => p.proposal_type === 'prd_requirement' && p.status === 'pending_review'
-  );
-
-  // Load latest PRD, Plan, and Workflow Stage from DB
   const loadWorkflowData = async () => {
-    try {
-      const [prdRes, planRes, stageRes] = await Promise.all([
-        fetchLatestPRD('demo-ledgerflow').catch(() => ({ prd: null })),
-        fetchLatestPlan('demo-ledgerflow').catch(() => ({ plan: null })),
-        fetchWorkflowStage('demo-ledgerflow').catch(() => ({ stage: null })),
-      ]);
-      if (prdRes.prd) setActivePRD(prdRes.prd);
-      if (planRes.plan) setActivePlan(planRes.plan);
-      if (stageRes.stage) setStageInfo(stageRes.stage);
-    } catch {
-      // Graceful fallback to client state
-    }
+    const requestId = ++workflowRequestId.current;
+    const [prdRes, planRes, stageRes] = await Promise.all([
+      fetchLatestPRD('demo-ledgerflow').catch(() => ({ prd: null })),
+      fetchLatestPlan('demo-ledgerflow').catch(() => ({ plan: null })),
+      fetchWorkflowStage('demo-ledgerflow').catch(() => ({ stage: null })),
+    ]);
+    if (requestId !== workflowRequestId.current) return;
+    setActivePRD(prdRes.prd ?? null);
+    setActivePlan(planRes.plan ?? null);
+    setStageInfo(stageRes.stage ?? undefined);
   };
 
   useEffect(() => {
     loadWorkflowData();
-  }, [state.project.context_version, state.proposals.length]);
+    return () => { workflowRequestId.current += 1; };
+  }, [state.project.context_version, state.project.artifact_version, state.proposals.length, state.events.length]);
 
-  const handleAnalysisComplete = (prd: PRD) => {
-    setActivePRD(prd);
-    setShowPRDModal(true);
-    loadWorkflowData();
-    onRefresh();
-  };
-
+  const pending = state.proposals.filter((p) => p.status === 'pending_review');
+  const conflicts = state.proposals.filter((p) => p.status === 'conflict');
+  const stale = state.proposals.filter((p) => p.status === 'stale');
+  const attention = [
+    ...(activePRD?.status === 'awaiting_confirmation' ? [{
+      id: activePRD.id, label: 'Decision needed', title: activePRD.title,
+      description: `Product brief v${activePRD.version} is ready for review.`,
+      tone: 'violet', action: () => setShowPRDModal(true),
+    }] : []),
+    ...conflicts.map((p) => ({ id: p.proposal_id, label: 'Conflict', title: p.summary,
+      description: p.conflict_reason || 'A section changed since this proposal was written.',
+      tone: 'rose', action: () => onNavigateTab('proposals', p.proposal_id) })),
+    ...stale.map((p) => ({ id: p.proposal_id, label: 'Needs refresh', title: p.summary,
+      description: p.stale_reason || 'The requirements behind this proposal have changed.',
+      tone: 'amber', action: () => onNavigateTab('proposals', p.proposal_id) })),
+    ...pending.filter((p) => p.requires_decision).map((p) => ({
+      id: p.proposal_id, label: 'Approval', title: p.summary,
+      description: 'This proposal needs a decision from Alex.', tone: 'blue',
+      action: () => onNavigateTab('proposals', p.proposal_id),
+    })),
+  ];
+  const displayStage = stageNames[stageInfo?.current_stage || ''] || stageInfo?.stage_label || 'In progress';
+  const recentEvents = state.events.slice(0, 4);
   const humanName = identity === 'alex' ? 'Alex' : 'Maya';
 
-  // Derive Attention Required items
-  const attentionItems: Array<{
-    id: string;
-    type: 'prd' | 'conflict' | 'stale' | 'high_impact' | 'proposal';
-    title: string;
-    description: string;
-    actionLabel: string;
-    badge: string;
-    badgeColor: string;
-    action: () => void;
-  }> = [];
-
-  // 1. PRD awaits confirmation
-  if (activePRD && activePRD.status === 'awaiting_confirmation') {
-    attentionItems.push({
-      id: activePRD.id,
-      type: 'prd',
-      title: `PRD v${activePRD.version}: ${activePRD.title}`,
-      description: 'NOVA completed product requirements. Alex confirmation required before PIXEL begins implementation.',
-      actionLabel: 'Review & Confirm PRD',
-      badge: 'PRD CONFIRMATION',
-      badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200',
-      action: () => setShowPRDModal(true),
-    });
-  }
-
-  // 2. Section Conflicts
-  conflictProposals.forEach((p) => {
-    attentionItems.push({
-      id: p.proposal_id,
-      type: 'conflict',
-      title: `Section Conflict on '${p.target_sections[0] || 'hero'}'`,
-      description: p.conflict_reason || 'Concurrent manual edits detected. Reconcile side-by-side.',
-      actionLabel: 'Resolve Conflict',
-      badge: 'CONFLICT',
-      badgeColor: 'bg-rose-50 text-rose-700 border-rose-200',
-      action: () => onNavigateTab('proposals', p.proposal_id),
-    });
-  });
-
-  // 3. Stale Proposals
-  staleProposals.forEach((p) => {
-    attentionItems.push({
-      id: p.proposal_id,
-      type: 'stale',
-      title: `Outdated Proposal: ${p.summary}`,
-      description: p.stale_reason || 'Requirement dependency changed since proposal generation.',
-      actionLabel: 'Inspect Staleness',
-      badge: 'STALE',
-      badgeColor: 'bg-amber-50 text-amber-800 border-amber-200',
-      action: () => onNavigateTab('proposals', p.proposal_id),
-    });
-  });
-
-  // 4. High-Impact Approvals
-  highImpactProposals.forEach((p) => {
-    attentionItems.push({
-      id: p.proposal_id,
-      type: 'high_impact',
-      title: p.summary,
-      description: 'High-impact policy proposal requiring Alex authorization.',
-      actionLabel: 'Review Sign-off',
-      badge: 'HIGH IMPACT',
-      badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
-      action: () => onNavigateTab('proposals', p.proposal_id),
-    });
-  });
-
   return (
-    <div className="space-y-5 max-w-6xl mx-auto">
-      {/* 1. Sleek Workspace Header */}
-      <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
-            <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider font-mono">
-              LedgerFlow · Human + AI Workspace
-            </span>
+    <div className="coframe-dashboard mx-auto max-w-[1400px] space-y-7 pb-12">
+      <section className="dashboard-hero relative isolate overflow-hidden rounded-[28px] px-6 py-8 text-white shadow-[0_24px_60px_-32px_rgba(12,17,40,.75)] sm:px-9 sm:py-10 xl:px-12">
+        <div className="dashboard-hero-grid pointer-events-none absolute inset-0 opacity-60" />
+        <div className="pointer-events-none absolute -right-16 -top-36 h-96 w-96 rounded-full bg-blue-400/15 blur-[80px]" />
+        <div className="pointer-events-none absolute -bottom-52 right-1/4 h-80 w-80 rounded-full bg-sky-400/10 blur-[80px]" />
+        <div className="relative grid gap-9 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-center">
+          <div className="max-w-2xl">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[.07] px-3 py-1.5 text-[11px] font-semibold tracking-[.13em] text-slate-200 uppercase backdrop-blur-md">
+              <span className="h-1.5 w-1.5 rounded-full bg-sky-300 shadow-[0_0_12px_#7DD3FC]" />
+              LedgerFlow workspace <span className="text-white/30">/</span> {displayStage}
+            </div>
+            <p className="mb-2 text-sm font-medium text-slate-300">Welcome back, {humanName}</p>
+            <h1 className="max-w-[650px] text-[clamp(2.2rem,4.2vw,4rem)] font-semibold leading-[1.08] tracking-[-.05em]">
+              Make progress.<br /><span className="text-[#93C5FD]">Keep the context.</span>
+            </h1>
+            <p className="mt-5 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
+              Ideas, agent work, and human decisions in one place. Pick up where the team left off.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <button type="button" onClick={() => setShowPromptModal(true)} disabled={identity !== 'alex'}
+                title={identity !== 'alex' ? 'Alex starts product briefs in this demo' : 'Create a product brief'}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#3B82F6] px-5 py-3 text-sm font-bold text-white shadow-[0_8px_26px_-10px_#3B82F6] transition hover:-translate-y-0.5 hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50">
+                <Plus className="h-4 w-4" /> New product brief
+              </button>
+              <button type="button" onClick={() => onNavigateTab('chat')}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20">
+                Open team chat <ArrowUpRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
-          <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            Welcome back, {humanName}
-          </h1>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Sequential product execution: Human Idea → NOVA PRD → Alex Approval → PIXEL Code → CAS Commit.
-          </p>
+          <div className="hidden lg:block">
+            <div className="relative rounded-[22px] border border-white/15 bg-white/[.075] p-5 shadow-2xl backdrop-blur-xl">
+              <div className="mb-5 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[.18em] text-slate-300">
+                <span>Collaboration flow</span><Sparkles className="h-4 w-4 text-sky-300" />
+              </div>
+              {[
+                { n: '01', name: 'A clear idea', detail: 'Human direction', icon: WandSparkles, color: 'text-sky-300' },
+                { n: '02', name: 'NOVA shapes it', detail: 'Requirements & context', icon: Bot, color: 'text-blue-300' },
+                { n: '03', name: 'PIXEL proposes', detail: 'Reviewable artifact change', icon: Code2, color: 'text-slate-200' },
+              ].map((step, index) => {
+                const Icon = step.icon;
+                return <div key={step.n} className={`flex items-center gap-3 rounded-xl p-3 ${index === 1 ? 'border border-white/10 bg-white/10' : ''}`}>
+                  <span className="text-[11px] font-mono text-white/40">{step.n}</span>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10"><Icon className={`h-4 w-4 ${step.color}`} /></div>
+                  <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-white">{step.name}</p><p className="text-[11px] text-slate-300">{step.detail}</p></div>
+                  {index < 2 && <ChevronRight className="h-4 w-4 text-white/30" />}
+                </div>;
+              })}
+              <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-4 text-xs text-slate-300">
+                <ShieldCheck className="h-4 w-4 text-sky-300" /> Human review before changes apply
+              </div>
+            </div>
+          </div>
         </div>
+      </section>
 
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            onClick={() => onNavigateTab('chat')}
-            className="px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white font-medium text-xs flex items-center gap-1.5 transition cursor-pointer shadow-xs"
-          >
-            <Sparkles className="w-3.5 h-3.5 text-indigo-300" />
-            <span>Open Chat</span>
-          </button>
+      <section aria-label="Project snapshot" className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {[
+          { label: 'Context version', value: `v${state.project.context_version}`, sub: 'Shared requirements', icon: Radio, color: 'text-blue-700', wash: 'bg-blue-50' },
+          { label: 'Artifact version', value: `v${state.project.artifact_version}`, sub: 'Product canvas', icon: Layers3, color: 'text-sky-700', wash: 'bg-sky-50' },
+          { label: 'In review', value: String(pending.length), sub: 'Open proposals', icon: GitPullRequest, color: 'text-slate-700', wash: 'bg-slate-100' },
+          { label: 'Needs attention', value: String(attention.length), sub: 'Decisions & conflicts', icon: CircleAlert, color: 'text-amber-700', wash: 'bg-amber-50' },
+        ].map((metric) => {
+          const Icon = metric.icon;
+          return <div key={metric.label} className="dashboard-card flex min-h-[132px] flex-col justify-between rounded-2xl p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-2"><span className="text-xs font-semibold text-slate-500 sm:text-sm">{metric.label}</span><span className={`rounded-xl p-2 ${metric.wash}`}><Icon className={`h-4 w-4 ${metric.color}`} /></span></div>
+            <div><p className="text-[30px] font-semibold leading-none tracking-[-.04em] text-[#14213A]">{metric.value}</p><p className="mt-1.5 text-xs text-slate-400">{metric.sub}</p></div>
+          </div>;
+        })}
+      </section>
 
-          <button
-            onClick={() => onNavigateTab('preview')}
-            className="px-3 py-2 rounded-lg bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 font-medium text-xs flex items-center gap-1.5 transition cursor-pointer"
-          >
-            <Eye className="w-3.5 h-3.5 text-teal-600" />
-            <span>Live Canvas</span>
-          </button>
-        </div>
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,1fr)]">
+        <section className="dashboard-card overflow-hidden rounded-[22px]">
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-5 sm:px-7">
+            <div><p className="mb-1 text-[11px] font-bold uppercase tracking-[.16em] text-indigo-600">Your queue</p><h2 className="text-xl font-semibold tracking-tight text-[#14213A]">What needs a decision</h2></div>
+            <button type="button" onClick={() => onNavigateTab('proposals')} className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800">All proposals <ArrowUpRight className="h-3.5 w-3.5" /></button>
+          </div>
+          <div className="space-y-2 p-4 sm:p-5">
+            {attention.length ? attention.slice(0, 4).map((item) => (
+              <button key={item.id} type="button" onClick={item.action} className="group flex w-full items-center gap-4 rounded-2xl border border-slate-100 bg-[#F8F9FC] p-4 text-left transition hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50/40 hover:shadow-md">
+                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${item.tone === 'rose' ? 'bg-rose-100 text-rose-700' : item.tone === 'amber' ? 'bg-amber-100 text-amber-700' : item.tone === 'blue' ? 'bg-blue-100 text-blue-700' : 'bg-violet-100 text-violet-700'}`}><FileText className="h-5 w-5" /></span>
+                <span className="min-w-0 flex-1"><span className="block text-[10px] font-bold uppercase tracking-[.12em] text-indigo-600">{item.label}</span><span className="mt-0.5 block truncate text-sm font-semibold text-[#14213A]">{item.title}</span><span className="mt-0.5 block truncate text-xs text-slate-500">{item.description}</span></span>
+                <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-1 group-hover:text-indigo-600" />
+              </button>
+            )) : <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-[#F9FAFC] px-6 text-center"><span className="mb-3 rounded-2xl bg-emerald-50 p-3 text-emerald-600"><Check className="h-6 w-6" /></span><p className="font-semibold text-[#14213A]">You’re all caught up</p><p className="mt-1 max-w-xs text-sm text-slate-500">New proposals and decisions will show up here.</p></div>}
+          </div>
+        </section>
+
+        <section className="dashboard-card flex flex-col rounded-[22px] p-5 sm:p-6">
+          <div className="mb-5 flex items-center justify-between"><div><p className="mb-1 text-[11px] font-bold uppercase tracking-[.16em] text-sky-700">Team at work</p><h2 className="text-xl font-semibold tracking-tight text-[#14213A]">Your AI partners</h2></div><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-500"><Users className="h-4 w-4" /></span></div>
+          <div className="space-y-3">
+            {[
+              { name: 'NOVA', role: 'Product strategy', icon: Bot, tone: 'bg-blue-100 text-blue-700', description: 'Turns direction into a reviewable product brief.' },
+              { name: 'PIXEL', role: 'Prototype engineering', icon: Code2, tone: 'bg-sky-100 text-sky-700', description: 'Suggests changes to the product artifact.' },
+            ].map((agent) => {
+              const Icon = agent.icon;
+              return <button type="button" key={agent.name} onClick={() => onNavigateTab('agents')} className="group flex w-full items-start gap-3 rounded-2xl border border-slate-100 bg-[#F9FAFC] p-4 text-left transition hover:border-slate-300 hover:bg-white hover:shadow-sm"><span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${agent.tone}`}><Icon className="h-5 w-5" /></span><span className="min-w-0 flex-1"><span className="flex items-center justify-between"><strong className="text-sm text-[#14213A]">{agent.name}</strong><ArrowUpRight className="h-4 w-4 text-slate-400 transition group-hover:text-indigo-600" /></span><span className="text-[11px] font-medium text-slate-500">{agent.role}</span><span className="mt-2 block text-xs leading-5 text-slate-500">{agent.description}</span></span></button>;
+            })}
+          </div>
+          <button type="button" onClick={() => onNavigateTab('preview')} className="mt-auto flex items-center justify-between border-t border-slate-100 pt-5 text-sm font-semibold text-[#14213A] hover:text-indigo-600"><span>Explore the product canvas</span><ArrowUpRight className="h-4 w-4" /></button>
+        </section>
       </div>
 
-      {/* 2. Focused Quick Chat Bar */}
       <OverviewQuickChat identity={identity} onNavigateTab={onNavigateTab} />
 
-      {/* 3. Project Pulse Metrics Strip */}
-      <div>
-        <div className="flex items-center justify-between mb-2.5 px-0.5">
-          <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-            Project Pulse
-          </h3>
-          <span className="text-[10px] text-slate-400 font-mono">LIVE TELEMETRY</span>
+      {activePlan && <ImplementationPlanCard plan={activePlan} onViewProposal={(id) => onNavigateTab('proposals', id)} />}
+
+      <section className="dashboard-card overflow-hidden rounded-[22px]">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-5 sm:px-7"><div><p className="mb-1 text-[11px] font-bold uppercase tracking-[.16em] text-slate-500">The record</p><h2 className="text-xl font-semibold tracking-tight text-[#14213A]">Recent activity</h2></div><button type="button" onClick={() => onNavigateTab('activity')} className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800">Full history <ArrowUpRight className="h-3.5 w-3.5" /></button></div>
+        <div className="divide-y divide-slate-100 px-5 sm:px-7">
+          {recentEvents.length ? recentEvents.map((event) => <div key={event.id} className="flex items-center gap-4 py-4"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500"><Activity className="h-4 w-4" /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-[#14213A]">{event.event_type.replace(/[._]/g, ' ')}</p><p className="text-xs text-slate-500">{event.actor_id} · event #{event.sequence_no}</p></div><time className="hidden text-xs text-slate-400 sm:block">{new Date(event.created_at).toLocaleDateString()}</time></div>) : <div className="py-10 text-center text-sm text-slate-500"><Clock3 className="mx-auto mb-2 h-5 w-5" />Activity will appear here once the team starts working.</div>}
         </div>
+      </section>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {/* Context Version */}
-          <div className="bg-white border border-slate-200/80 rounded-lg p-3.5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-slate-500">Context Version</span>
-              <Radio className="w-3.5 h-3.5 text-blue-600" />
-            </div>
-            <div className="mt-1.5 flex items-baseline gap-1">
-              <span className="text-xl font-bold text-slate-900 font-mono">
-                v{state.project.context_version}
-              </span>
-            </div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Requirements & PRDs</p>
-          </div>
-
-          {/* Artifact Version */}
-          <div className="bg-white border border-slate-200/80 rounded-lg p-3.5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-slate-500">Artifact Version</span>
-              <Layers className="w-3.5 h-3.5 text-teal-600" />
-            </div>
-            <div className="mt-1.5 flex items-baseline gap-1">
-              <span className="text-xl font-bold text-slate-900 font-mono">
-                v{state.project.artifact_version}
-              </span>
-            </div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Canvas component code</p>
-          </div>
-
-          {/* Pending PRDs */}
-          <div className="bg-white border border-slate-200/80 rounded-lg p-3.5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-slate-500">Pending PRDs</span>
-              <FileText className="w-3.5 h-3.5 text-indigo-600" />
-            </div>
-            <div className="mt-1.5 flex items-baseline gap-1.5">
-              <span className="text-xl font-bold text-slate-900">
-                {pendingPRDs.length}
-              </span>
-              <span className="text-[10px] text-slate-400">in queue</span>
-            </div>
-            <p className="text-[10px] text-slate-400 mt-0.5">NOVA specifications</p>
-          </div>
-
-          {/* Active Collaborators */}
-          <div className="bg-white border border-slate-200/80 rounded-lg p-3.5 shadow-2xs">
-            <div className="flex items-center justify-between">
-              <span className="text-[11px] font-medium text-slate-500">Active Team</span>
-              <Users className="w-3.5 h-3.5 text-indigo-600" />
-            </div>
-            <div className="mt-1.5 flex items-baseline gap-1.5">
-              <span className="text-xl font-bold text-slate-900">
-                {state.online_members.length > 0 ? state.online_members.length : 4}
-              </span>
-              <span className="text-[10px] text-emerald-600 font-semibold font-mono">SYNCED</span>
-            </div>
-            <p className="text-[10px] text-slate-400 mt-0.5">Alex, Maya, NOVA, PIXEL</p>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Attention Required */}
-      <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs space-y-3">
-        <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-amber-600" />
-            <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-              Attention Required ({attentionItems.length})
-            </h2>
-          </div>
-          {attentionItems.length > 0 && (
-            <button
-              onClick={() => onNavigateTab('proposals')}
-              className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
-            >
-              <span>View all</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
-          )}
-        </div>
-
-        {attentionItems.length === 0 ? (
-          <div className="text-center py-6 px-4 rounded-lg border border-dashed border-slate-200 bg-slate-50/50">
-            <CheckCircle2 className="w-6 h-6 text-emerald-500 mx-auto mb-1.5 opacity-80" />
-            <p className="text-xs font-semibold text-slate-900">Workspace in clean state</p>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              All proposals, requirements, and section changes are approved or applied.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-2">
-            {attentionItems.map((item, idx) => (
-              <div
-                key={item.id || ('attn_' + idx)}
-                onClick={item.action}
-                className="p-3 rounded-lg border border-slate-200/70 hover:border-indigo-300 hover:bg-indigo-50/20 bg-slate-50/50 cursor-pointer transition flex flex-col md:flex-row md:items-center justify-between gap-2.5 group"
-              >
-                <div className="space-y-0.5 flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[9px] font-semibold px-1.5 py-0.2 rounded ${item.badgeColor} border`}>
-                      {item.badge}
-                    </span>
-                    <h4 className="font-semibold text-xs text-slate-900 group-hover:text-indigo-700 transition truncate">
-                      {item.title}
-                    </h4>
-                  </div>
-                  <p className="text-[11px] text-slate-500 line-clamp-1">
-                    {item.description}
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-1 shrink-0 text-xs font-medium text-indigo-600 group-hover:translate-x-0.5 transition-transform">
-                  <span>{item.actionLabel}</span>
-                  <ArrowRight className="w-3 h-3" />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 5. AI Specialist Agents Card Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-        {/* NOVA Card */}
-        <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-xs border border-purple-200">
-                  <Bot className="w-4 h-4 text-purple-600" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-xs text-slate-900">NOVA</h4>
-                  <p className="text-[10px] text-slate-500">AI Product Strategist · Gemini 2.5</p>
-                </div>
-              </div>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
-                {stageInfo?.nova_status?.includes('Analyzing') ? 'Analyzing' : 'Ready'}
-              </span>
-            </div>
-
-            <div className="mt-3 text-xs">
-              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">
-                Role & Focus
-              </span>
-              <p className="text-slate-600 text-xs leading-relaxed">
-                {novaRun?.task_description || 'Synthesizing requirements, formulating 11-section PRDs & checking compliance'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* PIXEL Card */}
-        <div className="bg-white border border-slate-200/80 rounded-xl p-4 shadow-xs flex flex-col justify-between">
-          <div>
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center font-bold text-xs border border-teal-200">
-                  <Code2 className="w-4 h-4 text-teal-600" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-xs text-slate-900">PIXEL</h4>
-                  <p className="text-[10px] text-slate-500">AI Software Engineer · Gemini 2.5</p>
-                </div>
-              </div>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
-                {stageInfo?.pixel_status?.includes('Waiting') ? 'Awaiting PRD' : 'Standby'}
-              </span>
-            </div>
-
-            <div className="mt-3 text-xs">
-              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block mb-0.5">
-                Role & Focus
-              </span>
-              <p className="text-slate-600 text-xs leading-relaxed">
-                {pixelRun?.task_description || 'Engineering plan formulation and CAS section implementation commits'}
-              </p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 6. Recent Activity Log */}
-      <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs space-y-3">
-        <div className="flex items-center justify-between pb-2.5 border-b border-slate-100">
-          <div className="flex items-center gap-2">
-            <Clock className="w-4 h-4 text-slate-500" />
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-900">
-              Recent Activity
-            </h3>
-          </div>
-          <button
-            onClick={() => onNavigateTab('activity')}
-            className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 flex items-center gap-1 cursor-pointer"
-          >
-            <span>Full audit log</span>
-            <ArrowRight className="w-3 h-3" />
-          </button>
-        </div>
-
-        <div className="space-y-1.5">
-          {state.events.slice(0, 5).map((ev, idx) => (
-            <div
-              key={ev.id || ev.event_id || ('ev_' + idx)}
-              className="p-2.5 rounded-lg bg-slate-50/60 border border-slate-200/60 flex items-center justify-between text-xs"
-            >
-              <div className="flex items-center gap-2 min-w-0">
-                <span
-                  className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                    ev.actor_type === 'human'
-                      ? 'bg-blue-600'
-                      : ev.actor_id === 'nova'
-                      ? 'bg-purple-600'
-                      : 'bg-teal-600'
-                  }`}
-                />
-                <div className="min-w-0">
-                  <span className="font-semibold text-slate-900 mr-1.5 text-xs">
-                    {ev.actor_id.toUpperCase()}
-                  </span>
-                  <span className="text-slate-600 truncate text-[11px]">
-                    {ev.event_type.replace(/_/g, ' ')}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1.5 shrink-0 text-[10px] text-slate-400 font-mono">
-                <span>#{ev.sequence_no}</span>
-                <span>•</span>
-                <span>{new Date(ev.created_at || (ev.timestamp ? ev.timestamp * 1000 : Date.now())).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Modals */}
-      {showPromptModal && (
-        <ProductPromptModal
-          isOpen={showPromptModal}
-          identity={identity}
-          onClose={() => setShowPromptModal(false)}
-          onAnalysisComplete={handleAnalysisComplete}
-        />
-      )}
-
-      {showPRDModal && activePRD && (
-        <PRDReviewModal
-          isOpen={showPRDModal}
-          prd={activePRD}
-          identity={identity}
-          onClose={() => setShowPRDModal(false)}
-          onConfirmSuccess={() => {
-            setShowPRDModal(false);
-            loadWorkflowData();
-            onRefresh();
-          }}
-          onRefresh={() => {
-            loadWorkflowData();
-            onRefresh();
-          }}
-        />
-      )}
+      {showPromptModal && <ProductPromptModal isOpen={showPromptModal} identity={identity} onClose={() => setShowPromptModal(false)} onAnalysisComplete={(prd: PRD) => { setActivePRD(prd); setShowPRDModal(true); loadWorkflowData(); onRefresh(); }} />}
+      {showPRDModal && activePRD && <PRDReviewModal isOpen={showPRDModal} prd={activePRD} identity={identity} onClose={() => setShowPRDModal(false)} onConfirmSuccess={() => { setShowPRDModal(false); loadWorkflowData(); onRefresh(); }} onRefresh={() => { loadWorkflowData(); onRefresh(); }} />}
     </div>
   );
 };

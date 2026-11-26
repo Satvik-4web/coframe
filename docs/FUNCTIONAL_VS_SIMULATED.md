@@ -6,6 +6,8 @@ Per the BIOS FORGE Hackathon rules, this matrix transparently details the implem
 
 ## 1. Capability Matrix
 
+Current staged-flow clarification: the PRD analysis endpoint requests a live NOVA model response when configured and records `generation_mode=template_fallback` when it cannot. The subsequent PRD confirmation creates a fixed PIXEL demo plan and proposal, marked simulated. LedgerFlow's editable artifact design and persisted expense workflow are separate: expense totals and decisions are live, seeded dashboard cards and queue rows are examples. The expense workflow currently supports USD only. Alex/Maya are selectable demo identities, not authenticated accounts; body-supplied identity should not be treated as production authorization.
+
 | System Capability | Implementation Reality | Functional vs. Simulated Disclosure | Verification / Proof |
 | :--- | :--- | :--- | :--- |
 | **Two Human Sessions (Alex & Maya)** | **Functional Demo Identity Model with Realtime Presence** | **Demo Identity Mechanism:** Users select "Alex" or "Maya" from an identity switcher without requiring username/password or JWT authentication to facilitate rapid hackathon judging and multi-browser evaluation. Presence tracking is **100% Functional** via active WebSockets. | Open Alex in normal browser and Maya in incognito window. Both topbars show active collaborator status with live avatar indicators. |

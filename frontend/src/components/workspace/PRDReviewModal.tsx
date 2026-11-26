@@ -36,6 +36,12 @@ export const PRDReviewModal: React.FC<PRDReviewModalProps> = ({
 }) => {
   if (!isOpen || !prd) return null;
 
+  return <PRDReviewContent key={`${prd.id}:${prd.version}`} prd={prd} identity={identity} onClose={onClose} onConfirmSuccess={onConfirmSuccess} onRefresh={onRefresh} />;
+};
+
+const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & { prd: PRD }> = ({
+  prd, identity, onClose, onConfirmSuccess, onRefresh,
+}) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'requirements' | 'criteria' | 'questions'>('overview');
   const [title, setTitle] = useState(prd.title);
   const [targetAudience, setTargetAudience] = useState(prd.target_audience);
@@ -133,7 +139,7 @@ export const PRDReviewModal: React.FC<PRDReviewModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
-                  NOVA PRD v{prd.version}
+                  PRD draft v{prd.version}
                 </span>
                 <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
                   prd.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'
@@ -153,6 +159,12 @@ export const PRDReviewModal: React.FC<PRDReviewModalProps> = ({
             <X className="w-4 h-4" />
           </button>
         </div>
+
+        {prd.generation_mode === 'template_fallback' && (
+          <div role="status" className="border-b border-amber-200 bg-amber-50 px-6 py-2.5 text-xs text-amber-900">
+            Live AI was unavailable. This is a demo template; review and edit its requirements before confirming.
+          </div>
+        )}
 
         {/* Tab Navigation */}
         <div className="px-6 border-b border-[#E5EAF0] bg-[#F8FAFC] flex items-center space-x-2">
@@ -452,7 +464,7 @@ export const PRDReviewModal: React.FC<PRDReviewModalProps> = ({
             <button
               type="button"
               onClick={handleSaveEdits}
-              disabled={isSaving}
+              disabled={isSaving || prd.status === 'confirmed'}
               className="px-3.5 py-2 rounded-xl text-xs font-semibold text-[#172033] border border-[#E5EAF0] bg-white hover:bg-slate-50 transition"
             >
               {isSaving ? 'Saving...' : saveSuccess ? 'Saved ✓' : 'Save Draft Edits'}

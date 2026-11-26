@@ -39,7 +39,7 @@ export const ImplementationPlanCard: React.FC<ImplementationPlanCardProps> = ({
               </span>
             </div>
             <p className="text-[11px] text-[#657189] mt-0.5">
-              Structured engineering plan derived from confirmed PRD requirements
+              Demo implementation plan linked to the confirmed PRD
             </p>
           </div>
         </div>
@@ -106,7 +106,7 @@ export const ImplementationPlanCard: React.FC<ImplementationPlanCardProps> = ({
                 <span className="font-medium text-[#172033]">{task.task}</span>
               </div>
               <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                Ready for review
+                Planned
               </span>
             </div>
           ))}

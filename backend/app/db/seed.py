@@ -529,6 +529,7 @@ def reset_demo_database(db: Session, project_id: str = DEMO_PROJECT_ID):
                 "policy_note": "Manager approval approach not yet finalised",
 
                 "threshold": "$1,000",
+                  "auto_approval_limit": 500,
 
                 "items": [
 

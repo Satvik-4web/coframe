@@ -22,38 +22,60 @@ interface LedgerFlowApprovalQueueProps {
   };
   version: number;
   identity?: HumanIdentity;
+  approvalThreshold: number | null;
+  refreshKey?: number;
+  onExpensesChanged?: () => void;
 }
 
 export const LedgerFlowApprovalQueue: React.FC<LedgerFlowApprovalQueueProps> = ({
   data,
   version,
   identity = 'alex',
+  approvalThreshold,
+  refreshKey = 0,
+  onExpensesChanged,
 }) => {
   const items = data.items || [];
   const [liveExpenses, setLiveExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   const loadLiveExpenses = async () => {
     try {
       const res = await fetchExpenses('demo-ledgerflow');
       setLiveExpenses(res.expenses || []);
+      setLoadError(false);
     } catch {
-      // Ignore background load error
+      setLoadError(true);
     }
   };
 
   useEffect(() => {
     loadLiveExpenses();
+  }, [refreshKey]);
+
+  useEffect(() => {
+    const onUpdate = (event: Event) => {
+      const type = (event as CustomEvent<{ type?: string }>).detail?.type;
+      if (type === 'EXPENSE_SUBMITTED' || type === 'EXPENSE_DECIDED') loadLiveExpenses();
+    };
+    window.addEventListener('coframe:ws_message', onUpdate);
+    return () => window.removeEventListener('coframe:ws_message', onUpdate);
   }, []);
 
   const handleDecision = async (expenseId: string, decision: 'approved' | 'rejected') => {
+    if (loading) return;
     setActionError(null);
+    setLoading(true);
     try {
       await decideExpense('demo-ledgerflow', expenseId, decision, identity || 'alex');
       await loadLiveExpenses();
+      onExpensesChanged?.();
     } catch (err: any) {
       setActionError(err.message || `Failed to ${decision} expense`);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -65,14 +87,14 @@ export const LedgerFlowApprovalQueue: React.FC<LedgerFlowApprovalQueueProps> = (
             <h2 className="text-base font-bold text-[#172033]">{data.title || 'Expense Approval Queue'}</h2>
             {data.threshold && (
               <span className="text-[11px] font-semibold px-2 py-0.5 rounded-lg bg-amber-50 text-amber-800 border border-amber-200">
-                Threshold: {data.threshold}
+                Design sample: {data.threshold}
               </span>
             )}
           </div>
           {data.policy_note && (
             <p className="text-xs text-[#657189] mt-1 flex items-center space-x-1">
               <ShieldCheck className="w-3.5 h-3.5 text-teal-600 inline mr-1" />
-              <span>{data.policy_note}</span>
+              <span>Artifact copy: {data.policy_note}</span>
             </p>
           )}
         </div>
@@ -92,7 +114,10 @@ export const LedgerFlowApprovalQueue: React.FC<LedgerFlowApprovalQueueProps> = (
         </div>
       )}
 
+      {loadError && <div role="alert" className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">Could not load saved expenses. <button type="button" onClick={loadLiveExpenses} className="font-semibold underline">Retry</button></div>}
+
       {/* Live Persisted Expenses Section (If any submitted) */}
+      <p className="text-xs text-slate-600">Live approval limit: <strong>{approvalThreshold === null ? 'Loading…' : `$${approvalThreshold.toFixed(2)} USD`}</strong>. Higher amounts require Alex.</p>
       {liveExpenses.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -100,7 +125,7 @@ export const LedgerFlowApprovalQueue: React.FC<LedgerFlowApprovalQueueProps> = (
               Active Financial Workflow ({liveExpenses.length} Persisted Records)
             </h3>
             <span className="text-[10px] text-teal-700 bg-teal-50 border border-teal-200 px-2 py-0.5 rounded-full font-medium">
-              SQLite Source of Truth
+              Saved expenses
             </span>
           </div>
 
@@ -136,7 +161,7 @@ export const LedgerFlowApprovalQueue: React.FC<LedgerFlowApprovalQueueProps> = (
                         {exp.threshold_exceeded ? (
                           <span className="inline-flex items-center space-x-1 text-[11px] text-amber-900 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-300 font-semibold">
                             <Lock className="w-3 h-3 text-amber-600" />
-                            <span>Requires Alex (&gt; $500)</span>
+                            <span>Requires Alex</span>
                           </span>
                         ) : (
                           <span className="text-[11px] text-emerald-700 flex items-center space-x-1 font-medium">
@@ -150,16 +175,18 @@ export const LedgerFlowApprovalQueue: React.FC<LedgerFlowApprovalQueueProps> = (
                           <div className="flex items-center justify-end space-x-1.5">
                             <button
                               onClick={() => handleDecision(exp.id, 'rejected')}
-                              className="px-2.5 py-1 rounded-lg bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-[11px] font-semibold transition cursor-pointer"
+                              disabled={isRestrictedForMaya || loading}
+                              title={isRestrictedForMaya ? 'Only Alex can decide this expense' : 'Reject expense'}
+                              className="px-2.5 py-1 rounded-lg bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 text-[11px] font-semibold transition cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                               Reject
                             </button>
                             <button
                               onClick={() => handleDecision(exp.id, 'approved')}
-                              disabled={isRestrictedForMaya}
+                              disabled={isRestrictedForMaya || loading}
                               title={
                                 isRestrictedForMaya
-                                  ? 'Expenses over $500 require Alex (Founder) approval.'
+                                  ? 'This expense requires Alex (Founder) approval.'
                                   : 'Approve expense'
                               }
                               className={`px-3 py-1 rounded-lg text-[11px] font-semibold flex items-center space-x-1 transition ${
@@ -196,7 +223,7 @@ export const LedgerFlowApprovalQueue: React.FC<LedgerFlowApprovalQueueProps> = (
       {/* Baseline LedgerFlow Prototype Queue Items (Targeted by Playwright) */}
       <div className="space-y-3">
         <h3 className="text-xs font-bold uppercase tracking-wider text-[#657189]">
-          Configurable Corporate Queue Items
+          Example queue from the artifact design
         </h3>
         <div className="overflow-x-auto rounded-xl border border-[#E7ECF2]">
           <table className="w-full text-left text-xs text-[#657189]">

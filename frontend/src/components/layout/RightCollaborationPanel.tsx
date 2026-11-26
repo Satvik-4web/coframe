@@ -83,7 +83,7 @@ export const RightCollaborationPanel: React.FC<RightCollaborationPanelProps> = (
   };
 
   return (
-    <aside className="w-80 border-l border-[#E7ECF2] bg-white flex flex-col justify-between shrink-0 select-none shadow-[-1px_0_3px_rgba(0,0,0,0.01)] h-full overflow-hidden">
+    <aside className="fixed right-0 top-[68px] bottom-0 z-50 w-[min(22rem,100vw)] md:relative md:top-auto md:bottom-auto md:z-auto md:w-[340px] border-l border-[#e2e8f1] bg-white flex flex-col justify-between shrink-0 select-none shadow-[-12px_0_35px_rgba(15,23,42,.08)] md:h-full overflow-hidden">
       {/* Header */}
       <div className="p-4 border-b border-[#E7ECF2] flex items-center justify-between">
         <div className="flex items-center gap-2">

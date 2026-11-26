@@ -1,5 +1,7 @@
 # COFRAME — Human + AI, One Shared Creation
 
+> Current implementation note (26 Nov 2026): the staged PRD flow calls the configured NOVA model when available and labels its template fallback. Confirming a PRD creates a simulated PIXEL demo plan and proposal; it does not generate production code. LedgerFlow expenses support USD only. The seeded dashboard cards and queue rows are design examples; saved expense totals and decisions are live. Demo identities are selectable roles rather than authenticated accounts. See `docs/FUNCTIONAL_VS_SIMULATED.md`.
+
 > **BIOS FORGE Hackathon Project**  
 > **Demo Artifact:** LedgerFlow (Enterprise Expense Management Product Prototype)  
 > **Mission:** One Shared Product. Four Collaborators. Always-Understandable Context.

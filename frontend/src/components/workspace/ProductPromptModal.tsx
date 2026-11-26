@@ -31,8 +31,8 @@ const PRESET_IDEAS = [
     constraints: 'Integrate directly with LedgerFlow Dashboard metrics.',
   },
   {
-    title: 'Global Multi-Currency Treasury',
-    prompt: 'Enable submitting and reimbursing corporate expenses in EUR, GBP, and USD with automated receipt reconciliation.',
+    title: 'Receipt Reconciliation',
+    prompt: 'Add receipt reconciliation for USD expenses, including missing receipt flags and an audit trail.',
     constraints: 'Must retain atomic SQLite commit guarantees.',
   },
 ];
@@ -66,7 +66,9 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
       const res = await analyseProductPrompt(
         prompt.trim(),
         constraints.trim() || undefined,
-        identity || 'alex'
+        identity || 'alex',
+        'demo-ledgerflow',
+        referenceNote.trim() ? [referenceNote.trim()] : undefined
       );
       if (res.prd) {
         onAnalysisComplete(res.prd);

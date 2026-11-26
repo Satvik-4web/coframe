@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FullProjectState, HumanIdentity } from '../types';
 import { fetchProjectState } from '../lib/api';
 
@@ -6,13 +6,13 @@ const PROJECT_ID = 'demo-ledgerflow';
 
 export function useRealtimeState() {
   const [identity, setIdentity] = useState<HumanIdentity>(() => {
-    return (localStorage.getItem('coframe_identity') as HumanIdentity) || null;
+    const saved = localStorage.getItem('coframe_identity');
+    return saved === 'alex' || saved === 'maya' ? saved : null;
   });
   const [state, setState] = useState<FullProjectState | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const wsRef = useRef<WebSocket | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -42,7 +42,10 @@ export function useRealtimeState() {
 
   // WebSocket connection for real-time multiplayer updates & presence
   useEffect(() => {
-    if (!identity) return;
+    if (!identity) {
+      setIsConnected(false);
+      return;
+    }
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const rawWsUrl = (import.meta as any).env?.VITE_WS_URL;
@@ -50,23 +53,35 @@ export function useRealtimeState() {
       ? `${String(rawWsUrl).replace(/\/+$/, '')}/ws/${PROJECT_ID}/${identity}`
       : `${protocol}//${window.location.host}/ws/${PROJECT_ID}/${identity}`;
 
-    let ws: WebSocket;
-    let pingInterval: any;
+    let ws: WebSocket | null = null;
+    let pingInterval: ReturnType<typeof setInterval> | undefined;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    let disposed = false;
+    let retryCount = 0;
 
-    try {
-      ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
+    const connect = () => {
+      if (disposed) return;
+      try {
+        ws = new WebSocket(wsUrl);
+      } catch {
+        scheduleRetry();
+        return;
+      }
 
       ws.onopen = () => {
+        if (disposed) return;
         setIsConnected(true);
+        retryCount = 0;
+        refresh();
         pingInterval = setInterval(() => {
-          if (ws.readyState === WebSocket.OPEN) {
+          if (ws?.readyState === WebSocket.OPEN) {
             ws.send('ping');
           }
         }, 15000);
       };
 
       ws.onmessage = (event) => {
+        if (disposed) return;
         if (event.data === 'pong') return;
         try {
           const msg = JSON.parse(event.data);
@@ -80,20 +95,34 @@ export function useRealtimeState() {
       };
 
       ws.onclose = () => {
-        setIsConnected(false);
         clearInterval(pingInterval);
+        if (!disposed) {
+          setIsConnected(false);
+          scheduleRetry();
+        }
       };
 
       ws.onerror = () => {
-        setIsConnected(false);
+        if (!disposed) setIsConnected(false);
       };
-    } catch {
-      setIsConnected(false);
-    }
+    };
+
+    const scheduleRetry = () => {
+      if (disposed || retryTimer) return;
+      const delay = Math.min(1000 * 2 ** retryCount++, 15000);
+      retryTimer = setTimeout(() => {
+        retryTimer = undefined;
+        connect();
+      }, delay);
+    };
+
+    connect();
 
     return () => {
+      disposed = true;
       clearInterval(pingInterval);
-      if (ws) ws.close();
+      clearTimeout(retryTimer);
+      ws?.close();
     };
   }, [identity, refresh]);
 

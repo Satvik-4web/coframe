@@ -81,6 +81,7 @@ FALLBACK_HIGH_IMPACT_APPROVAL_POLICY = {
                     "title": "Enterprise Multi-Tier Approval Queue",
                     "policy_note": "Expenses <= $1,000 auto-route to direct manager; expenses > $1,000 escalate to VP Finance.",
                     "threshold": "$1,000.00",
+                    "auto_approval_limit": 1000,
                 },
                 "items": [
                     {"id": "EXP-201", "submitter": "Sarah Chen", "department": "Engineering", "amount": "$1,450.00", "category": "Datadog Monitoring", "policy_flag": "Requires VP Signoff (> $1,000)", "status": "pending"},
@@ -125,6 +126,7 @@ FALLBACK_REDIRECTED_PROPOSAL_D = {
                     "title": "Organization-Configurable Approval Routing Engine",
                     "policy_note": "Configurable per Org: Custom thresholds per subsidiary with dynamic manager-to-controller routing rules.",
                     "threshold": "Custom Org-defined ($500 - $10,000)",
+                    "auto_approval_limit": 500,
                 },
                 "items": [
                     {"id": "EXP-301", "submitter": "Sarah Chen", "department": "Engineering Core", "amount": "$2,200.00", "category": "AWS Reserved Instances", "policy_flag": "Org Rule: Eng Budget Tier 2", "status": "pending"},

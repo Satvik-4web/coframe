@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Send, Bot, Code2, Users, ArrowRight, CornerDownLeft } from 'lucide-react';
+import { Sparkles, Bot, Code2, Users, ArrowRight, CornerDownLeft } from 'lucide-react';
 import { HumanIdentity } from '../../types';
 import { sendChatMessage } from '../../lib/api';
 
@@ -17,6 +17,7 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
   const [message, setMessage] = useState('');
   const [recipient, setRecipient] = useState<'team' | 'nova' | 'pixel'>('nova');
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const suggestedPrompts = [
     {
@@ -47,6 +48,7 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
 
     const targetRecipient = recipientOverride || recipient;
     setIsSending(true);
+    setSendError(null);
     try {
       const sender = identity || 'alex';
       await sendChatMessage('demo-ledgerflow', defaultConversationId, {
@@ -57,8 +59,7 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
       setMessage('');
       onNavigateTab('chat');
     } catch (err) {
-      console.error('Failed to dispatch quick chat message:', err);
-      onNavigateTab('chat');
+      setSendError(err instanceof Error ? err.message : 'Could not send this message. Please try again.');
     } finally {
       setIsSending(false);
     }
@@ -72,33 +73,33 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
   };
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-xl p-5 shadow-xs relative overflow-hidden">
+    <section className="dashboard-card relative overflow-hidden rounded-[22px] p-5 sm:p-7">
       {/* Header with Title and Recipient Selector */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-        <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600">
-            <Sparkles className="w-3.5 h-3.5" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
+        <div className="flex items-center gap-3">
+          <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+            <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-semibold text-slate-900 tracking-tight">Initiate Product Work</h2>
-            <p className="text-[11px] text-slate-500">
-              Formulate a feature or design idea. NOVA automatically produces a structured PRD.
+            <h2 className="text-xl font-semibold text-[#14213A] tracking-tight">Start a conversation</h2>
+            <p className="text-xs sm:text-sm text-slate-500">
+              Share a product idea with NOVA, PIXEL, or the whole team.
             </p>
           </div>
         </div>
 
         {/* Recipient Selector Tabs */}
-        <div className="flex items-center gap-1 p-0.5 bg-slate-100/80 rounded-lg self-start sm:self-auto border border-slate-200/50">
+        <div className="flex items-center gap-1 p-1 bg-[#F1F3F8] rounded-xl self-start sm:self-auto border border-slate-200/50">
           <button
             type="button"
             onClick={() => setRecipient('nova')}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
               recipient === 'nova'
-                ? 'bg-white text-indigo-700 font-semibold shadow-xs'
+                ? 'bg-white text-blue-700 font-semibold shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Bot className="w-3 h-3 text-indigo-500" />
+            <Bot className="w-3 h-3 text-blue-500" />
             <span>NOVA</span>
           </button>
           <button
@@ -106,11 +107,11 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
             onClick={() => setRecipient('pixel')}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
               recipient === 'pixel'
-                ? 'bg-white text-teal-700 font-semibold shadow-xs'
+                ? 'bg-white text-sky-700 font-semibold shadow-xs'
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Code2 className="w-3 h-3 text-teal-500" />
+            <Code2 className="w-3 h-3 text-sky-600" />
             <span>PIXEL</span>
           </button>
           <button
@@ -129,17 +130,18 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
       </div>
 
       {/* Input Composer Box */}
-      <div className="relative bg-slate-50/70 border border-slate-200/80 focus-within:border-slate-400 focus-within:bg-white focus-within:ring-2 focus-within:ring-slate-900/5 rounded-lg transition p-3">
+      {sendError && <p role="alert" className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{sendError}</p>}
+      <div className="relative bg-[#F7F9FC] border border-[#E2E8F0] focus-within:border-blue-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100 rounded-2xl transition p-4">
         <textarea
-          rows={2}
+          rows={3}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="e.g. Introduce a multi-currency expense approval workflow into LedgerFlow..."
-          className="w-full text-xs text-slate-900 placeholder-slate-400 resize-none outline-none bg-transparent"
+          placeholder="What should the team work on next?"
+          className="w-full text-sm leading-6 text-slate-900 placeholder-slate-400 resize-none outline-none bg-transparent"
         />
 
-        <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 mt-1">
+        <div className="flex items-center justify-between pt-3 border-t border-slate-200/60 mt-1">
           <span className="text-[10px] text-slate-400 flex items-center gap-1">
             <span>Press</span>
             <kbd className="px-1 py-0.5 rounded bg-slate-200/70 text-slate-600 font-mono text-[9px]">Enter ↵</kbd>
@@ -150,9 +152,9 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
             type="button"
             onClick={() => handleSend()}
             disabled={!message.trim() || isSending}
-            className={`px-3 py-1 rounded-md text-xs font-medium flex items-center gap-1.5 transition cursor-pointer ${
+            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
               message.trim() && !isSending
-                ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-2xs'
+                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/20'
                 : 'bg-slate-200/70 text-slate-400 cursor-not-allowed'
             }`}
           >
@@ -163,36 +165,26 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
       </div>
 
       {/* Suggested Prompts */}
-      <div className="mt-3 pt-2.5 border-t border-slate-100">
+      <div className="mt-5 pt-4 border-t border-slate-100">
         <div className="flex items-center justify-between mb-2">
           <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
             Quick Prompts
           </span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+        <div className="flex flex-wrap gap-2">
           {suggestedPrompts.map((item) => (
             <button
               key={item.label}
               type="button"
               onClick={() => handleSend(item.text, item.recipient)}
-              className="text-left p-2.5 rounded-lg bg-slate-50/60 hover:bg-slate-100/80 border border-slate-200/60 hover:border-slate-300 text-xs transition cursor-pointer group flex flex-col justify-between"
+              title={item.text}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
             >
-              <div>
-                <span className="font-semibold text-slate-900 group-hover:text-indigo-600 block text-xs truncate">
-                  {item.label}
-                </span>
-                <p className="text-[11px] text-slate-500 line-clamp-2 mt-0.5 leading-snug">
-                  {item.text}
-                </p>
-              </div>
-              <div className="flex items-center gap-1 text-[10px] text-indigo-600 font-medium mt-2">
-                <span>Start</span>
-                <ArrowRight className="w-2.5 h-2.5 group-hover:translate-x-0.5 transition-transform" />
-              </div>
+              <span>{item.label}</span><ArrowRight className="h-3 w-3" />
             </button>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 };

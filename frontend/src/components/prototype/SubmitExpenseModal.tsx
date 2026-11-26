@@ -5,26 +5,31 @@ import { HumanIdentity } from '../../types';
 
 interface SubmitExpenseModalProps {
   identity: HumanIdentity;
+  approvalThreshold: number;
   onClose: () => void;
   onSuccess: () => void;
 }
 
 export const SubmitExpenseModal: React.FC<SubmitExpenseModalProps> = ({
   identity,
+  approvalThreshold,
   onClose,
   onSuccess,
 }) => {
-  const [amount, setAmount] = useState<string>('125.00');
-  const [currency, setCurrency] = useState<string>('USD');
+  const [amount, setAmount] = useState<string>('');
+  const currency = 'USD';
   const [category, setCategory] = useState<string>('Meals');
-  const [description, setDescription] = useState<string>('Client dinner & product strategy session');
-  const [expenseDate, setExpenseDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [reference, setReference] = useState<string>('INV-2026-042');
+  const [description, setDescription] = useState<string>('');
+  const [expenseDate, setExpenseDate] = useState<string>(() => {
+    const now = new Date();
+    return new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  });
+  const [reference, setReference] = useState<string>('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const numAmount = parseFloat(amount) || 0;
-  const isHighThreshold = numAmount > 500;
+  const isHighThreshold = numAmount > approvalThreshold;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,15 +118,7 @@ export const SubmitExpenseModal: React.FC<SubmitExpenseModalProps> = ({
               <label className="block text-[11px] font-bold text-[#172033] uppercase tracking-wider mb-1">
                 Currency
               </label>
-              <select
-                value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] text-[#172033] font-semibold text-xs focus:outline-none focus:ring-2 focus:ring-teal-200"
-              >
-                <option value="USD">USD ($)</option>
-                <option value="EUR">EUR (€)</option>
-                <option value="GBP">GBP (£)</option>
-              </select>
+              <div className="w-full px-3 py-2 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] text-[#172033] font-semibold text-xs">USD ($)</div>
             </div>
           </div>
 
@@ -130,13 +127,13 @@ export const SubmitExpenseModal: React.FC<SubmitExpenseModalProps> = ({
             <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 flex items-start gap-2">
               <AlertTriangle className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
               <p className="leading-relaxed">
-                <strong>High Threshold Policy:</strong> Amount exceeds $500.00. This expense will require <strong>Alex's approval</strong> (Founder authority).
+                <strong>High Threshold Policy:</strong> Amount exceeds ${approvalThreshold.toFixed(2)}. This expense will require <strong>Alex's approval</strong> (Founder authority).
               </p>
             </div>
           ) : (
             <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-center gap-2">
               <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>Standard Tier: Under $500 threshold. Maya or Alex can approve.</span>
+              <span>Standard tier: at or under ${approvalThreshold.toFixed(2)}, Maya or Alex can approve.</span>
             </div>
           )}
 

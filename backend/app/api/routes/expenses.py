@@ -1,5 +1,6 @@
 import uuid
-from typing import Optional, List, Dict, Any
+import re
+from typing import Optional, List, Dict, Any, Literal
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
@@ -22,7 +23,7 @@ DEFAULT_APPROVAL_THRESHOLD_USD = 500.0
 
 class SubmitExpenseRequest(BaseModel):
     amount: float = Field(..., gt=0, description="Expense amount (must be positive)")
-    currency: str = Field("USD", description="Currency (USD, EUR, GBP)")
+    currency: Literal["USD"] = Field("USD", description="USD only until exchange-rate conversion is implemented")
     category: str = Field(..., description="Category (Travel, Meals, Software, Equipment, Office)")
     description: str = Field(..., min_length=3, description="Description of the expense")
     expense_date: str = Field(..., description="Date of expense (YYYY-MM-DD)")
@@ -50,7 +51,13 @@ def get_approval_threshold(db: Session, project_id: str) -> float:
         threshold = queue_sec.data.get("auto_approval_limit") or queue_sec.data.get("threshold")
         if threshold is not None:
             try:
-                return float(threshold)
+                if isinstance(threshold, str):
+                    if not re.fullmatch(r"\$?\s*\d[\d,]*(?:\.\d{1,2})?", threshold.strip()):
+                        raise ValueError("Non-numeric policy display label")
+                    threshold = threshold.strip().replace("$", "").replace(",", "")
+                value = float(threshold)
+                if value > 0:
+                    return value
             except (ValueError, TypeError):
                 pass
     return DEFAULT_APPROVAL_THRESHOLD_USD
@@ -184,6 +191,7 @@ def list_expenses(
 
     return {
         "total": len(expenses),
+        "approval_threshold": get_approval_threshold(db, project_id),
         "expenses": [
             {
                 "id": e.id,
@@ -243,7 +251,7 @@ async def decide_expense(
     if expense.threshold_exceeded and decider != "alex":
         raise HTTPException(
             status_code=403,
-            detail=f"Approval policy restriction: Expenses over ${DEFAULT_APPROVAL_THRESHOLD_USD} require Alex's approval.",
+            detail="Approval policy restriction: this expense requires Alex's approval.",
         )
 
     project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()

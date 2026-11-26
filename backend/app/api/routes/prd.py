@@ -1,5 +1,6 @@
 import uuid
 import datetime
+import logging
 from typing import Dict, Any, List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -21,6 +22,7 @@ from backend.app.db.models import (
 from backend.app.events.logger import log_event
 from backend.app.websocket.manager import ws_manager
 from backend.app.agents.review import validate_agent_proposal_output
+from backend.app.agents.provider import call_llm_json
 from backend.app.agents.fallback import (
     FALLBACK_HIGH_IMPACT_APPROVAL_POLICY,
     FALLBACK_NOVA_PROPOSAL_A,
@@ -28,6 +30,7 @@ from backend.app.agents.fallback import (
 )
 
 router = APIRouter(prefix="/projects/{project_id}/prd", tags=["prd"])
+logger = logging.getLogger(__name__)
 
 
 class PRDAnalyseRequest(BaseModel):
@@ -173,6 +176,8 @@ async def analyse_product_prompt(
     project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
+    if req.submitter_id != "alex":
+        raise HTTPException(status_code=403, detail="Only Alex can start a product requirements review")
 
     prompt_text = req.prompt.strip()
     if not prompt_text:
@@ -241,6 +246,7 @@ async def analyse_product_prompt(
         req.constraints or "Must integrate smoothly with existing LedgerFlow React prototype and SQLite database.",
         "Server-side role verification required for all high-impact actions.",
     ]
+    constraints.extend(note.strip() for note in (req.reference_materials or []) if note.strip())
 
     assumptions = [
         "Alex acts as the primary founder and decision owner for all tier-1 policies.",
@@ -271,6 +277,80 @@ async def analyse_product_prompt(
         "Should approval thresholds be configurable per department or applied uniformly across the entire organization?",
         "Should rejected expenses allow resubmission with amended receipts by the employee?",
     ]
+
+    generation_mode = "template_fallback"
+    try:
+        result = await call_llm_json(
+            system_prompt=(
+                "You are NOVA, a product strategist for the existing LedgerFlow expense management demo. "
+                "Return ONLY a JSON object with string fields title, objective, target_audience, "
+                "problem_statement, product_direction; arrays of objects functional_requirements "
+                "(title, description, priority), non_functional_requirements (title, description), "
+                "acceptance_criteria as objects with 1-based requirement_index and a criteria string array, "
+                "and arrays of strings assumptions, missing_information. Tailor every field to the "
+                "user's actual request. Describe proposals, not features already implemented. "
+                "Do not claim a working integration that is not in the prompt."
+            ),
+            user_prompt=f"Product request: {prompt_text}\nConstraints: {req.constraints or 'None given'}\nReference notes: {', '.join(req.reference_materials or []) or 'None given'}",
+            timeout=12.0,
+            agent_id="nova",
+        )
+        generated = result[0]
+        required_strings = ("title", "objective", "target_audience", "problem_statement", "product_direction")
+        if not isinstance(generated, dict) or not all(
+            isinstance(generated.get(key), str) and generated[key].strip() for key in required_strings
+        ):
+            raise ValueError("Incomplete PRD response")
+        raw_requirements = generated.get("functional_requirements")
+        if not isinstance(raw_requirements, list) or not raw_requirements or not all(
+            isinstance(item, dict) and isinstance(item.get("title"), str)
+            and isinstance(item.get("description"), str) for item in raw_requirements
+        ):
+            raise ValueError("Invalid functional requirements")
+        title, objective, target_audience, problem_statement, product_direction = (
+            generated[key].strip() for key in required_strings
+        )
+        functional_requirements = [
+            {"id": f"FR-{prd_version}.{i}", "title": item["title"].strip(),
+             "description": item["description"].strip(), "priority": item.get("priority", "Medium")}
+            for i, item in enumerate(raw_requirements[:10], start=1)
+        ]
+        raw_nonfunctional = generated.get("non_functional_requirements")
+        if isinstance(raw_nonfunctional, list):
+            non_functional_requirements = [
+                {"id": f"NFR-{prd_version}.{i}", "title": item["title"].strip(),
+                 "description": item["description"].strip()}
+                for i, item in enumerate(raw_nonfunctional[:8], start=1)
+                if isinstance(item, dict) and isinstance(item.get("title"), str)
+                and isinstance(item.get("description"), str)
+            ]
+        for key in ("assumptions", "missing_information"):
+            value = generated.get(key)
+            if isinstance(value, list) and all(isinstance(item, str) for item in value):
+                if key == "assumptions":
+                    assumptions = value[:10]
+                else:
+                    missing_information = value[:10]
+        raw_criteria = generated.get("acceptance_criteria")
+        acceptance_criteria = []
+        if isinstance(raw_criteria, list):
+            for item in raw_criteria:
+                if not isinstance(item, dict) or not isinstance(item.get("requirement_index"), int):
+                    continue
+                index = item["requirement_index"]
+                criteria = item.get("criteria")
+                if 1 <= index <= len(functional_requirements) and isinstance(criteria, list):
+                    valid = [text.strip() for text in criteria if isinstance(text, str) and text.strip()]
+                    if valid:
+                        acceptance_criteria.append({"req_id": f"FR-{prd_version}.{index}", "criteria": valid[:8]})
+        if not acceptance_criteria:
+            acceptance_criteria = [
+                {"req_id": item["id"], "criteria": [item["description"]]}
+                for item in functional_requirements
+            ]
+        generation_mode = "live_model"
+    except Exception as exc:
+        logger.info("NOVA PRD using template fallback (%s)", type(exc).__name__)
 
     prd = PRDModel(
         id=f"prd_{uuid.uuid4().hex[:10]}",
@@ -317,6 +397,7 @@ async def analyse_product_prompt(
             "prompt": prompt_text,
             "target_audience": target_audience,
             "summary": f"NOVA formulated structured PRD v{prd.version} for '{prd.title}'.",
+            "generation_mode": generation_mode,
         },
         timestamp=now_ms,
         created_at=utcnow_str(),
@@ -332,9 +413,11 @@ async def analyse_product_prompt(
 
     return {
         "status": "success",
-        "message": "NOVA analyzed product prompt and generated structured PRD.",
+        "message": "NOVA generated a structured PRD." if generation_mode == "live_model" else "A demo PRD template was generated; review its assumptions before confirming.",
+        "generation_mode": generation_mode,
         "prd": {
             "id": prd.id,
+            "generation_mode": generation_mode,
             "version": prd.version,
             "title": prd.title,
             "product_name": prd.product_name,
@@ -368,9 +451,17 @@ async def get_latest_prd(project_id: str, db: Session = Depends(get_db)):
     if not prd:
         return {"prd": None}
 
+    creation_event = db.query(EventModel).filter(
+        EventModel.project_id == project_id,
+        EventModel.entity_id == prd.id,
+        EventModel.event_type == "prd.created",
+    ).order_by(EventModel.sequence_no.desc()).first()
+    generation_mode = (creation_event.payload or {}).get("generation_mode") if creation_event else None
+
     return {
         "prd": {
             "id": prd.id,
+            "generation_mode": generation_mode,
             "version": prd.version,
             "title": prd.title,
             "product_name": prd.product_name,
@@ -405,6 +496,8 @@ async def update_prd(
     prd = db.query(PRDModel).filter(PRDModel.id == prd_id, PRDModel.project_id == project_id).first()
     if not prd:
         raise HTTPException(status_code=404, detail="PRD not found")
+    if prd.status == "confirmed":
+        raise HTTPException(status_code=409, detail="Confirmed PRDs cannot be edited; start a new review")
 
     if req.title is not None:
         prd.title = req.title
@@ -451,6 +544,11 @@ async def confirm_prd(
     if not prd:
         raise HTTPException(status_code=404, detail="PRD not found")
 
+    if req.confirmed_by != "alex":
+        raise HTTPException(status_code=403, detail="Only Alex can confirm product requirements")
+    if prd.status != "awaiting_confirmation":
+        raise HTTPException(status_code=409, detail="PRD is not awaiting confirmation")
+
     project = db.query(ProjectModel).filter(ProjectModel.id == project_id).first()
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -486,54 +584,46 @@ async def confirm_prd(
     )
     db.add(decision)
 
-    # 5. PIXEL creates implementation plan
+    # 5. Map the staged demo proposal to a section the renderer can actually change.
+    policy_request = any(word in (prd.prompt or "").lower() for word in (
+        "approval", "policy", "threshold", "manager sign-off", "tiered",
+    ))
+    target_section = "approval_queue" if policy_request else "product_brief"
+    target_model = db.query(ArtifactSectionModel).filter(
+        ArtifactSectionModel.project_id == project_id,
+        ArtifactSectionModel.section_key == target_section,
+    ).first()
+    target_version = target_model.version if target_model else 1
+    plan_tasks = [
+        {"id": f"TASK-{i}", "task": item.get("title", "Review requirement"),
+         "section": target_section, "status": "planned"}
+        for i, item in enumerate((prd.functional_requirements or [])[:10], start=1)
+    ]
+
+    # 6. PIXEL creates an inspectable demo plan; implementation remains a human review step.
     plan = ImplementationPlanModel(
         id=f"plan_{uuid.uuid4().hex[:10]}",
         project_id=project_id,
         prd_id=prd.id,
         agent_id="pixel",
         title=f"Implementation Plan: {prd.title}",
-        tasks=[
-            {
-                "id": "TASK-1",
-                "task": f"Update product positioning for '{prd.target_audience}'",
-                "section": "product_brief",
-                "status": "ready",
-            },
-            {
-                "id": "TASK-2",
-                "task": "Render tiered approval queue with manager escalation policy",
-                "section": "approval_queue",
-                "status": "ready",
-            },
-            {
-                "id": "TASK-3",
-                "task": "Configure real-time departmental spend KPIs",
-                "section": "dashboard",
-                "status": "ready",
-            },
-        ],
-        target_sections=["approval_queue", "dashboard", "product_brief"],
+        tasks=plan_tasks,
+        target_sections=[target_section],
         dependencies=prd.dependencies or ["REQ_AUDIENCE", "REQ_APPROVAL_POLICY"],
         expected_ui_changes=[
-            "Approval Queue component receives multi-tiered thresholds",
-            "Dashboard renders live expense metrics breakdown",
-            "Product brief reflects enterprise positioning",
+            "Review the proposed artifact change in the selected section",
+            "Implement and verify the PRD's functional requirements separately",
         ],
         acceptance_criteria_mapping=[
-            {"req_id": f"FR-{prd.version}.1", "section": "approval_queue", "verified": True},
-            {"req_id": f"FR-{prd.version}.2", "section": "dashboard", "verified": True},
+            {"req_id": item.get("id", ""), "section": target_section, "verified": False}
+            for item in (prd.functional_requirements or [])[:10]
         ],
         status="planned",
         created_at=utcnow_str(),
     )
     db.add(plan)
 
-    # 6. PIXEL generates structured prototype proposal
-    run_pixel = db.query(AgentRunModel).filter(
-        AgentRunModel.project_id == project_id,
-        AgentRunModel.agent_id == "pixel"
-    ).order_id = AgentRunModel.started_at.desc()
+    # 7. PIXEL generates a section-level demo proposal.
     run_pixel_obj = db.query(AgentRunModel).filter(
         AgentRunModel.project_id == project_id,
         AgentRunModel.agent_id == "pixel"
@@ -542,37 +632,51 @@ async def confirm_prd(
     run_id = run_pixel_obj.id if run_pixel_obj else f"run_pixel_{uuid.uuid4().hex[:6]}"
 
     # Submit proposal
-    policy_output = FALLBACK_HIGH_IMPACT_APPROVAL_POLICY
+    if policy_request:
+        proposal_changes = FALLBACK_HIGH_IMPACT_APPROVAL_POLICY["changes"]
+    else:
+        proposal_changes = {"operations": [{
+            "op": "update_product_brief",
+            "fields": {
+                "target_audience": prd.target_audience,
+                "value_proposition": prd.objective,
+                "problem": prd.problem_statement,
+            },
+        }]}
     pixel_proposal = ProposalModel(
         id=f"prop_{uuid.uuid4().hex[:10]}",
         project_id=project_id,
         agent_id="pixel",
         run_id=run_id,
-        summary=f"Implement {prd.title} on Approval Queue",
-        reasoning=f"Translates confirmed PRD requirements ({prd.objective}) into structured prototype components.",
+        summary=f"Review {prd.title} in {target_section.replace('_', ' ').title()}",
+        reasoning=f"Demo artifact change informed by the confirmed PRD. Functional implementation still requires review: {prd.objective}",
         affected_requirements=prd.dependencies or ["REQ_APPROVAL_POLICY"],
-        target_sections=["approval_queue"],
-        changes=policy_output["changes"],
+        target_sections=[target_section],
+        changes=proposal_changes,
         base_context_version=project.context_version,
         base_artifact_version=project.artifact_version,
-        base_section_versions={"approval_queue": 1},
+        base_section_versions={target_section: target_version},
         requires_decision=True,
         assigned_decider_id="alex",
         status="pending_review",
         proposal_type="prototype_modification",
         source="staged_pipeline",
-        is_simulated=False,
+        is_simulated=True,
         created_at=utcnow_str(),
         updated_at=utcnow_str(),
     )
     db.add(pixel_proposal)
     plan.proposal_id = pixel_proposal.id
 
-    # 7. NOVA reviews PIXEL's proposal (multi-layer review)
-    review_dict = dict(policy_output)
+    # 8. NOVA reviews the section-level proposal.
+    review_dict = {
+        "summary": pixel_proposal.summary,
+        "reasoning": pixel_proposal.reasoning,
+        "changes": proposal_changes,
+    }
     review_dict["base_context_version"] = project.context_version
-    review_dict["base_section_versions"] = {"approval_queue": 1}
-    review_dict["target_sections"] = ["approval_queue"]
+    review_dict["base_section_versions"] = {target_section: target_version}
+    review_dict["target_sections"] = [target_section]
     review_dict["affected_requirements"] = prd.dependencies or ["REQ_APPROVAL_POLICY"]
 
     review_verdict_obj = validate_agent_proposal_output(
