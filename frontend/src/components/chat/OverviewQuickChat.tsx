@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Terminal, Cpu, Code2, Users, ArrowRight, CornerDownLeft, Sparkles } from 'lucide-react';
+import { Sparkles, Bot, Code2, Users, ArrowRight, CornerDownLeft } from 'lucide-react';
 import { HumanIdentity } from '../../types';
 import { sendChatMessage } from '../../lib/api';
 
@@ -17,31 +17,28 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
   const [message, setMessage] = useState('');
   const [recipient, setRecipient] = useState<'team' | 'nova' | 'pixel'>('nova');
   const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
 
   const suggestedPrompts = [
     {
       label: 'Expense Approvals',
       text: 'Improve the expense approval experience with tiered manager thresholds and SLA timers.',
       recipient: 'nova' as const,
-      color: '#A78BFA',
     },
     {
       label: 'International Travel Policy',
       text: 'Add international travel policy support with automated per diem caps and exchange rate freezing.',
       recipient: 'nova' as const,
-      color: '#22D3EE',
     },
     {
       label: 'Multi-Currency Handling',
       text: 'Introduce multi-currency expense handling with live FX conversion across 12 European corridors.',
       recipient: 'nova' as const,
-      color: '#60A5FA',
     },
     {
       label: 'Analytics Dashboard',
       text: 'Improve the analytics dashboard with department burn rate velocity and anomaly outlier detection.',
       recipient: 'nova' as const,
-      color: '#34D399',
     },
   ];
 
@@ -51,6 +48,7 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
 
     const targetRecipient = recipientOverride || recipient;
     setIsSending(true);
+    setSendError(null);
     try {
       const sender = identity || 'alex';
       await sendChatMessage('demo-ledgerflow', defaultConversationId, {
@@ -61,8 +59,7 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
       setMessage('');
       onNavigateTab('chat');
     } catch (err) {
-      console.error('Failed to dispatch quick chat message:', err);
-      onNavigateTab('chat');
+      setSendError(err instanceof Error ? err.message : 'Could not send this message. Please try again.');
     } finally {
       setIsSending(false);
     }
@@ -76,223 +73,118 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
   };
 
   return (
-    <div
-      className="overview-work-card p-5 relative overflow-hidden rounded-2xl"
-      style={{
-        background: 'rgba(255, 255, 255, 0.03)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
-      }}
-    >
-      {/* Header & Segmented Recipient Control */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+    <section className="dashboard-card relative overflow-hidden rounded-[22px] p-5 sm:p-7">
+      {/* Header with Title and Recipient Selector */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
         <div className="flex items-center gap-3">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-            style={{
-              background: 'linear-gradient(135deg, rgba(129, 140, 248, 0.2), rgba(34, 211, 238, 0.2))',
-              border: '1px solid rgba(129, 140, 248, 0.3)',
-              color: '#818CF8',
-              boxShadow: '0 0 15px rgba(129, 140, 248, 0.2)',
-            }}
-          >
-            <Terminal className="w-4.5 h-4.5" strokeWidth={1.75} />
+          <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+            <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
-              <span>Direct product work</span>
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
-              Share a feature requirement or refinement. NOVA prepares a structured PRD for confirmation.
+            <h2 className="text-xl font-semibold text-[#14213A] tracking-tight">Start a conversation</h2>
+            <p className="text-xs sm:text-sm text-slate-500">
+              Share a product idea with NOVA, PIXEL, or the whole team.
             </p>
           </div>
         </div>
 
-        {/* Recipient Selector */}
-        <div
-          className="flex items-center gap-1 p-1 rounded-xl self-start sm:self-auto border"
-          style={{
-            background: 'rgba(0, 0, 0, 0.4)',
-            borderColor: 'rgba(255, 255, 255, 0.08)',
-          }}
-        >
+        {/* Recipient Selector Tabs */}
+        <div className="flex items-center gap-1 p-1 bg-[#F1F3F8] rounded-xl self-start sm:self-auto border border-slate-200/50">
           <button
             type="button"
             onClick={() => setRecipient('nova')}
-            aria-pressed={recipient === 'nova'}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
-            style={
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
               recipient === 'nova'
-                ? {
-                    background: 'rgba(167, 139, 250, 0.2)',
-                    color: '#A78BFA',
-                    border: '1px solid rgba(167, 139, 250, 0.4)',
-                    boxShadow: '0 0 12px rgba(167, 139, 250, 0.25)',
-                  }
-                : { color: '#64748B' }
-            }
+                ? 'bg-white text-blue-700 font-semibold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
           >
-            <Cpu className="w-3.5 h-3.5" strokeWidth={1.75} />
+            <Bot className="w-3 h-3 text-blue-500" />
             <span>NOVA</span>
           </button>
           <button
             type="button"
             onClick={() => setRecipient('pixel')}
-            aria-pressed={recipient === 'pixel'}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
-            style={
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
               recipient === 'pixel'
-                ? {
-                    background: 'rgba(34, 211, 238, 0.2)',
-                    color: '#22D3EE',
-                    border: '1px solid rgba(34, 211, 238, 0.4)',
-                    boxShadow: '0 0 12px rgba(34, 211, 238, 0.25)',
-                  }
-                : { color: '#64748B' }
-            }
+                ? 'bg-white text-sky-700 font-semibold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
           >
-            <Code2 className="w-3.5 h-3.5" strokeWidth={1.75} />
+            <Code2 className="w-3 h-3 text-sky-600" />
             <span>PIXEL</span>
           </button>
           <button
             type="button"
             onClick={() => setRecipient('team')}
-            aria-pressed={recipient === 'team'}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
-            style={
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
               recipient === 'team'
-                ? {
-                    background: 'rgba(96, 165, 250, 0.2)',
-                    color: '#60A5FA',
-                    border: '1px solid rgba(96, 165, 250, 0.4)',
-                    boxShadow: '0 0 12px rgba(96, 165, 250, 0.25)',
-                  }
-                : { color: '#64748B' }
-            }
+                ? 'bg-white text-slate-900 font-semibold shadow-xs'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
           >
-            <Users className="w-3.5 h-3.5" strokeWidth={1.75} />
+            <Users className="w-3 h-3 text-slate-400" />
             <span>Team</span>
           </button>
         </div>
       </div>
 
       {/* Input Composer Box */}
-      <div
-          className="overview-composer relative rounded-xl transition p-3.5 border focus-within:border-indigo-400/50"
-        style={{
-          background: 'rgba(0, 0, 0, 0.35)',
-          borderColor: 'rgba(255, 255, 255, 0.08)',
-        }}
-      >
+      {sendError && <p role="alert" className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{sendError}</p>}
+      <div className="relative bg-[#F7F9FC] border border-[#E2E8F0] focus-within:border-blue-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100 rounded-2xl transition p-4">
         <textarea
-          aria-label="Describe a product capability or refinement"
-          rows={2}
+          rows={3}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Describe a capability for LedgerFlow, e.g. multi-currency expense approvals with live FX rates..."
-          className="w-full text-[13px] text-white placeholder-slate-500 resize-none outline-none bg-transparent leading-relaxed"
+          placeholder="What should the team work on next?"
+          className="w-full text-sm leading-6 text-slate-900 placeholder-slate-400 resize-none outline-none bg-transparent"
         />
 
-        <div
-          className="flex items-center justify-between pt-2.5 mt-2 border-t"
-          style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}
-        >
-          <span className="text-[11px] text-slate-500 flex items-center gap-1.5">
+        <div className="flex items-center justify-between pt-3 border-t border-slate-200/60 mt-1">
+          <span className="text-[10px] text-slate-400 flex items-center gap-1">
             <span>Press</span>
-            <kbd
-              className="px-1.5 py-0.5 rounded text-[10px] font-mono border"
-              style={{
-                background: 'rgba(255, 255, 255, 0.05)',
-                borderColor: 'rgba(255, 255, 255, 0.1)',
-                color: '#94A3B8',
-              }}
-            >
-              Enter ↵
-            </kbd>
-            <span>to send</span>
+            <kbd className="px-1 py-0.5 rounded bg-slate-200/70 text-slate-600 font-mono text-[9px]">Enter ↵</kbd>
+            <span>to collaborate</span>
           </span>
 
           <button
             type="button"
             onClick={() => handleSend()}
             disabled={!message.trim() || isSending}
-            className="h-8 px-4 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
-            style={
+            className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
               message.trim() && !isSending
-                ? {
-                    background: 'linear-gradient(135deg, #818CF8, #A78BFA)',
-                    color: '#FFFFFF',
-                    boxShadow: '0 0 15px rgba(129, 140, 248, 0.4)',
-                  }
-                : {
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    color: '#475569',
-                    cursor: 'not-allowed',
-                  }
-            }
+                ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/20'
+                : 'bg-slate-200/70 text-slate-400 cursor-not-allowed'
+            }`}
           >
-            <span>{isSending ? 'Sending...' : 'Send to agent'}</span>
+            <span>{isSending ? 'Dispatching...' : 'Dispatch'}</span>
             <CornerDownLeft className="w-3 h-3" />
           </button>
         </div>
       </div>
 
-      {/* Suggested Starter Prompts */}
-      <div
-        className="mt-4 pt-3.5 border-t"
-        style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}
-      >
-        <div className="flex items-center justify-between mb-2.5">
-          <span className="text-[11px] font-mono font-semibold uppercase tracking-wider text-slate-500">
-            Starter scenarios
+      {/* Suggested Prompts */}
+      <div className="mt-5 pt-4 border-t border-slate-100">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+            Quick Prompts
           </span>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div className="flex flex-wrap gap-2">
           {suggestedPrompts.map((item) => (
             <button
               key={item.label}
               type="button"
               onClick={() => handleSend(item.text, item.recipient)}
-              className="overview-starter text-left p-3 rounded-xl border transition cursor-pointer group flex flex-col justify-between"
-              style={{
-                background: 'rgba(255, 255, 255, 0.02)',
-                borderColor: 'rgba(255, 255, 255, 0.05)',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.05)';
-                e.currentTarget.style.borderColor = `${item.color}40`;
-                e.currentTarget.style.boxShadow = `0 0 15px ${item.color}15`;
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
-                e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
+              title={item.text}
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
             >
-              <div>
-                <span
-                  className="font-semibold block text-xs truncate transition-colors"
-                  style={{ color: item.color }}
-                >
-                  {item.label}
-                </span>
-                <p className="text-[11px] text-slate-400 line-clamp-2 mt-1 leading-relaxed">
-                  {item.text}
-                </p>
-              </div>
-              <div
-                className="flex items-center gap-1 text-[11px] font-semibold mt-2.5 transition-colors"
-                style={{ color: item.color }}
-              >
-                <span>Run prompt</span>
-                <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-              </div>
+              <span>{item.label}</span><ArrowRight className="h-3 w-3" />
             </button>
           ))}
         </div>
       </div>
-    </div>
+    </section>
   );
 };

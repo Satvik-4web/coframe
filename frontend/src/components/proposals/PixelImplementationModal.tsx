@@ -93,33 +93,33 @@ export const PixelImplementationModal: React.FC<PixelImplementationModalProps> =
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 backdrop-blur-xs p-4 sm:p-6 overflow-hidden animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl border border-slate-900/[0.1] shadow-[0_24px_48px_rgba(15,23,42,0.16)] w-full max-w-5xl h-[92vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 sm:p-6 overflow-hidden animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl border border-[#D9E1EC] shadow-2xl w-full max-w-5xl h-[92vh] flex flex-col overflow-hidden">
         {/* Modal Top Header */}
-        <div className="p-5 border-b border-slate-900/[0.07] bg-white flex items-center justify-between shrink-0">
+        <div className="p-6 border-b border-[#E7ECF2] bg-gradient-to-r from-white via-white to-teal-50/40 flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-3.5">
-            <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200/70 text-[#0F766E] flex items-center justify-center">
-              <Code2 className="w-5 h-5" strokeWidth={1.75} />
+            <div className="w-11 h-11 rounded-2xl bg-teal-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+              <Code2 className="w-6 h-6 text-teal-100" />
             </div>
 
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-sm text-slate-900">PIXEL</span>
-                <span className="text-xs text-slate-500">Software Engineer</span>
-                <span className="text-[11px] font-medium px-2 py-0.2 rounded-md bg-teal-50 text-[#0F766E] border border-teal-200/60">
-                  Engineering contribution
+                <span className="font-extrabold text-sm text-[#172033]">PIXEL</span>
+                <span className="text-xs text-[#657189] font-semibold">AI Software Engineer</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-100 text-teal-800 uppercase tracking-wider">
+                  Engineering Contribution
                 </span>
-                <span className="text-[11px] font-mono px-2 py-0.2 rounded-md bg-slate-100 text-slate-700">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
                   #{proposal.proposal_id.slice(-6)}
                 </span>
                 {isConflict && (
-                  <span className="text-[11px] font-medium px-2 py-0.2 rounded-md bg-rose-50 text-rose-800 border border-rose-200/70 flex items-center gap-1">
-                    <ShieldAlert className="w-3 h-3 text-rose-600" />
-                    <span>Conflict detected</span>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-800 border border-red-200 flex items-center gap-1">
+                    <ShieldAlert className="w-3 h-3 text-red-600" />
+                    <span>CONFLICT DETECTED</span>
                   </span>
                 )}
               </div>
-              <h2 className="text-base font-semibold text-slate-900 tracking-tight mt-0.5">{title}</h2>
+              <h2 className="text-base font-bold text-[#172033] mt-0.5">{title}</h2>
             </div>
           </div>
 

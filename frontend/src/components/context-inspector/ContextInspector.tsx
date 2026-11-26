@@ -219,112 +219,74 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
   const hasInterrupted = interruptedTask?.has_interrupted_task || false;
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-8">
-      {/* Top Header */}
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pt-1">
-        <div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 mb-1.5">
-            <span>Workspace</span>
-            <span className="text-slate-700">/</span>
-            <span className="text-slate-400 font-medium">Context Inspector</span>
+    <div className="space-y-6">
+      {/* Top Header Card */}
+      <div className="bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-center space-x-3.5">
+          <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-200 flex items-center justify-center text-violet-700 shadow-xs">
+            <Cpu className="w-5 h-5" />
           </div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-[26px] font-bold text-white tracking-[-0.025em] leading-tight">
-              Context Pack &amp; Recovery
-            </h1>
-            <span
-              className="px-2.5 py-0.5 rounded-full text-[11px] font-mono font-semibold border"
-              style={{
-                background: 'rgba(52, 211, 153, 0.12)',
-                color: '#34D399',
-                borderColor: 'rgba(52, 211, 153, 0.25)',
-              }}
-            >
-              Persisted State
-            </span>
+          <div>
+            <div className="flex items-center space-x-2">
+              <h1 className="text-base font-bold text-[#172033] tracking-tight">
+                Context Pack &amp; Recovery Inspector
+              </h1>
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                Authoritative Persisted State
+              </span>
+            </div>
+            <p className="text-xs text-[#657189] mt-0.5">
+              Deterministic, typed context packs with semantic versioning, offline checkpoint replay, and genuine task resumption.
+            </p>
           </div>
-          <p className="text-sm text-slate-400 mt-1">
-            Typed context packs with semantic versioning, offline replay, and task resumption.
-          </p>
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           {onNavigateTab && (
             <button
-              type="button"
               onClick={() => onNavigateTab('agents')}
-              className="h-9 px-3 rounded-xl flex items-center gap-1.5 text-xs font-semibold cursor-pointer border transition-all"
-              style={{
-                background: 'rgba(255, 255, 255, 0.04)',
-                borderColor: 'rgba(255, 255, 255, 0.08)',
-                color: '#F1F5F9',
-              }}
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-violet-50 hover:bg-violet-100 border border-violet-200 text-xs font-semibold text-violet-800 shadow-xs transition cursor-pointer"
             >
-              <Cpu className="w-3.5 h-3.5 text-indigo-400" strokeWidth={1.75} />
-              <span>AI Team</span>
+              <Cpu className="w-3.5 h-3.5 text-violet-600" />
+              <span>Back to AI Team</span>
             </button>
           )}
-
-          {/* Segmented Agent Picker */}
-          <div
-            className="flex items-center p-1 rounded-xl border"
-            style={{
-              background: 'rgba(0, 0, 0, 0.4)',
-              borderColor: 'rgba(255, 255, 255, 0.08)',
-            }}
-          >
+          {/* Agent Picker Pill */}
+          <div className="flex items-center bg-[#F8FAFC] p-1 rounded-xl border border-[#E7ECF2]">
             <button
-              type="button"
               onClick={() => setSelectedAgent('nova')}
-              className="px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer"
-              style={
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 selectedAgent === 'nova'
-                  ? {
-                      background: 'rgba(167, 139, 250, 0.2)',
-                      color: '#A78BFA',
-                      boxShadow: '0 0 10px rgba(167, 139, 250, 0.25)',
-                    }
-                  : { color: '#64748B' }
-              }
+                  ? 'bg-violet-600 text-white shadow-xs'
+                  : 'text-[#657189] hover:text-[#172033]'
+              }`}
             >
-              NOVA
+              NOVA (Strategist)
             </button>
             <button
-              type="button"
               onClick={() => setSelectedAgent('pixel')}
-              className="px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer"
-              style={
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
                 selectedAgent === 'pixel'
-                  ? {
-                      background: 'rgba(34, 211, 238, 0.2)',
-                      color: '#22D3EE',
-                      boxShadow: '0 0 10px rgba(34, 211, 238, 0.25)',
-                    }
-                  : { color: '#64748B' }
-              }
+                  ? 'bg-teal-600 text-white shadow-xs'
+                  : 'text-[#657189] hover:text-[#172033]'
+              }`}
             >
-              PIXEL
+              PIXEL (Engineer)
             </button>
           </div>
 
           {/* Run Picker Dropdown */}
-          <div
-            className="h-9 flex items-center px-3 rounded-xl border"
-            style={{
-              background: 'rgba(0, 0, 0, 0.3)',
-              borderColor: 'rgba(255, 255, 255, 0.08)',
-            }}
-          >
-            <span className="text-[11px] font-medium text-slate-500 mr-2">Run:</span>
+          <div className="flex items-center bg-white px-2.5 py-1.5 rounded-xl border border-[#E7ECF2] shadow-xs">
+            <span className="text-[11px] font-bold text-[#657189] mr-2">Run:</span>
             <select
               value={selectedRunId}
               onChange={(e) => handleSelectRun(e.target.value)}
               disabled={loading || runs.length === 0}
-              className="text-xs font-mono font-medium text-white bg-transparent outline-none cursor-pointer pr-1"
+              className="text-xs font-mono font-medium text-[#172033] bg-transparent outline-none cursor-pointer pr-1"
             >
               {runs.map((r, idx) => (
-                <option key={r.id} value={r.id} className="bg-slate-900 text-white">
+                <option key={r.id} value={r.id}>
                   {r.id.length > 22 ? `${r.id.slice(0, 22)}...` : r.id} ({r.status}) {idx === 0 ? '· Latest' : ''}
                 </option>
               ))}
@@ -333,18 +295,12 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
 
           {/* Operation A: Inspect Context */}
           <button
-            type="button"
             onClick={handleInspect}
             disabled={operating === 'inspect' || !selectedRunId}
-            className="h-9 px-3.5 rounded-xl border flex items-center gap-1.5 text-xs font-semibold cursor-pointer disabled:opacity-50 transition-all"
-            style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              borderColor: 'rgba(255, 255, 255, 0.08)',
-              color: '#F1F5F9',
-            }}
-            title="Inspect Context Pack for selected persisted agent run"
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-[#E7ECF2] text-xs font-semibold text-[#172033] shadow-xs transition cursor-pointer disabled:opacity-50"
+            title="Inspect the exact Context Pack from the selected persisted agent run"
           >
-            <Eye className={`w-3.5 h-3.5 text-indigo-400 ${operating === 'inspect' ? 'animate-spin' : ''}`} strokeWidth={1.75} />
+            <Eye className={`w-3.5 h-3.5 text-blue-600 ${operating === 'inspect' ? 'animate-spin' : ''}`} />
             <span>Inspect</span>
           </button>
 
@@ -352,40 +308,30 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
           <button
             onClick={handleRebuild}
             disabled={operating === 'rebuild'}
-            className="h-9 px-3.5 rounded-xl border flex items-center gap-1.5 text-xs font-semibold cursor-pointer disabled:opacity-50 transition-all"
-            style={{
-              background: 'rgba(34, 211, 238, 0.1)',
-              borderColor: 'rgba(34, 211, 238, 0.25)',
-              color: '#22D3EE',
-            }}
+            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-[#E7ECF2] text-xs font-semibold text-[#172033] shadow-xs transition cursor-pointer disabled:opacity-50"
             title="Reconstruct a fresh Context Pack from latest approved requirements and artifact sections without resuming"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${operating === 'rebuild' ? 'animate-spin' : ''}`} />
-            <span>Rebuild</span>
+            <RefreshCw className={`w-3.5 h-3.5 text-teal-600 ${operating === 'rebuild' ? 'animate-spin' : ''}`} />
+            <span>Rebuild Context</span>
           </button>
 
           {/* Operation C: Resume Agent Execution */}
           <button
             onClick={handleResume}
             disabled={operating === 'resume'}
-            className="h-9 px-4 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer disabled:opacity-50"
-            style={{
-              background: hasInterrupted
-                ? 'linear-gradient(135deg, #F59E0B, #D97706)'
-                : 'linear-gradient(135deg, #818CF8, #A78BFA)',
-              color: '#FFFFFF',
-              boxShadow: hasInterrupted
-                ? '0 0 20px rgba(245, 158, 11, 0.5)'
-                : '0 0 20px rgba(129, 140, 248, 0.4)',
-            }}
+            className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold shadow-xs transition cursor-pointer disabled:opacity-50 ${
+              hasInterrupted
+                ? 'bg-amber-600 hover:bg-amber-700 text-white animate-pulse'
+                : 'bg-white hover:bg-slate-50 border border-[#E7ECF2] text-[#172033]'
+            }`}
             title={
               hasInterrupted
                 ? 'Interrupted task detected! Click to resume agent execution with recovered context'
                 : 'Resume agent execution (or verify nothing is interrupted)'
             }
           >
-            <RotateCcw className={`w-3.5 h-3.5 ${operating === 'resume' ? 'animate-spin' : ''}`} />
-            <span>{hasInterrupted ? 'Resume Interrupted Task' : 'Restart & Recover'}</span>
+            <RotateCcw className={`w-3.5 h-3.5 ${hasInterrupted ? 'text-white' : 'text-amber-600'} ${operating === 'resume' ? 'animate-spin' : ''}`} />
+            <span>{hasInterrupted ? 'Resume Interrupted Task' : 'Restart & Recover Context'}</span>
           </button>
         </div>
       </div>

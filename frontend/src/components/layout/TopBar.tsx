@@ -3,14 +3,20 @@ import { ProjectInfo, HumanIdentity } from '../../types';
 import { PruneModal } from '../prune/PruneModal';
 import {
   RotateCcw,
+  Sparkles,
   Compass,
   Radio,
   Layers,
   Users,
   Info,
-  Shield,
-  GitBranch,
   ChevronDown,
+  Shield,
+  CheckCircle2,
+  AlertCircle,
+  Wifi,
+  WifiOff,
+  GitBranch,
+  Menu,
 } from 'lucide-react';
 import { loadDemoScenario } from '../../lib/api';
 
@@ -28,6 +34,7 @@ interface TopBarProps {
   isCollaboratorsPanelOpen?: boolean;
   isCleanBaseline?: boolean;
   onRefresh?: () => void;
+  onToggleNavigation?: () => void;
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -44,6 +51,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   isCollaboratorsPanelOpen = false,
   isCleanBaseline = false,
   onRefresh,
+  onToggleNavigation,
 }) => {
   const [showPruneModal, setShowPruneModal] = useState(false);
   const [showVersionTooltip, setShowVersionTooltip] = useState(false);
@@ -63,228 +71,203 @@ export const TopBar: React.FC<TopBarProps> = ({
     }
   };
 
-  const connectionLabel = isConnected ? 'Live' : 'Connecting';
+  const connectionLabel = isConnected ? 'Live' : 'Polling';
 
   return (
-    <header className="app-topbar h-12 glass-header px-5 flex items-center justify-between z-30 select-none sticky top-0">
-      {/* Left: Project Breadcrumb & Status */}
-      <div className="flex items-center gap-3">
-        <div className="flex items-center gap-2 text-[13px]">
-          <span className="font-bold text-white tracking-tight">LedgerFlow</span>
-          <span className="text-slate-700">/</span>
-          <div
-            className="flex items-center gap-1 text-[11px] font-mono px-2 py-0.5 rounded-md"
-            style={{ background: 'rgba(129,140,248,0.10)', border: '1px solid rgba(129,140,248,0.20)', color: '#A78BFA' }}
-          >
-            <GitBranch className="w-3 h-3" strokeWidth={1.75} />
+    <header className="h-[68px] shrink-0 border-b border-slate-200/80 bg-white/90 backdrop-blur-2xl px-4 sm:px-7 flex items-center justify-between z-30 select-none sticky top-0 shadow-[0_3px_18px_rgba(21,43,76,.055)]">
+      {/* 1. Left: Project Breadcrumb & Status */}
+      <div className="flex items-center gap-3 sm:gap-5">
+        <button type="button" aria-label="Open navigation" onClick={onToggleNavigation} className="md:hidden rounded-lg p-1.5 text-slate-700 hover:bg-slate-100"><Menu className="h-5 w-5" /></button>
+        {/* Project & Branch indicator */}
+        <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-1.5 font-medium text-slate-900">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 ring-2 ring-emerald-500/20" />
+            <span className="font-bold text-slate-900 tracking-tight">LedgerFlow</span>
+          </div>
+          <span className="hidden sm:inline text-slate-300">/</span>
+          <div className="hidden sm:flex items-center gap-1 text-[11px] text-slate-500 font-mono bg-slate-100/70 px-1.5 py-0.5 rounded">
+            <GitBranch className="w-3 h-3 text-slate-400" />
             <span>main</span>
           </div>
         </div>
 
-        <span className="hidden sm:inline text-slate-700 text-xs">·</span>
+        {/* Baseline / Scenario indicator */}
+        <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-slate-500 font-medium">
+          <span className="text-slate-300">•</span>
+          <span>{isCleanBaseline ? 'Clean Baseline' : 'Demo Scenario'}</span>
+        </div>
 
-        <span className="hidden sm:inline text-xs text-slate-500 font-medium">
-          {isCleanBaseline ? 'Clean baseline' : 'Demo scenario'}
-        </span>
-
-        {/* Connection Status */}
-        <div className="flex items-center gap-1.5 text-xs font-medium pl-2 border-l border-white/[0.06]">
+        {/* Live WebSocket Connection */}
+        <div
+          className={`hidden sm:flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full transition-colors ${
+            isConnected
+              ? 'text-emerald-700 bg-emerald-50/70 border border-emerald-200/60'
+              : 'text-amber-700 bg-amber-50/70 border border-amber-200/60'
+          }`}
+          title={isConnected ? 'Live WebSocket updates' : 'Live connection unavailable; checking for updates every 10 seconds'}
+        >
           <span
-            className={`w-1.5 h-1.5 rounded-full ${isConnected ? '' : 'animate-pulse'}`}
-            style={isConnected
-              ? { background: '#34D399', boxShadow: '0 0 6px rgba(52,211,153,0.8)' }
-              : { background: '#FBBF24', boxShadow: '0 0 6px rgba(251,191,36,0.6)' }}
+            className={`w-1.5 h-1.5 rounded-full ${
+              isConnected ? 'bg-emerald-500' : 'bg-amber-500 animate-ping'
+            }`}
           />
-          <span style={{ color: isConnected ? '#34D399' : '#FBBF24' }}>
-            {connectionLabel}
-          </span>
+          <span>{connectionLabel}</span>
         </div>
       </div>
 
-      {/* Center: Version Telemetry */}
-      <div className="hidden lg:flex items-center relative">
+      {/* 2. Centre: Version Telemetry Anchors */}
+      <div className="hidden lg:flex items-center gap-2 text-xs relative">
         <div
           onMouseEnter={() => setShowVersionTooltip(true)}
           onMouseLeave={() => setShowVersionTooltip(false)}
-          className="flex items-center gap-2 cursor-pointer px-3 py-1 rounded-full transition"
-          style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)' }}
+          className="flex items-center gap-1.5 cursor-pointer bg-slate-50/80 hover:bg-slate-100/70 border border-slate-200/70 px-2 py-0.5 rounded-md transition"
         >
-          <div className="flex items-center gap-1 text-[11px]">
-            <Radio className="w-3 h-3" strokeWidth={1.75} style={{ color: '#818CF8' }} />
-            <span className="font-mono font-semibold" style={{ color: '#A78BFA' }}>ctx v{project?.context_version ?? 1}</span>
+          <div className="flex items-center gap-1 text-[11px] text-slate-600">
+            <Radio className="w-3 h-3 text-blue-600" />
+            <span className="font-mono font-medium text-slate-900">ctx:v{project?.context_version ?? 1}</span>
           </div>
-          <span className="text-slate-700">·</span>
-          <div className="flex items-center gap-1 text-[11px]">
-            <Layers className="w-3 h-3" strokeWidth={1.75} style={{ color: '#22D3EE' }} />
-            <span className="font-mono font-semibold" style={{ color: '#67E8F9' }}>art v{project?.artifact_version ?? 1}</span>
+          <span className="text-slate-300">•</span>
+          <div className="flex items-center gap-1 text-[11px] text-slate-600">
+            <Layers className="w-3 h-3 text-sky-700" />
+            <span className="font-mono font-medium text-slate-900">art:v{project?.artifact_version ?? 1}</span>
           </div>
         </div>
 
         {showVersionTooltip && (
-          <div
-            className="absolute top-10 left-1/2 -translate-x-1/2 w-64 rounded-xl p-4 z-50 text-xs"
-            style={{
-              background: 'rgba(13,17,23,0.95)',
-              border: '1px solid rgba(255,255,255,0.10)',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05)',
-              backdropFilter: 'blur(20px)',
-            }}
-          >
-            <div className="font-semibold text-white mb-2 flex items-center gap-1.5">
-              <Info className="w-3.5 h-3.5" style={{ color: '#818CF8' }} />
+          <div className="absolute top-9 left-1/2 -translate-x-1/2 w-64 bg-white rounded-lg border border-slate-200 p-3 shadow-lg z-50 text-xs text-slate-600 animate-in fade-in zoom-in-95 duration-100">
+            <div className="font-semibold text-slate-900 mb-1 flex items-center gap-1.5">
+              <Info className="w-3.5 h-3.5 text-indigo-600" />
               <span>Version Provenance</span>
             </div>
-            <p className="text-[11px] leading-relaxed text-slate-400">
-              <strong className="text-slate-200">Context:</strong> Increments with approved PRDs and requirements.
+            <p className="text-[11px] leading-relaxed">
+              <strong className="text-blue-600">Context:</strong> Increments with approved PRDs and human requirements.
             </p>
-            <p className="text-[11px] mt-1 leading-relaxed text-slate-400">
-              <strong className="text-slate-200">Artifact:</strong> Increments when code changes merge into LedgerFlow.
+            <p className="text-[11px] mt-1 leading-relaxed">
+              <strong className="text-sky-700">Artifact:</strong> Increments when code changes merge into LedgerFlow.
             </p>
           </div>
         )}
       </div>
 
-      {/* Right: Controls & Identity */}
-      <div className="flex items-center gap-2">
-        {/* Avatar Stack */}
-        <div className="hidden sm:flex items-center -space-x-1.5 mr-1" title="Workspace participants">
-          {[
-            { label: 'A', name: 'Alex', color: '#60A5FA', bg: 'rgba(96,165,250,0.15)', ring: 'rgba(96,165,250,0.3)' },
-            { label: 'M', name: 'Maya', color: '#F472B6', bg: 'rgba(244,114,182,0.15)', ring: 'rgba(244,114,182,0.3)' },
-            { label: 'N', name: 'NOVA', color: '#A78BFA', bg: 'rgba(167,139,250,0.15)', ring: 'rgba(167,139,250,0.3)' },
-            { label: 'P', name: 'PIXEL', color: '#22D3EE', bg: 'rgba(34,211,238,0.15)', ring: 'rgba(34,211,238,0.3)' },
-          ].map(({ label, name, color, bg, ring }) => (
-            <div
-              key={label}
-              className="w-6 h-6 rounded-full font-bold text-[10px] flex items-center justify-center"
-              title={name}
-              style={{
-                background: bg,
-                color,
-                border: `1.5px solid ${ring}`,
-                boxShadow: `0 0 8px ${ring}`,
-              }}
-            >
-              {label}
-            </div>
-          ))}
+      {/* 3. Right: Collaborators, Identity Switcher, Tools */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Collaborators Avatar Stack */}
+        <div className="hidden sm:flex items-center -space-x-1" title="Active collaborators">
+          <div
+            className="w-6 h-6 rounded-full bg-blue-600 text-white font-bold text-[10px] flex items-center justify-center ring-2 ring-white"
+            title="Alex (Founder / Decision Owner)"
+          >
+            A
+          </div>
+          <div
+            className="w-6 h-6 rounded-full bg-slate-600 text-white font-bold text-[10px] flex items-center justify-center ring-2 ring-white"
+            title="Maya (Product Designer)"
+          >
+            M
+          </div>
+          <div
+            className="w-6 h-6 rounded-full bg-blue-500 text-white font-bold text-[10px] flex items-center justify-center ring-2 ring-white"
+            title="NOVA (AI Product Strategist)"
+          >
+            N
+          </div>
+          <div
+            className="w-6 h-6 rounded-full bg-sky-700 text-white font-bold text-[10px] flex items-center justify-center ring-2 ring-white"
+            title="PIXEL (AI Software Engineer)"
+          >
+            P
+          </div>
         </div>
 
-        {/* Team Toggle */}
+        {/* Team Panel Toggle */}
         {onToggleCollaboratorsPanel && (
           <button
-            type="button"
             onClick={onToggleCollaboratorsPanel}
-            className="hidden md:flex items-center gap-1.5 h-8 px-2.5 rounded-lg text-xs font-medium transition cursor-pointer"
-            style={isCollaboratorsPanelOpen
-              ? { background: 'rgba(129,140,248,0.15)', color: '#A78BFA', border: '1px solid rgba(129,140,248,0.25)' }
-              : { background: 'rgba(255,255,255,0.04)', color: '#94A3B8', border: '1px solid rgba(255,255,255,0.07)' }}
+            aria-label="Toggle team drawer"
+            className={`flex items-center gap-1 px-2 py-1 rounded-md text-xs font-medium transition cursor-pointer ${
+              isCollaboratorsPanelOpen
+                ? 'bg-slate-100 text-slate-900'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+            }`}
+            title="Toggle Team Drawer"
           >
-            <Users className="w-3.5 h-3.5" strokeWidth={1.75} />
-            <span>Team ({onlineMembers.length > 0 ? onlineMembers.length : 4})</span>
+            <Users className="w-3.5 h-3.5 text-slate-400" />
+            <span className="hidden md:inline text-[11px]">Team ({onlineMembers.length > 0 ? onlineMembers.length : 4})</span>
           </button>
         )}
 
-        {/* Guide Button */}
+        {/* Guided Demo Button */}
         {onToggleDemoGuide && (
           <button
-            type="button"
             onClick={onToggleDemoGuide}
-            className="h-8 px-2.5 rounded-lg text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
-            style={isDemoGuideOpen
-              ? { background: 'linear-gradient(135deg,#818CF8,#A78BFA)', color: '#fff', boxShadow: '0 0 16px rgba(129,140,248,0.4)' }
-              : { background: 'rgba(255,255,255,0.04)', color: '#94A3B8', border: '1px solid rgba(255,255,255,0.07)' }}
+            className={`px-2.5 py-1 rounded-md text-xs font-medium flex items-center gap-1 transition cursor-pointer ${
+              isDemoGuideOpen
+                ? 'bg-blue-600 text-white font-semibold'
+                : 'bg-blue-50/70 hover:bg-blue-100/70 text-blue-700 border border-blue-200/50'
+            }`}
           >
-            <Compass className="w-3.5 h-3.5" strokeWidth={1.75} />
-            <span>Guide</span>
+            <Compass className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Guide</span>
           </button>
         )}
 
-        {/* Identity Switcher */}
+        {/* Active Identity Switcher */}
         <button
-          type="button"
           onClick={onSwitchIdentity}
-          className="h-8 flex items-center gap-1.5 px-2.5 rounded-lg text-xs font-medium cursor-pointer transition"
-          style={{
-            background: identity === 'alex' ? 'rgba(96,165,250,0.12)' : 'rgba(244,114,182,0.12)',
-            color: identity === 'alex' ? '#60A5FA' : '#F472B6',
-            border: `1px solid ${identity === 'alex' ? 'rgba(96,165,250,0.25)' : 'rgba(244,114,182,0.25)'}`,
-          }}
-          title="Switch collaborator role"
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100/80 hover:bg-slate-200/80 text-xs font-medium text-slate-800 transition cursor-pointer border border-slate-200/60"
+          title="Click to switch collaborator role (Alex ↔ Maya)"
         >
           <span
-            className="w-1.5 h-1.5 rounded-full"
-            style={{
-              background: identity === 'alex' ? '#60A5FA' : '#F472B6',
-              boxShadow: `0 0 6px ${identity === 'alex' ? 'rgba(96,165,250,0.8)' : 'rgba(244,114,182,0.8)'}`,
-            }}
+            className={`w-1.5 h-1.5 rounded-full ${
+              identity === 'alex' ? 'bg-blue-600' : 'bg-pink-600'
+            }`}
           />
           <span className="font-semibold">{identity === 'alex' ? 'Alex' : 'Maya'}</span>
-          <ChevronDown className="w-3 h-3 opacity-60" />
+          <span className="hidden sm:inline text-[9px] text-slate-400 uppercase font-mono tracking-wider ml-0.5">Switch</span>
         </button>
 
-        {/* Shield */}
+        {/* Cryptographic Prune Shield */}
         <button
-          type="button"
           onClick={() => setShowPruneModal(true)}
-          className="h-8 w-8 rounded-lg flex items-center justify-center transition cursor-pointer text-slate-600 hover:text-emerald-400"
-          style={{ background: 'transparent' }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'rgba(52,211,153,0.08)'; }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
-          title="Prune Cryptographic Verification"
+          className="p-1 rounded-md text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 transition cursor-pointer"
+          title="Prune AI Cryptographic Seatbelts & Audit Receipts"
         >
-          <Shield className="w-3.5 h-3.5" strokeWidth={1.75} />
+          <Shield className="w-3.5 h-3.5 text-emerald-600" />
         </button>
 
-        {/* Reset Menu */}
+        {/* Reset / Scenario Dropdown Menu */}
         <div className="relative">
           <button
-            type="button"
             onClick={() => setShowResetMenu(!showResetMenu)}
             disabled={isResetting || isLoadingScenario}
-            className="h-8 w-8 rounded-lg flex items-center justify-center transition cursor-pointer text-slate-600 hover:text-slate-300"
-            style={{ background: 'transparent' }}
-            onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)'; }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+            className="p-1 rounded-md text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition cursor-pointer flex items-center"
             title="Workspace Reset & Demo Scenarios"
           >
-            <RotateCcw
-              className={`w-3.5 h-3.5 ${isResetting || isLoadingScenario ? 'animate-spin' : ''}`}
-              strokeWidth={1.75}
-              style={isResetting || isLoadingScenario ? { color: '#818CF8' } : {}}
-            />
+            <RotateCcw className={`w-3.5 h-3.5 ${isResetting || isLoadingScenario ? 'animate-spin text-indigo-600' : ''}`} />
           </button>
 
           {showResetMenu && (
-            <div
-              className="absolute right-0 top-10 w-56 rounded-xl z-50 p-1.5 space-y-0.5 text-xs"
-              style={{
-                background: 'rgba(13,17,23,0.98)',
-                border: '1px solid rgba(255,255,255,0.10)',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.7)',
-                backdropFilter: 'blur(20px)',
-              }}
-            >
+            <div className="absolute right-0 top-8 w-52 bg-white rounded-lg border border-slate-200 shadow-xl z-50 p-1 space-y-0.5 text-xs">
               <button
-                type="button"
-                onClick={() => { setShowResetMenu(false); onResetDemo(); }}
-                className="w-full text-left p-2.5 rounded-lg transition cursor-pointer"
-                style={{ color: '#F87171' }}
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(248,113,113,0.08)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                onClick={() => {
+                  setShowResetMenu(false);
+                  onResetDemo();
+                }}
+                className="w-full text-left p-2 rounded-md hover:bg-rose-50 text-rose-700 transition"
               >
-                <div className="font-semibold text-xs">Reset to Clean Baseline</div>
-                <div className="text-[11px] opacity-60 font-normal mt-0.5">Restores baseline seed state</div>
+                <div className="font-medium text-xs">Reset to Clean Baseline</div>
+                <div className="text-[10px] text-rose-500 font-normal">
+                  Wipes proposals and starts fresh
+                </div>
               </button>
               <button
-                type="button"
                 onClick={handleLoadDemoScenario}
-                className="w-full text-left p-2.5 rounded-lg transition cursor-pointer text-slate-300"
-                onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-                onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; }}
+                className="w-full text-left p-2 rounded-md hover:bg-indigo-50 text-indigo-800 transition"
               >
-                <div className="font-semibold text-xs">Load Demo Scenario</div>
-                <div className="text-[11px] opacity-50 font-normal mt-0.5">Seeds proposals for walkthrough</div>
+                <div className="font-medium text-xs">Load Demo Scenario</div>
+                <div className="text-[10px] text-indigo-600 font-normal">
+                  Seeds proposals for walkthrough
+                </div>
               </button>
             </div>
           )}

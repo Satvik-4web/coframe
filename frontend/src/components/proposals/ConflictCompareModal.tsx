@@ -117,7 +117,7 @@ export const ConflictCompareModal: React.FC<ConflictCompareModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-900/[0.1] rounded-2xl max-w-4xl w-full p-6 shadow-[0_24px_48px_rgba(15,23,42,0.16)] relative max-h-[92vh] flex flex-col animate-in fade-in-50 duration-200">
+      <div className="bg-white border border-[#E5EAF0] rounded-3xl max-w-4xl w-full p-6 shadow-2xl relative max-h-[92vh] flex flex-col animate-in fade-in-50 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#E5EAF0]">
           <div className="flex items-center space-x-3.5">

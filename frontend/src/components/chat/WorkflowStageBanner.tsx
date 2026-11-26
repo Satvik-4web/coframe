@@ -1,11 +1,19 @@
 import React, { useState } from 'react';
 import {
+  Sparkles,
   ArrowRight,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Code2,
+  FileText,
   ChevronDown,
   ChevronUp,
   ExternalLink,
   Layers,
   Check,
+  Play,
+  ShieldCheck,
 } from 'lucide-react';
 import { WorkflowStageInfo } from '../../types';
 
@@ -63,31 +71,34 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
     activeStepIndex = 7; // 8. Integration
   }
 
+  // Theme styling based on active stage
+  let themeBadge = 'bg-violet-50 text-violet-700 border-violet-200';
+  let borderCard = 'border-[#E8EAF2] bg-white';
+  if (currentStage === 'prd_awaiting_confirmation') {
+    themeBadge = 'bg-amber-50 text-amber-800 border-amber-300';
+    borderCard = 'border-amber-200 bg-amber-50/15';
+  } else if (currentStage === 'implementation_in_progress' || currentStage === 'execution_environment_selected') {
+    themeBadge = 'bg-teal-50 text-teal-700 border-teal-200';
+    borderCard = 'border-teal-200 bg-teal-50/15';
+  } else if (currentStage === 'implementation_awaiting_approval') {
+    themeBadge = 'bg-blue-50 text-blue-800 border-blue-300';
+    borderCard = 'border-blue-200 bg-blue-50/15';
+  } else if (currentStage === 'implementation_applied') {
+    themeBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+    borderCard = 'border-emerald-200 bg-emerald-50/15';
+  }
+
   return (
-    <div
-      className="mx-6 mt-3 px-4 py-3 rounded-2xl border transition-all duration-150 shrink-0"
-      style={{
-        background: 'rgba(255, 255, 255, 0.03)',
-        borderColor: 'rgba(255, 255, 255, 0.08)',
-        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
-      }}
-    >
-      {/* 1. Top Bar: Stage Badge, Description & Action */}
+    <div className={`mx-6 mt-4 p-3.5 rounded-2xl border ${borderCard} shadow-2xs transition-all duration-200`}>
+      {/* 1. Top Bar: Stage Badge, Description & Quick Navigation Action */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <span
-            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border shrink-0"
-            style={{
-              background: 'rgba(129, 140, 248, 0.15)',
-              borderColor: 'rgba(129, 140, 248, 0.3)',
-              color: '#A78BFA',
-            }}
-          >
-            <Layers className="w-3 h-3" strokeWidth={1.75} />
-            <span>{stageInfo.display_label || stageInfo.stage_label || 'Sequential lifecycle'}</span>
+          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-tight border ${themeBadge} shrink-0`}>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>{stageInfo.display_label || stageInfo.stage_label || 'Sequential Lifecycle'}</span>
           </span>
 
-          <p className="text-xs text-slate-300 font-medium truncate">
+          <p className="text-xs text-[#172033] font-medium truncate">
             {stageInfo.description ||
               (currentStage === 'prd_awaiting_confirmation'
                 ? 'NOVA submitted PRD proposal · Waiting for Alex to confirm requirements'
@@ -102,38 +113,27 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
         <div className="flex items-center gap-2 shrink-0">
           {currentStage === 'prd_awaiting_confirmation' && stageInfo.active_prd_id && (
             <button
-              type="button"
               onClick={() => onNavigateTab('proposals', stageInfo.active_prd_id || undefined)}
-              className="h-7 inline-flex items-center gap-1.5 px-3 rounded-lg text-[11px] font-bold cursor-pointer"
-              style={{
-                background: 'linear-gradient(135deg, #818CF8, #A78BFA)',
-                color: '#FFFFFF',
-              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-2xs cursor-pointer"
             >
               <span>Review PRD #{stageInfo.active_prd_id.slice(-6)}</span>
-              <ArrowRight className="w-3 h-3" />
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
 
           {currentStage === 'implementation_awaiting_approval' && stageInfo.active_pixel_proposal_id && (
             <button
-              type="button"
               onClick={() => onNavigateTab('proposals', stageInfo.active_pixel_proposal_id || undefined)}
-              className="h-7 inline-flex items-center gap-1.5 px-3 rounded-lg text-[11px] font-bold cursor-pointer"
-              style={{
-                background: 'linear-gradient(135deg, #06B6D4, #22D3EE)',
-                color: '#042F2E',
-              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold transition shadow-2xs cursor-pointer"
             >
-              <span>Review implementation #{stageInfo.active_pixel_proposal_id.slice(-6)}</span>
-              <ExternalLink className="w-3 h-3" />
+              <span>Review Implementation #{stageInfo.active_pixel_proposal_id.slice(-6)}</span>
+              <ExternalLink className="w-3.5 h-3.5" />
             </button>
           )}
 
           <button
-            type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 rounded-md text-slate-400 hover:text-white transition cursor-pointer"
+            className="p-1 rounded-lg text-[#657189] hover:text-[#172033] hover:bg-slate-100 transition cursor-pointer"
             title={isCollapsed ? 'Expand workflow timeline' : 'Collapse workflow timeline'}
           >
             {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
@@ -141,69 +141,61 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
         </div>
       </div>
 
-      {/* 2. Horizontal 8-Stage Stepper */}
+      {/* 2. Horizontal 8-Stage Sequential Workflow Stepper */}
       {!isCollapsed && (
-        <div className="mt-3.5 pt-3 border-t" style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}>
+        <div className="mt-3.5 pt-3 border-t border-[#E8EAF2]/80">
           <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 items-center">
             {WORKFLOW_STEPS.map((step, idx) => {
               const isCompleted = idx < activeStepIndex;
               const isCurrent = idx === activeStepIndex;
+              const isWaiting = idx > activeStepIndex;
 
               return (
                 <div
                   key={step.id}
-                  className="flex flex-col items-center text-center p-2 rounded-xl transition border"
-                  style={{
-                    background: isCurrent
-                      ? 'rgba(129, 140, 248, 0.15)'
+                  className={`flex flex-col items-center text-center p-2 rounded-xl transition border ${
+                    isCurrent
+                      ? 'bg-violet-50/80 border-violet-300 shadow-2xs'
                       : isCompleted
-                      ? 'rgba(52, 211, 153, 0.08)'
-                      : 'rgba(0, 0, 0, 0.2)',
-                    borderColor: isCurrent
-                      ? 'rgba(129, 140, 248, 0.4)'
-                      : isCompleted
-                      ? 'rgba(52, 211, 153, 0.25)'
-                      : 'rgba(255, 255, 255, 0.04)',
-                    boxShadow: isCurrent
-                      ? '0 0 10px rgba(129, 140, 248, 0.2)'
-                      : 'none',
-                  }}
+                      ? 'bg-emerald-50/50 border-emerald-200/80 text-emerald-900'
+                      : 'bg-[#F8FAFC] border-transparent text-[#94A3B8]'
+                  }`}
                 >
                   <div className="flex items-center justify-center mb-1">
                     {isCompleted ? (
-                      <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center">
-                        <Check className="w-3 h-3 stroke-[2.5]" />
+                      <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                        <Check className="w-3 h-3 stroke-[3]" />
                       </div>
                     ) : isCurrent ? (
-                      <div
-                        className="w-5 h-5 rounded-full text-white font-mono font-bold text-[10px] flex items-center justify-center"
-                        style={{ background: '#818CF8' }}
-                      >
+                      <div className="w-5 h-5 rounded-full bg-violet-600 text-white font-bold text-[10px] flex items-center justify-center ring-2 ring-violet-300 animate-pulse">
                         {step.number}
                       </div>
                     ) : (
-                      <div className="w-5 h-5 rounded-full bg-slate-800 text-slate-500 font-mono font-medium text-[10px] flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-500 font-bold text-[10px] flex items-center justify-center">
                         {step.number}
                       </div>
                     )}
                   </div>
 
                   <span
-                    className="text-[11px] font-semibold truncate w-full"
-                    style={{
-                      color: isCurrent ? '#FFFFFF' : isCompleted ? '#34D399' : '#64748B',
-                    }}
+                    className={`text-[11px] font-semibold truncate w-full ${
+                      isCurrent
+                        ? 'text-violet-900 font-bold'
+                        : isCompleted
+                        ? 'text-emerald-900 font-semibold'
+                        : 'text-[#94A3B8]'
+                    }`}
                   >
                     {step.label}
                   </span>
 
-                  <span className="text-[10px] font-mono mt-0.5">
+                  <span className="text-[9px] uppercase tracking-wider font-mono mt-0.5">
                     {isCurrent ? (
-                      <span className="text-indigo-400 font-semibold">active</span>
+                      <span className="text-violet-700 font-bold">Active</span>
                     ) : isCompleted ? (
-                      <span className="text-emerald-400">done</span>
+                      <span className="text-emerald-700 font-medium">Done</span>
                     ) : (
-                      <span className="text-slate-600">wait</span>
+                      <span className="text-slate-400">Wait</span>
                     )}
                   </span>
                 </div>
@@ -211,19 +203,20 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
             })}
           </div>
 
-          <div className="mt-2.5 flex flex-wrap items-center justify-between text-[11px] text-slate-400 px-0.5 font-medium">
+          {/* Agent Readiness Footnote */}
+          <div className="mt-2.5 flex flex-wrap items-center justify-between text-[11px] text-[#657189] px-1">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_6px_#A78BFA]" />
-                <span>NOVA: <strong className="font-semibold text-purple-300">{stageInfo.nova_status || 'Analyzing strategy'}</strong></span>
+                <span className="w-2 h-2 rounded-full bg-violet-600" />
+                <span>NOVA: <strong className="text-[#172033]">{stageInfo.nova_status || 'Analyzing strategy'}</strong></span>
               </span>
-              <span className="text-slate-600">·</span>
+              <span>•</span>
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#22D3EE]" />
-                <span>PIXEL: <strong className="font-semibold text-cyan-300">{stageInfo.pixel_status || 'Waiting for confirmed requirements'}</strong></span>
+                <span className="w-2 h-2 rounded-full bg-teal-600" />
+                <span>PIXEL: <strong className="text-[#172033]">{stageInfo.pixel_status || 'Waiting for confirmed requirements'}</strong></span>
               </span>
             </div>
-            <span className="text-[11px] text-slate-500 font-mono">Sequential boundary active</span>
+            <span className="text-[10px] text-slate-400">Sequential Execution Boundary Enforced</span>
           </div>
         </div>
       )}

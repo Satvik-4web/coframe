@@ -51,199 +51,181 @@ export const NovaPrdCard: React.FC<NovaPrdCardProps> = ({
 
   return (
     <div
-      className="p-5 rounded-2xl border transition-all duration-200"
-      style={{
-        background: isConfirmed
-          ? 'rgba(167, 139, 250, 0.05)'
+      className={`rounded-xl border transition-all p-4.5 shadow-2xs ${
+        isConfirmed
+          ? 'bg-white border-emerald-200/80 ring-1 ring-emerald-500/10'
           : proposal.status === 'stale'
-          ? 'rgba(251, 191, 36, 0.05)'
-          : 'rgba(255, 255, 255, 0.03)',
-        borderColor: isConfirmed
-          ? 'rgba(167, 139, 250, 0.3)'
-          : proposal.status === 'stale'
-          ? 'rgba(251, 191, 36, 0.3)'
-          : 'rgba(255, 255, 255, 0.08)',
-        boxShadow: isConfirmed
-          ? '0 0 20px rgba(167, 139, 250, 0.1)'
-          : 'none',
-      }}
+          ? 'bg-white border-amber-300 ring-1 ring-amber-500/20'
+          : 'bg-white border-slate-200/80 hover:border-slate-300'
+      }`}
     >
       {/* 1. Header: NOVA Identity, PRD Tag, Confirmation Status */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 mb-2.5">
         <div className="flex items-center gap-2.5">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-            style={{
-              background: 'rgba(167, 139, 250, 0.15)',
-              border: '1px solid rgba(167, 139, 250, 0.3)',
-              color: '#A78BFA',
-              boxShadow: '0 0 12px rgba(167, 139, 250, 0.25)',
-            }}
-          >
-            <Brain className="w-4.5 h-4.5" strokeWidth={1.75} />
+          <div className="w-7 h-7 rounded-lg bg-purple-50 text-purple-700 flex items-center justify-center font-bold text-xs border border-purple-200 shrink-0">
+            <Brain className="w-4 h-4 text-purple-600" />
           </div>
 
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-bold text-xs text-white">NOVA</span>
-              <span className="text-slate-600">·</span>
-              <span className="text-xs text-slate-400">Product Strategist</span>
-              <span
-                className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded"
-                style={{
-                  background: 'rgba(167, 139, 250, 0.15)',
-                  color: '#A78BFA',
-                  border: '1px solid rgba(167, 139, 250, 0.3)',
-                }}
-              >
+              <span className="font-bold text-xs text-slate-900">NOVA</span>
+              <span className="text-[11px] text-slate-400">•</span>
+              <span className="text-[11px] text-slate-500 font-medium">Product Strategist</span>
+              <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-purple-50 text-purple-700 border border-purple-200/60 uppercase font-mono">
                 PRD
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 font-mono">
+            <p className="text-[10px] text-slate-400 font-mono">
               Task #{proposal.task_id || proposal.run_id || 'PRD'} · {timeStr}
             </p>
           </div>
         </div>
 
-        {/* Confirmation Status Badge */}
-        <div className="flex items-center gap-2">
+        {/* Confirmation Status Pill */}
+        <div className="flex items-center gap-1.5">
           {isConfirmed ? (
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-              style={{
-                background: 'rgba(52, 211, 153, 0.15)',
-                color: '#34D399',
-                border: '1px solid rgba(52, 211, 153, 0.3)',
-              }}
-            >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Confirmed</span>
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+              <Check className="w-3 h-3 text-emerald-600" />
+              <span>{hasLinkedImplementation ? 'CONFIRMED · DELEGATED TO PIXEL' : 'CONFIRMED'}</span>
+            </span>
+          ) : proposal.status === 'stale' ? (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+              ⚠️ STALE (DRIFT DETECTED)
             </span>
           ) : (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/70 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-purple-500 animate-pulse" />
+              <span>READY FOR REVIEW</span>
+            </span>
+          )}
+
+          {proposal.prune_metadata && (
             <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-              style={{
-                background: 'rgba(251, 191, 36, 0.15)',
-                color: '#FBBF24',
-                border: '1px solid rgba(251, 191, 36, 0.3)',
-              }}
+              className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 flex items-center gap-1"
+              title="Cryptographically signed by Prune Ed25519"
             >
-              <Clock className="w-3.5 h-3.5" />
-              <span>Awaiting Confirmation</span>
+              <Shield className="w-3 h-3 text-emerald-600" />
+              <span>Prune</span>
             </span>
           )}
         </div>
       </div>
 
-      {/* 2. PRD Title & Executive Summary */}
-      <div className="space-y-1.5">
-        <h3 className="text-sm font-bold text-white tracking-tight">
-          {title}
+      {/* 2. PRD Title & Document Headline */}
+      <div className="mb-2">
+        <h3 className="font-semibold text-sm text-slate-900 leading-snug flex items-center gap-2">
+          <FileText className="w-3.5 h-3.5 text-purple-600 shrink-0" />
+          <span>{title}</span>
         </h3>
-        <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
+      </div>
+
+      {/* 3. Executive Summary */}
+      <div className="mb-3 p-2.5 rounded-lg bg-slate-50/70 border border-slate-200/60">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-purple-900 mb-0.5">
+          Executive Summary
+        </p>
+        <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">
           {execSummary}
         </p>
       </div>
 
-      {/* 3. Metrics Strip */}
-      <div
-        className="mt-3.5 pt-3 border-t grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono"
-        style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}
-      >
-        <div
-          className="p-2.5 rounded-xl border"
-          style={{ background: 'rgba(0, 0, 0, 0.25)', borderColor: 'rgba(255, 255, 255, 0.05)' }}
-        >
-          <span className="text-[10px] text-slate-500 block uppercase">Reqs</span>
-          <span className="font-bold text-indigo-300 mt-0.5 block">{frCount} items</span>
+      {/* 4. Document Metrics Strip */}
+      <div className="flex flex-wrap items-center gap-2 mb-3 text-xs text-slate-500 pb-2.5 border-b border-slate-100">
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100/70 text-[11px]">
+          <span className="font-semibold text-purple-700 font-mono">{frCount}</span>
+          <span className="text-slate-600">Requirements</span>
         </div>
-        <div
-          className="p-2.5 rounded-xl border"
-          style={{ background: 'rgba(0, 0, 0, 0.25)', borderColor: 'rgba(255, 255, 255, 0.05)' }}
-        >
-          <span className="text-[10px] text-slate-500 block uppercase">Criteria</span>
-          <span className="font-bold text-white mt-0.5 block">{acCount} pass rules</span>
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100/70 text-[11px]">
+          <span className="font-semibold text-emerald-700 font-mono">{acCount}</span>
+          <span className="text-slate-600">Criteria</span>
         </div>
-        <div
-          className="p-2.5 rounded-xl border"
-          style={{ background: 'rgba(0, 0, 0, 0.25)', borderColor: 'rgba(255, 255, 255, 0.05)' }}
-        >
-          <span className="text-[10px] text-slate-500 block uppercase">Confidence</span>
-          <span className="font-bold text-emerald-400 mt-0.5 block">96%</span>
-        </div>
-        <div
-          className="p-2.5 rounded-xl border"
-          style={{ background: 'rgba(0, 0, 0, 0.25)', borderColor: 'rgba(255, 255, 255, 0.05)' }}
-        >
-          <span className="text-[10px] text-slate-500 block uppercase">Next Agent</span>
-          <span className="font-bold text-cyan-400 mt-0.5 block">PIXEL</span>
+        <div className="flex items-center gap-1 px-2 py-0.5 rounded bg-slate-100/70 text-[11px]">
+          <span className="text-slate-400">Audience:</span>
+          <span className="font-medium text-slate-700 truncate max-w-[200px]">{prd?.target_users?.primary_users || (prd as any)?.target_audience || 'Enterprise'}</span>
         </div>
       </div>
 
-      {/* 4. Action Buttons */}
-      <div
-        className="mt-4 pt-3 border-t flex flex-wrap items-center justify-between gap-2.5"
-        style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}
-      >
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => onOpenPrd(proposal)}
-            className="h-8 px-3.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border"
-            style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              borderColor: 'rgba(255, 255, 255, 0.08)',
-              color: '#F1F5F9',
-            }}
-          >
-            <FileText className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Read full PRD</span>
-          </button>
+      {/* 5. Raw Technical Details Toggle */}
+      <div className="mb-3">
+        <button
+          type="button"
+          onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
+          className="flex items-center justify-between w-full text-[11px] font-medium text-slate-400 hover:text-slate-700 py-0.5 transition cursor-pointer"
+        >
+          <span>
+            {showTechnicalDetails ? 'Hide technical JSON' : 'Inspect raw proposal JSON'}
+          </span>
+          {showTechnicalDetails ? (
+            <ChevronUp className="w-3 h-3" />
+          ) : (
+            <ChevronDown className="w-3 h-3" />
+          )}
+        </button>
 
-          {hasLinkedImplementation && onOpenPixelProposal && (
-            <button
-              type="button"
-              onClick={onOpenPixelProposal}
-              className="h-8 px-3 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border"
-              style={{
-                background: 'rgba(34, 211, 238, 0.1)',
-                borderColor: 'rgba(34, 211, 238, 0.25)',
-                color: '#22D3EE',
-              }}
-            >
-              <Code2 className="w-3.5 h-3.5" />
-              <span>View PIXEL code</span>
-            </button>
+        {showTechnicalDetails && (
+          <div className="mt-2 space-y-1.5 text-xs bg-slate-900 text-slate-200 p-2.5 rounded-lg overflow-x-auto max-h-40 font-mono text-[10px]">
+            <pre>{JSON.stringify(proposal.changes || proposal, null, 2)}</pre>
+          </div>
+        )}
+      </div>
+
+      {/* 6. Action Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+        <div className="text-[11px] text-slate-500">
+          {isConfirmed ? (
+            <span className="text-emerald-700 font-medium flex items-center gap-1">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              {hasLinkedImplementation
+                ? 'Confirmed & Delegated to PIXEL'
+                : 'Authoritative Requirements Baseline'}
+            </span>
+          ) : (
+            <span>Alex confirmation authorizes implementation</span>
           )}
         </div>
 
-        {!isConfirmed && (
-          <div className="flex items-center gap-2">
-            {onReject && (
-              <button
-                type="button"
-                onClick={() => onReject(proposal.proposal_id)}
-                className="h-8 px-3 rounded-xl text-xs font-semibold transition cursor-pointer text-slate-400 hover:text-rose-400 hover:bg-rose-500/10"
-              >
-                Reject
-              </button>
-            )}
+        <div className="flex items-center gap-2">
+          {/* Read PRD */}
+          <button
+            type="button"
+            onClick={() => onOpenPrd(proposal)}
+            className="px-3 py-1.5 rounded-md bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+          >
+            <FileText className="w-3 h-3 text-purple-600" />
+            <span>Read PRD</span>
+            <ArrowRight className="w-3 h-3 text-slate-400" />
+          </button>
 
+          {/* Linked PIXEL Task */}
+          {isConfirmed && onOpenPixelProposal && (
             <button
               type="button"
-              onClick={() => onConfirmRequirements(proposal.proposal_id)}
-              className="h-8 px-4 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer"
-              style={{
-                background: 'linear-gradient(135deg, #818CF8, #A78BFA)',
-                color: '#FFFFFF',
-                boxShadow: '0 0 15px rgba(129, 140, 248, 0.4)',
-              }}
+              onClick={onOpenPixelProposal}
+              className="px-3 py-1.5 rounded-md bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
             >
-              <Check className="w-3.5 h-3.5" />
-              <span>Confirm & Dispatch PIXEL</span>
+              <Code2 className="w-3 h-3 text-teal-600" />
+              <span>View PIXEL Task</span>
             </button>
-          </div>
-        )}
+          )}
+
+          {/* Confirm Requirements */}
+          {!isConfirmed && proposal.status === 'pending_review' && (
+            <button
+              type="button"
+              disabled={!isAlex}
+              onClick={() => onConfirmRequirements(proposal.proposal_id || proposal.id || '')}
+              className={`px-3 py-1.5 rounded-md text-xs font-medium flex items-center gap-1.5 transition cursor-pointer ${
+                isAlex
+                  ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-2xs'
+                  : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+              }`}
+              title={isAlex ? 'Confirm requirements and delegate to PIXEL' : 'Only Alex (Founder / Decision Owner) can confirm'}
+            >
+              <Check className="w-3 h-3" />
+              <span>Confirm Requirements</span>
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

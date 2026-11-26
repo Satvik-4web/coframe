@@ -1,31 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  FullProjectState,
-  HumanIdentity,
-  PRD,
-  ImplementationPlan,
-  WorkflowStageInfo,
-} from '../../types';
-import {
-  Users,
-  Cpu,
-  MessageSquare,
-  CheckCircle2,
-  Clock,
-  ArrowRight,
-  ShieldAlert,
-  Layers,
-  FileText,
-  Radio,
-  Eye,
-  Code2,
-  Plus,
+  Activity, ArrowRight, ArrowUpRight, Bot, Check, ChevronRight, CircleAlert,
+  Clock3, Code2, FileText, GitPullRequest, Layers3, Plus, Radio, ShieldCheck,
+  Sparkles, Users, WandSparkles,
 } from 'lucide-react';
-import {
-  fetchLatestPRD,
-  fetchLatestPlan,
-  fetchWorkflowStage,
-} from '../../lib/api';
+import { FullProjectState, HumanIdentity, ImplementationPlan, PRD, WorkflowStageInfo } from '../../types';
+import { fetchLatestPRD, fetchLatestPlan, fetchWorkflowStage } from '../../lib/api';
 import { ProductPromptModal } from './ProductPromptModal';
 import { PRDReviewModal } from './PRDReviewModal';
 import { ImplementationPlanCard } from './ImplementationPlanCard';
@@ -38,596 +18,180 @@ interface WorkspaceViewProps {
   onNavigateTab: (tab: any, param?: string) => void;
 }
 
-const LIFECYCLE_STEPS = ['Idea', 'NOVA PRD', 'Human Confirm', 'PIXEL Plan', 'Execution', 'Final Review'];
+const stageNames: Record<string, string> = {
+  discovery: 'Discovery', requirements_review: 'Requirements review',
+  implementation_planning: 'Implementation planning', prototype_development: 'Prototype development',
+  agent_review: 'Agent review', human_approval: 'Human approval', completed: 'Completed',
+};
 
-const STEP_COLORS = [
-  { active: '#818CF8', glow: 'rgba(129,140,248,0.4)' },
-  { active: '#A78BFA', glow: 'rgba(167,139,250,0.4)' },
-  { active: '#60A5FA', glow: 'rgba(96,165,250,0.4)' },
-  { active: '#22D3EE', glow: 'rgba(34,211,238,0.4)' },
-  { active: '#34D399', glow: 'rgba(52,211,153,0.4)' },
-  { active: '#FBBF24', glow: 'rgba(251,191,36,0.4)' },
-];
-
-export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
-  state,
-  identity,
-  onRefresh,
-  onNavigateTab,
-}) => {
+export const WorkspaceView: React.FC<WorkspaceViewProps> = ({ state, identity, onRefresh, onNavigateTab }) => {
   const [showPromptModal, setShowPromptModal] = useState(false);
   const [showPRDModal, setShowPRDModal] = useState(false);
   const [activePRD, setActivePRD] = useState<PRD | null>(null);
   const [activePlan, setActivePlan] = useState<ImplementationPlan | null>(null);
-  const [stageInfo, setStageInfo] = useState<WorkflowStageInfo | undefined>(undefined);
-
-  const novaRun = state.agent_runs.find((r) => r.agent_id === 'nova');
-  const pixelRun = state.agent_runs.find((r) => r.agent_id === 'pixel');
-
-  const pendingProposals = state.proposals.filter((p) => p.status === 'pending_review');
-  const staleProposals = state.proposals.filter((p) => p.status === 'stale');
-  const conflictProposals = state.proposals.filter((p) => p.status === 'conflict');
-  const highImpactProposals = pendingProposals.filter((p) => p.requires_decision);
-
-  const pendingPRDs = state.proposals.filter(
-    (p) => p.proposal_type === 'prd_requirement' && p.status === 'pending_review'
-  );
+  const [stageInfo, setStageInfo] = useState<WorkflowStageInfo | undefined>();
+  const workflowRequestId = useRef(0);
 
   const loadWorkflowData = async () => {
-    try {
-      const [prdRes, planRes, stageRes] = await Promise.all([
-        fetchLatestPRD('demo-ledgerflow').catch(() => ({ prd: null })),
-        fetchLatestPlan('demo-ledgerflow').catch(() => ({ plan: null })),
-        fetchWorkflowStage('demo-ledgerflow').catch(() => ({ stage: null })),
-      ]);
-      if (prdRes.prd) setActivePRD(prdRes.prd);
-      if (planRes.plan) setActivePlan(planRes.plan);
-      if (stageRes.stage) setStageInfo(stageRes.stage);
-    } catch {
-      // Graceful fallback
-    }
+    const requestId = ++workflowRequestId.current;
+    const [prdRes, planRes, stageRes] = await Promise.all([
+      fetchLatestPRD('demo-ledgerflow').catch(() => ({ prd: null })),
+      fetchLatestPlan('demo-ledgerflow').catch(() => ({ plan: null })),
+      fetchWorkflowStage('demo-ledgerflow').catch(() => ({ stage: null })),
+    ]);
+    if (requestId !== workflowRequestId.current) return;
+    setActivePRD(prdRes.prd ?? null);
+    setActivePlan(planRes.plan ?? null);
+    setStageInfo(stageRes.stage ?? undefined);
   };
 
   useEffect(() => {
     loadWorkflowData();
-  }, [state.project.context_version, state.proposals.length]);
+    return () => { workflowRequestId.current += 1; };
+  }, [state.project.context_version, state.project.artifact_version, state.proposals.length, state.events.length]);
 
-  const handleAnalysisComplete = (prd: PRD) => {
-    setActivePRD(prd);
-    setShowPRDModal(true);
-    loadWorkflowData();
-    onRefresh();
-  };
-
-  const attentionItems: Array<{
-    id: string;
-    type: 'prd' | 'conflict' | 'stale' | 'high_impact' | 'proposal';
-    title: string;
-    description: string;
-    actionLabel: string;
-    badge: string;
-    badgeStyle: React.CSSProperties;
-    action: () => void;
-  }> = [];
-
-  if (activePRD && activePRD.status === 'awaiting_confirmation') {
-    attentionItems.push({
-      id: activePRD.id,
-      type: 'prd',
-      title: `PRD v${activePRD.version}: ${activePRD.title}`,
-      description: 'NOVA completed product requirements. Confirmation required before PIXEL begins work.',
-      actionLabel: 'Review PRD',
-      badge: 'PRD Review',
-      badgeStyle: { background: 'rgba(96,165,250,0.12)', color: '#60A5FA', border: '1px solid rgba(96,165,250,0.25)' },
-      action: () => setShowPRDModal(true),
-    });
-  }
-
-  conflictProposals.forEach((p) => {
-    attentionItems.push({
-      id: p.proposal_id,
-      type: 'conflict',
-      title: `Conflict on '${p.target_sections[0] || 'hero'}'`,
-      description: p.conflict_reason || 'Concurrent edits detected. Compare changes side-by-side.',
-      actionLabel: 'Resolve',
-      badge: 'Conflict',
-      badgeStyle: { background: 'rgba(248,113,113,0.12)', color: '#F87171', border: '1px solid rgba(248,113,113,0.25)' },
+  const pending = state.proposals.filter((p) => p.status === 'pending_review');
+  const conflicts = state.proposals.filter((p) => p.status === 'conflict');
+  const stale = state.proposals.filter((p) => p.status === 'stale');
+  const attention = [
+    ...(activePRD?.status === 'awaiting_confirmation' ? [{
+      id: activePRD.id, label: 'Decision needed', title: activePRD.title,
+      description: `Product brief v${activePRD.version} is ready for review.`,
+      tone: 'violet', action: () => setShowPRDModal(true),
+    }] : []),
+    ...conflicts.map((p) => ({ id: p.proposal_id, label: 'Conflict', title: p.summary,
+      description: p.conflict_reason || 'A section changed since this proposal was written.',
+      tone: 'rose', action: () => onNavigateTab('proposals', p.proposal_id) })),
+    ...stale.map((p) => ({ id: p.proposal_id, label: 'Needs refresh', title: p.summary,
+      description: p.stale_reason || 'The requirements behind this proposal have changed.',
+      tone: 'amber', action: () => onNavigateTab('proposals', p.proposal_id) })),
+    ...pending.filter((p) => p.requires_decision).map((p) => ({
+      id: p.proposal_id, label: 'Approval', title: p.summary,
+      description: 'This proposal needs a decision from Alex.', tone: 'blue',
       action: () => onNavigateTab('proposals', p.proposal_id),
-    });
-  });
-
-  staleProposals.forEach((p) => {
-    attentionItems.push({
-      id: p.proposal_id,
-      type: 'stale',
-      title: `Outdated: ${p.summary}`,
-      description: p.stale_reason || 'Requirements changed after this proposal was generated.',
-      actionLabel: 'Inspect',
-      badge: 'Stale',
-      badgeStyle: { background: 'rgba(251,191,36,0.12)', color: '#FBBF24', border: '1px solid rgba(251,191,36,0.25)' },
-      action: () => onNavigateTab('proposals', p.proposal_id),
-    });
-  });
-
-  highImpactProposals.forEach((p) => {
-    attentionItems.push({
-      id: p.proposal_id,
-      type: 'high_impact',
-      title: p.summary,
-      description: 'High-impact change requiring Alex authorization.',
-      actionLabel: 'Review',
-      badge: 'Approval Required',
-      badgeStyle: { background: 'rgba(167,139,250,0.12)', color: '#A78BFA', border: '1px solid rgba(167,139,250,0.25)' },
-      action: () => onNavigateTab('proposals', p.proposal_id),
-    });
-  });
-
-  const activeStageIdx = Math.min(stageInfo?.active_index ?? 0, LIFECYCLE_STEPS.length - 1);
+    })),
+  ];
+  const displayStage = stageNames[stageInfo?.current_stage || ''] || stageInfo?.stage_label || 'In progress';
+  const recentEvents = state.events.slice(0, 4);
+  const humanName = identity === 'alex' ? 'Alex' : 'Maya';
 
   return (
-    <div className="space-y-6 studio-page max-w-6xl mx-auto pb-8">
-      {/* Page Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-1">
-        <div>
-          <div className="flex items-center gap-2 text-xs text-slate-600 mb-1.5">
-            <span>Workspace</span>
-            <span className="text-slate-700">/</span>
-            <span className="text-slate-500 font-medium">LedgerFlow</span>
-          </div>
-          <h1 className="text-[26px] font-bold studio-title tracking-[-0.025em] leading-tight">
-            Product Overview
-          </h1>
-          <p className="text-sm text-slate-500 mt-1 max-w-xl">
-            Coordinated delivery between {identity === 'alex' ? 'Alex' : 'Maya'}, NOVA, and PIXEL.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 shrink-0">
-          <button
-            type="button"
-            onClick={() => setShowPromptModal(true)}
-            className="studio-action studio-action-muted h-9 px-3.5 rounded-lg text-xs font-semibold flex items-center gap-1.5"
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.09)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)'; }}
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>New Brief</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onNavigateTab('preview')}
-            className="studio-action studio-action-outline h-9 px-3.5 rounded-lg text-xs font-semibold flex items-center gap-1.5"
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,211,238,0.18)';
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 20px rgba(34,211,238,0.2)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,211,238,0.10)';
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
-            }}
-          >
-            <Eye className="w-3.5 h-3.5" />
-            <span>Preview Canvas</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => onNavigateTab('chat')}
-            className="h-9 px-4 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all"
-            style={{
-              background: 'linear-gradient(135deg, #818CF8, #A78BFA)',
-              color: '#fff',
-              boxShadow: '0 0 20px rgba(129,140,248,0.4)',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 30px rgba(129,140,248,0.6)';
-              (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 20px rgba(129,140,248,0.4)';
-              (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
-            }}
-          >
-            <MessageSquare className="w-3.5 h-3.5" />
-            <span>Open Chat</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Lifecycle Pipeline Rail */}
-      <div
-        className="studio-pipeline rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3"
-      >
-        <div className="flex items-center gap-2">
-          <span
-            className="w-2 h-2 rounded-full"
-            style={{
-              background: STEP_COLORS[activeStageIdx]?.active ?? '#818CF8',
-              boxShadow: `0 0 8px ${STEP_COLORS[activeStageIdx]?.glow ?? 'rgba(129,140,248,0.4)'}`,
-            }}
-          />
-          <span className="text-xs font-semibold text-white">
-            {stageInfo?.stage_label || 'Product Discovery'}
-          </span>
-        </div>
-
-        <div className="studio-workflow-steps flex items-center gap-1.5 overflow-x-auto" role="list" aria-label="Product workflow progress">
-          {LIFECYCLE_STEPS.map((label, idx) => {
-            const isDone = idx < activeStageIdx;
-            const isCurrent = idx === activeStageIdx;
-            const color = STEP_COLORS[idx];
-            return (
-              <React.Fragment key={label}>
-                <span
-                  role="listitem"
-                  aria-current={isCurrent ? 'step' : undefined}
-                  className="px-2 py-0.5 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all"
-                  style={
-                    isCurrent
-                      ? {
-                          background: `${color.active}22`,
-                          color: color.active,
-                          border: `1px solid ${color.active}44`,
-                          boxShadow: `0 0 10px ${color.glow}`,
-                        }
-                      : isDone
-                      ? { background: 'rgba(52,211,153,0.10)', color: '#34D399', border: '1px solid rgba(52,211,153,0.20)' }
-                      : { color: '#475569' }
-                  }
-                >
-                  {idx + 1}. {label}
-                </span>
-                {idx < LIFECYCLE_STEPS.length - 1 && (
-                  <span className="text-slate-700 text-[10px]">→</span>
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Quick Chat */}
-      <OverviewQuickChat identity={identity} onNavigateTab={onNavigateTab} />
-
-      {/* Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3.5">
-        {[
-          {
-            label: 'Context version',
-            value: `v${state.project.context_version}`,
-            sub: 'Approved PRDs & rules',
-            icon: Radio,
-            color: '#818CF8',
-            glow: 'rgba(129,140,248,0.3)',
-            bg: 'rgba(129,140,248,0.08)',
-            border: 'rgba(129,140,248,0.18)',
-          },
-          {
-            label: 'Artifact version',
-            value: `v${state.project.artifact_version}`,
-            sub: 'Merged canvas build',
-            icon: Layers,
-            color: '#22D3EE',
-            glow: 'rgba(34,211,238,0.3)',
-            bg: 'rgba(34,211,238,0.08)',
-            border: 'rgba(34,211,238,0.18)',
-          },
-          {
-            label: 'Pending PRDs',
-            value: pendingPRDs.length,
-            sub: 'NOVA specifications',
-            icon: FileText,
-            color: '#A78BFA',
-            glow: 'rgba(167,139,250,0.3)',
-            bg: 'rgba(167,139,250,0.08)',
-            border: 'rgba(167,139,250,0.18)',
-          },
-          {
-            label: 'Team active',
-            value: state.online_members.length > 0 ? state.online_members.length : 4,
-            sub: 'Alex · Maya · NOVA · PIXEL',
-            icon: Users,
-            color: '#34D399',
-            glow: 'rgba(52,211,153,0.3)',
-            bg: 'rgba(52,211,153,0.08)',
-            border: 'rgba(52,211,153,0.18)',
-          },
-        ].map(({ label, value, sub, icon: Icon, color, glow, bg, border }) => (
-          <div
-            key={label}
-            className="rounded-xl p-4 transition-all"
-            style={{ background: bg, border: `1px solid ${border}` }}
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-slate-500">{label}</span>
-              <div
-                className="w-7 h-7 rounded-lg flex items-center justify-center"
-                style={{ background: `${color}18`, boxShadow: `0 0 10px ${glow}` }}
-              >
-                <Icon className="w-3.5 h-3.5" strokeWidth={1.75} style={{ color }} />
-              </div>
+    <div className="coframe-dashboard mx-auto max-w-[1400px] space-y-7 pb-12">
+      <section className="dashboard-hero relative isolate overflow-hidden rounded-[28px] px-6 py-8 text-white shadow-[0_24px_60px_-32px_rgba(12,17,40,.75)] sm:px-9 sm:py-10 xl:px-12">
+        <div className="dashboard-hero-grid pointer-events-none absolute inset-0 opacity-60" />
+        <div className="pointer-events-none absolute -right-16 -top-36 h-96 w-96 rounded-full bg-blue-400/15 blur-[80px]" />
+        <div className="pointer-events-none absolute -bottom-52 right-1/4 h-80 w-80 rounded-full bg-sky-400/10 blur-[80px]" />
+        <div className="relative grid gap-9 lg:grid-cols-[minmax(0,1fr)_330px] lg:items-center">
+          <div className="max-w-2xl">
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[.07] px-3 py-1.5 text-[11px] font-semibold tracking-[.13em] text-slate-200 uppercase backdrop-blur-md">
+              <span className="h-1.5 w-1.5 rounded-full bg-sky-300 shadow-[0_0_12px_#7DD3FC]" />
+              LedgerFlow workspace <span className="text-white/30">/</span> {displayStage}
             </div>
-            <div
-              className="mt-3 text-[28px] font-bold font-mono leading-none tracking-tight"
-              style={{ color }}
-            >
-              {value}
-            </div>
-            <p className="text-[11px] text-slate-600 mt-2">{sub}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* Left Column */}
-        <div className="lg:col-span-7 space-y-5">
-          {/* Attention Queue */}
-          <div
-            className="studio-pipeline rounded-xl p-5 space-y-3.5"
-          >
-            <div className="flex items-center justify-between pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-              <div className="flex items-center gap-2">
-                <ShieldAlert className="w-4 h-4" strokeWidth={1.75} style={{ color: '#FBBF24' }} />
-                <h2 className="text-sm font-bold text-white">
-                  Needs attention ({attentionItems.length})
-                </h2>
-              </div>
-              {attentionItems.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => onNavigateTab('proposals')}
-                  className="text-xs font-semibold flex items-center gap-1 cursor-pointer transition-opacity hover:opacity-70"
-                  style={{ color: '#818CF8' }}
-                >
-                  <span>View all</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              )}
-            </div>
-
-            {attentionItems.length === 0 ? (
-              <div
-                className="text-center py-8 px-4 rounded-xl"
-                style={{ background: 'rgba(52,211,153,0.04)', border: '1px dashed rgba(52,211,153,0.15)' }}
-              >
-                <CheckCircle2 className="w-6 h-6 mx-auto mb-2" strokeWidth={1.75} style={{ color: '#34D399' }} />
-                <p className="text-xs font-bold text-white">Everything is up to date</p>
-                <p className="text-xs text-slate-500 mt-1">
-                  All specifications, engineering plans, and section edits are settled.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {attentionItems.map((item, idx) => (
-                  <button
-                    type="button"
-                    key={item.id || ('attn_' + idx)}
-                    onClick={item.action}
-                    className="studio-attention-item w-full text-left p-3.5 rounded-xl cursor-pointer transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
-                  >
-                    <div className="space-y-1 flex-1 min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded-md" style={item.badgeStyle}>
-                          {item.badge}
-                        </span>
-                        <h4 className="font-semibold text-xs text-white truncate">{item.title}</h4>
-                      </div>
-                      <p className="text-xs text-slate-500 line-clamp-1">{item.description}</p>
-                    </div>
-
-                    <div
-                      className="flex items-center gap-1 shrink-0 text-xs font-semibold group-hover:translate-x-0.5 transition-transform"
-                      style={{ color: '#818CF8' }}
-                    >
-                      <span>{item.actionLabel}</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Active Plan */}
-          {activePlan && (
-            <ImplementationPlanCard
-              plan={activePlan}
-              onViewProposal={(pid) => onNavigateTab('proposals', pid)}
-            />
-          )}
-
-          {/* Recent Activity */}
-          <div
-            className="studio-pipeline rounded-xl p-5 space-y-3.5"
-          >
-            <div className="flex items-center justify-between pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-slate-500" strokeWidth={1.75} />
-                <h3 className="text-sm font-bold text-white">Recent activity</h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => onNavigateTab('activity')}
-                className="text-xs font-semibold flex items-center gap-1 cursor-pointer hover:opacity-70 transition-opacity"
-                style={{ color: '#818CF8' }}
-              >
-                <span>Audit log</span>
-                <ArrowRight className="w-3 h-3" />
+            <p className="mb-2 text-sm font-medium text-slate-300">Welcome back, {humanName}</p>
+            <h1 className="max-w-[650px] text-[clamp(2.2rem,4.2vw,4rem)] font-semibold leading-[1.08] tracking-[-.05em]">
+              Make progress.<br /><span className="text-[#93C5FD]">Keep the context.</span>
+            </h1>
+            <p className="mt-5 max-w-xl text-sm leading-6 text-slate-300 sm:text-base">
+              Ideas, agent work, and human decisions in one place. Pick up where the team left off.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <button type="button" onClick={() => setShowPromptModal(true)} disabled={identity !== 'alex'}
+                title={identity !== 'alex' ? 'Alex starts product briefs in this demo' : 'Create a product brief'}
+                className="inline-flex items-center gap-2 rounded-xl bg-[#3B82F6] px-5 py-3 text-sm font-bold text-white shadow-[0_8px_26px_-10px_#3B82F6] transition hover:-translate-y-0.5 hover:bg-[#2563EB] disabled:cursor-not-allowed disabled:opacity-50">
+                <Plus className="h-4 w-4" /> New product brief
+              </button>
+              <button type="button" onClick={() => onNavigateTab('chat')}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/20">
+                Open team chat <ArrowUpRight className="h-4 w-4" />
               </button>
             </div>
-
-            <div className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.04)' }}>
-              {state.events.slice(0, 5).map((ev, idx) => {
-                const actorColor =
-                  ev.actor_type === 'human' ? '#60A5FA'
-                  : ev.actor_id === 'nova' ? '#A78BFA'
-                  : '#22D3EE';
-                return (
-                  <div
-                    key={ev.id || ev.event_id || ('ev_' + idx)}
-                    className="py-2.5 flex items-center justify-between text-xs first:pt-0 last:pb-0"
-                  >
-                    <div className="flex items-center gap-2.5 min-w-0">
-                      <span
-                        className="w-1.5 h-1.5 rounded-full shrink-0"
-                        style={{ background: actorColor, boxShadow: `0 0 6px ${actorColor}99` }}
-                      />
-                      <div className="min-w-0 truncate">
-                        <span className="font-bold mr-2" style={{ color: actorColor }}>
-                          {ev.actor_id.toUpperCase()}
-                        </span>
-                        <span className="text-slate-500">
-                          {ev.event_type.replace(/_/g, ' ')}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0 text-[11px] text-slate-600 font-mono">
-                      <span>#{ev.sequence_no}</span>
-                      <span>·</span>
-                      <span>
-                        {new Date(
-                          ev.created_at || (ev.timestamp ? ev.timestamp * 1000 : Date.now())
-                        ).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                      </span>
-                    </div>
-                  </div>
-                );
+          </div>
+          <div className="hidden lg:block">
+            <div className="relative rounded-[22px] border border-white/15 bg-white/[.075] p-5 shadow-2xl backdrop-blur-xl">
+              <div className="mb-5 flex items-center justify-between text-[10px] font-semibold uppercase tracking-[.18em] text-slate-300">
+                <span>Collaboration flow</span><Sparkles className="h-4 w-4 text-sky-300" />
+              </div>
+              {[
+                { n: '01', name: 'A clear idea', detail: 'Human direction', icon: WandSparkles, color: 'text-sky-300' },
+                { n: '02', name: 'NOVA shapes it', detail: 'Requirements & context', icon: Bot, color: 'text-blue-300' },
+                { n: '03', name: 'PIXEL proposes', detail: 'Reviewable artifact change', icon: Code2, color: 'text-slate-200' },
+              ].map((step, index) => {
+                const Icon = step.icon;
+                return <div key={step.n} className={`flex items-center gap-3 rounded-xl p-3 ${index === 1 ? 'border border-white/10 bg-white/10' : ''}`}>
+                  <span className="text-[11px] font-mono text-white/40">{step.n}</span>
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10"><Icon className={`h-4 w-4 ${step.color}`} /></div>
+                  <div className="min-w-0 flex-1"><p className="text-sm font-semibold text-white">{step.name}</p><p className="text-[11px] text-slate-300">{step.detail}</p></div>
+                  {index < 2 && <ChevronRight className="h-4 w-4 text-white/30" />}
+                </div>;
               })}
+              <div className="mt-4 flex items-center gap-2 border-t border-white/10 pt-4 text-xs text-slate-300">
+                <ShieldCheck className="h-4 w-4 text-sky-300" /> Human review before changes apply
+              </div>
             </div>
           </div>
         </div>
+      </section>
 
-        {/* Right Column: AI Agents */}
-        <div className="lg:col-span-5 space-y-4">
-          {/* NOVA Card */}
-          <div
-            onClick={() => onNavigateTab('agents')}
-            className="rounded-xl p-5 cursor-pointer group transition-all"
-            style={{ background: 'rgba(167,139,250,0.06)', border: '1px solid rgba(167,139,250,0.15)' }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLDivElement).style.background = 'rgba(167,139,250,0.10)';
-              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(167,139,250,0.28)';
-              (e.currentTarget as HTMLDivElement).style.boxShadow = '0 0 30px rgba(167,139,250,0.12)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLDivElement).style.background = 'rgba(167,139,250,0.06)';
-              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(167,139,250,0.15)';
-              (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
-            }}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: 'rgba(167,139,250,0.15)', border: '1px solid rgba(167,139,250,0.30)', boxShadow: '0 0 16px rgba(167,139,250,0.3)' }}
-                >
-                  <Cpu className="w-4.5 h-4.5" strokeWidth={1.75} style={{ color: '#A78BFA' }} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm text-white">NOVA</h4>
-                  <p className="text-xs" style={{ color: '#A78BFA' }}>Product Strategist</p>
-                </div>
-              </div>
-              <span
-                className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                style={{ background: 'rgba(167,139,250,0.12)', color: '#A78BFA', border: '1px solid rgba(167,139,250,0.25)' }}
-              >
-                {stageInfo?.nova_status?.includes('Analyzing') ? 'Analyzing' : 'Ready'}
-              </span>
-            </div>
+      <section aria-label="Project snapshot" className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        {[
+          { label: 'Context version', value: `v${state.project.context_version}`, sub: 'Shared requirements', icon: Radio, color: 'text-blue-700', wash: 'bg-blue-50' },
+          { label: 'Artifact version', value: `v${state.project.artifact_version}`, sub: 'Product canvas', icon: Layers3, color: 'text-sky-700', wash: 'bg-sky-50' },
+          { label: 'In review', value: String(pending.length), sub: 'Open proposals', icon: GitPullRequest, color: 'text-slate-700', wash: 'bg-slate-100' },
+          { label: 'Needs attention', value: String(attention.length), sub: 'Decisions & conflicts', icon: CircleAlert, color: 'text-amber-700', wash: 'bg-amber-50' },
+        ].map((metric) => {
+          const Icon = metric.icon;
+          return <div key={metric.label} className="dashboard-card flex min-h-[132px] flex-col justify-between rounded-2xl p-4 sm:p-5">
+            <div className="flex items-start justify-between gap-2"><span className="text-xs font-semibold text-slate-500 sm:text-sm">{metric.label}</span><span className={`rounded-xl p-2 ${metric.wash}`}><Icon className={`h-4 w-4 ${metric.color}`} /></span></div>
+            <div><p className="text-[30px] font-semibold leading-none tracking-[-.04em] text-[#14213A]">{metric.value}</p><p className="mt-1.5 text-xs text-slate-400">{metric.sub}</p></div>
+          </div>;
+        })}
+      </section>
 
-            <p className="text-xs text-slate-400 mt-4 leading-relaxed">
-              {novaRun?.task_description || 'Synthesizing product requirements, structured PRDs, and compliance checks.'}
-            </p>
-
-            <div className="mt-4 pt-3 flex items-center justify-between text-[11px] font-mono" style={{ borderTop: '1px solid rgba(167,139,250,0.10)' }}>
-              <span className="text-slate-600">Gemini 2.5</span>
-              <span style={{ color: '#A78BFA' }}>ctx v{novaRun?.base_context_version || 1}</span>
-            </div>
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1.55fr)_minmax(300px,1fr)]">
+        <section className="dashboard-card overflow-hidden rounded-[22px]">
+          <div className="flex items-center justify-between border-b border-slate-100 px-5 py-5 sm:px-7">
+            <div><p className="mb-1 text-[11px] font-bold uppercase tracking-[.16em] text-indigo-600">Your queue</p><h2 className="text-xl font-semibold tracking-tight text-[#14213A]">What needs a decision</h2></div>
+            <button type="button" onClick={() => onNavigateTab('proposals')} className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800">All proposals <ArrowUpRight className="h-3.5 w-3.5" /></button>
           </div>
-
-          {/* PIXEL Card */}
-          <div
-            onClick={() => onNavigateTab('agents')}
-            className="rounded-xl p-5 cursor-pointer group transition-all"
-            style={{ background: 'rgba(34,211,238,0.05)', border: '1px solid rgba(34,211,238,0.14)' }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLDivElement).style.background = 'rgba(34,211,238,0.09)';
-              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(34,211,238,0.26)';
-              (e.currentTarget as HTMLDivElement).style.boxShadow = '0 0 30px rgba(34,211,238,0.10)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLDivElement).style.background = 'rgba(34,211,238,0.05)';
-              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(34,211,238,0.14)';
-              (e.currentTarget as HTMLDivElement).style.boxShadow = 'none';
-            }}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ background: 'rgba(34,211,238,0.14)', border: '1px solid rgba(34,211,238,0.28)', boxShadow: '0 0 16px rgba(34,211,238,0.25)' }}
-                >
-                  <Code2 className="w-4.5 h-4.5" strokeWidth={1.75} style={{ color: '#22D3EE' }} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm text-white">PIXEL</h4>
-                  <p className="text-xs" style={{ color: '#22D3EE' }}>Software Engineer</p>
-                </div>
-              </div>
-              <span
-                className="text-[11px] font-semibold px-2 py-0.5 rounded-full studio-action-outline"
-              >
-                {stageInfo?.pixel_status?.includes('Waiting') ? 'Awaiting PRD' : 'Standby'}
-              </span>
-            </div>
-
-            <p className="text-xs text-slate-400 mt-4 leading-relaxed">
-              {pixelRun?.task_description || 'Formulating implementation plans and building verified LedgerFlow UI updates.'}
-            </p>
-
-            <div className="mt-4 pt-3 flex items-center justify-between text-[11px] font-mono" style={{ borderTop: '1px solid rgba(34,211,238,0.08)' }}>
-              <span className="text-slate-600">Gemini 2.5</span>
-              <span style={{ color: '#22D3EE' }}>art v{pixelRun?.base_artifact_version || 1}</span>
-            </div>
+          <div className="space-y-2 p-4 sm:p-5">
+            {attention.length ? attention.slice(0, 4).map((item) => (
+              <button key={item.id} type="button" onClick={item.action} className="group flex w-full items-center gap-4 rounded-2xl border border-slate-100 bg-[#F8F9FC] p-4 text-left transition hover:-translate-y-0.5 hover:border-indigo-200 hover:bg-indigo-50/40 hover:shadow-md">
+                <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${item.tone === 'rose' ? 'bg-rose-100 text-rose-700' : item.tone === 'amber' ? 'bg-amber-100 text-amber-700' : item.tone === 'blue' ? 'bg-blue-100 text-blue-700' : 'bg-violet-100 text-violet-700'}`}><FileText className="h-5 w-5" /></span>
+                <span className="min-w-0 flex-1"><span className="block text-[10px] font-bold uppercase tracking-[.12em] text-indigo-600">{item.label}</span><span className="mt-0.5 block truncate text-sm font-semibold text-[#14213A]">{item.title}</span><span className="mt-0.5 block truncate text-xs text-slate-500">{item.description}</span></span>
+                <ArrowRight className="h-4 w-4 shrink-0 text-slate-400 transition group-hover:translate-x-1 group-hover:text-indigo-600" />
+              </button>
+            )) : <div className="flex min-h-[220px] flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-[#F9FAFC] px-6 text-center"><span className="mb-3 rounded-2xl bg-emerald-50 p-3 text-emerald-600"><Check className="h-6 w-6" /></span><p className="font-semibold text-[#14213A]">You’re all caught up</p><p className="mt-1 max-w-xs text-sm text-slate-500">New proposals and decisions will show up here.</p></div>}
           </div>
-        </div>
+        </section>
+
+        <section className="dashboard-card flex flex-col rounded-[22px] p-5 sm:p-6">
+          <div className="mb-5 flex items-center justify-between"><div><p className="mb-1 text-[11px] font-bold uppercase tracking-[.16em] text-sky-700">Team at work</p><h2 className="text-xl font-semibold tracking-tight text-[#14213A]">Your AI partners</h2></div><span className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 text-slate-500"><Users className="h-4 w-4" /></span></div>
+          <div className="space-y-3">
+            {[
+              { name: 'NOVA', role: 'Product strategy', icon: Bot, tone: 'bg-blue-100 text-blue-700', description: 'Turns direction into a reviewable product brief.' },
+              { name: 'PIXEL', role: 'Prototype engineering', icon: Code2, tone: 'bg-sky-100 text-sky-700', description: 'Suggests changes to the product artifact.' },
+            ].map((agent) => {
+              const Icon = agent.icon;
+              return <button type="button" key={agent.name} onClick={() => onNavigateTab('agents')} className="group flex w-full items-start gap-3 rounded-2xl border border-slate-100 bg-[#F9FAFC] p-4 text-left transition hover:border-slate-300 hover:bg-white hover:shadow-sm"><span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${agent.tone}`}><Icon className="h-5 w-5" /></span><span className="min-w-0 flex-1"><span className="flex items-center justify-between"><strong className="text-sm text-[#14213A]">{agent.name}</strong><ArrowUpRight className="h-4 w-4 text-slate-400 transition group-hover:text-indigo-600" /></span><span className="text-[11px] font-medium text-slate-500">{agent.role}</span><span className="mt-2 block text-xs leading-5 text-slate-500">{agent.description}</span></span></button>;
+            })}
+          </div>
+          <button type="button" onClick={() => onNavigateTab('preview')} className="mt-auto flex items-center justify-between border-t border-slate-100 pt-5 text-sm font-semibold text-[#14213A] hover:text-indigo-600"><span>Explore the product canvas</span><ArrowUpRight className="h-4 w-4" /></button>
+        </section>
       </div>
 
-      {/* Modals */}
-      {showPromptModal && (
-        <ProductPromptModal
-          isOpen={showPromptModal}
-          identity={identity}
-          onClose={() => setShowPromptModal(false)}
-          onAnalysisComplete={handleAnalysisComplete}
-        />
-      )}
+      <OverviewQuickChat identity={identity} onNavigateTab={onNavigateTab} />
 
-      {showPRDModal && activePRD && (
-        <PRDReviewModal
-          isOpen={showPRDModal}
-          prd={activePRD}
-          identity={identity}
-          onClose={() => setShowPRDModal(false)}
-          onConfirmSuccess={() => {
-            setShowPRDModal(false);
-            loadWorkflowData();
-            onRefresh();
-          }}
-          onRefresh={() => {
-            loadWorkflowData();
-            onRefresh();
-          }}
-        />
-      )}
+      {activePlan && <ImplementationPlanCard plan={activePlan} onViewProposal={(id) => onNavigateTab('proposals', id)} />}
+
+      <section className="dashboard-card overflow-hidden rounded-[22px]">
+        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-5 sm:px-7"><div><p className="mb-1 text-[11px] font-bold uppercase tracking-[.16em] text-slate-500">The record</p><h2 className="text-xl font-semibold tracking-tight text-[#14213A]">Recent activity</h2></div><button type="button" onClick={() => onNavigateTab('activity')} className="inline-flex items-center gap-1 text-xs font-bold text-indigo-600 hover:text-indigo-800">Full history <ArrowUpRight className="h-3.5 w-3.5" /></button></div>
+        <div className="divide-y divide-slate-100 px-5 sm:px-7">
+          {recentEvents.length ? recentEvents.map((event) => <div key={event.id} className="flex items-center gap-4 py-4"><span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-500"><Activity className="h-4 w-4" /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-medium text-[#14213A]">{event.event_type.replace(/[._]/g, ' ')}</p><p className="text-xs text-slate-500">{event.actor_id} · event #{event.sequence_no}</p></div><time className="hidden text-xs text-slate-400 sm:block">{new Date(event.created_at).toLocaleDateString()}</time></div>) : <div className="py-10 text-center text-sm text-slate-500"><Clock3 className="mx-auto mb-2 h-5 w-5" />Activity will appear here once the team starts working.</div>}
+        </div>
+      </section>
+
+      {showPromptModal && <ProductPromptModal isOpen={showPromptModal} identity={identity} onClose={() => setShowPromptModal(false)} onAnalysisComplete={(prd: PRD) => { setActivePRD(prd); setShowPRDModal(true); loadWorkflowData(); onRefresh(); }} />}
+      {showPRDModal && activePRD && <PRDReviewModal isOpen={showPRDModal} prd={activePRD} identity={identity} onClose={() => setShowPRDModal(false)} onConfirmSuccess={() => { setShowPRDModal(false); loadWorkflowData(); onRefresh(); }} onRefresh={() => { loadWorkflowData(); onRefresh(); }} />}
     </div>
   );
 };
-
-
-

@@ -4,13 +4,17 @@ import {
   CheckCircle2,
   Clock,
   ArrowRight,
+  ChevronDown,
+  ChevronUp,
   Shield,
   Layers,
   Check,
   X,
+  CornerDownRight,
   GitCompare,
   AlertTriangle,
   Lock,
+  Terminal,
 } from 'lucide-react';
 import { Proposal, HumanIdentity } from '../../types';
 
@@ -61,245 +65,219 @@ export const PixelImplementationCard: React.FC<PixelImplementationCardProps> = (
 
   return (
     <div
-      className="p-5 rounded-2xl border transition-all duration-200"
-      style={{
-        background: isConflict
-          ? 'rgba(244, 63, 94, 0.06)'
+      className={`rounded-xl border transition-all p-4.5 shadow-2xs ${
+        isConflict
+          ? 'bg-white border-rose-300 ring-1 ring-rose-500/20'
           : isStale
-          ? 'rgba(251, 191, 36, 0.05)'
+          ? 'bg-white border-amber-300 ring-1 ring-amber-500/20'
           : isApproved
-          ? 'rgba(34, 211, 238, 0.05)'
+          ? 'bg-white border-emerald-200/80 ring-1 ring-emerald-500/10'
           : isRejected
-          ? 'rgba(255, 255, 255, 0.01)'
-          : 'rgba(255, 255, 255, 0.03)',
-        borderColor: isConflict
-          ? 'rgba(244, 63, 94, 0.4)'
-          : isStale
-          ? 'rgba(251, 191, 36, 0.3)'
-          : isApproved
-          ? 'rgba(34, 211, 238, 0.3)'
-          : isRejected
-          ? 'rgba(255, 255, 255, 0.04)'
-          : 'rgba(255, 255, 255, 0.08)',
-        boxShadow: isConflict
-          ? '0 0 20px rgba(244, 63, 94, 0.15)'
-          : isApproved
-          ? '0 0 20px rgba(34, 211, 238, 0.1)'
-          : 'none',
-      }}
+          ? 'bg-slate-50 border-slate-200 opacity-75'
+          : 'bg-white border-slate-200/80 hover:border-slate-300'
+      }`}
     >
       {/* 1. Header: PIXEL Identity, Implementation Tag, Review Outcome */}
-      <div className="flex flex-wrap items-center justify-between gap-2.5 mb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2.5 mb-2.5">
         <div className="flex items-center gap-2.5">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
-            style={{
-              background: 'rgba(34, 211, 238, 0.15)',
-              border: '1px solid rgba(34, 211, 238, 0.3)',
-              color: '#22D3EE',
-              boxShadow: '0 0 12px rgba(34, 211, 238, 0.25)',
-            }}
-          >
-            <Code2 className="w-4.5 h-4.5" strokeWidth={1.75} />
+          <div className="w-7 h-7 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center font-bold text-xs border border-teal-200 shrink-0">
+            <Code2 className="w-4 h-4 text-teal-600" />
           </div>
 
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-bold text-xs text-white">PIXEL</span>
-              <span className="text-slate-600">·</span>
-              <span className="text-xs text-slate-400">Software Engineer</span>
-              <span
-                className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded"
-                style={{
-                  background: 'rgba(34, 211, 238, 0.15)',
-                  color: '#22D3EE',
-                  border: '1px solid rgba(34, 211, 238, 0.3)',
-                }}
-              >
-                CODE
+              <span className="font-bold text-xs text-slate-900">PIXEL</span>
+              <span className="text-[11px] text-slate-400">•</span>
+              <span className="text-[11px] text-slate-500 font-medium">Software Engineer</span>
+              <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-teal-50 text-teal-700 border border-teal-200/60 uppercase font-mono">
+                Code
               </span>
+              {proposal.supersedes_proposal_id && onOpenParentPrd && (
+                <button
+                  type="button"
+                  onClick={() => onOpenParentPrd(proposal.supersedes_proposal_id!)}
+                  className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 font-mono transition cursor-pointer"
+                  title="Click to view originating NOVA PRD"
+                >
+                  PRD #{proposal.supersedes_proposal_id.slice(-6)}
+                </button>
+              )}
             </div>
-            <p className="text-[11px] text-slate-500 font-mono">
-              Build #{proposal.task_id || proposal.proposal_id.slice(-6)} · {timeStr}
+            <p className="text-[10px] text-slate-400 font-mono">
+              Task #{proposal.task_id || proposal.run_id || 'ENG'} · {timeStr}
             </p>
           </div>
         </div>
 
-        {/* Status Badge */}
-        <div className="flex items-center gap-2">
-          {isConflict && (
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-              style={{
-                background: 'rgba(244, 63, 94, 0.15)',
-                color: '#FB7185',
-                border: '1px solid rgba(244, 63, 94, 0.3)',
-              }}
-            >
-              <AlertTriangle className="w-3.5 h-3.5" />
-              <span>Conflict Detected</span>
+        {/* Status badges */}
+        <div className="flex items-center gap-1.5">
+          {novaReview === 'PASS' && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+              <Check className="w-3 h-3 text-emerald-600" />
+              <span>NOVA PASS</span>
             </span>
           )}
 
-          {isApproved && (
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-              style={{
-                background: 'rgba(52, 211, 153, 0.15)',
-                color: '#34D399',
-                border: '1px solid rgba(52, 211, 153, 0.3)',
-              }}
-            >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Merged to Canvas</span>
+          {isApproved ? (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+              MERGED & APPLIED
+            </span>
+          ) : isConflict ? (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200 flex items-center gap-1">
+              <AlertTriangle className="w-3 h-3 text-rose-600" />
+              <span>CONFLICT</span>
+            </span>
+          ) : isStale ? (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200">
+              STALE
+            </span>
+          ) : (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200/70 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
+              <span>READY FOR REVIEW</span>
             </span>
           )}
 
-          {isPending && !isConflict && (
-            <span
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold"
-              style={{
-                background: 'rgba(34, 211, 238, 0.15)',
-                color: '#22D3EE',
-                border: '1px solid rgba(34, 211, 238, 0.3)',
-              }}
-            >
-              <Clock className="w-3.5 h-3.5" />
-              <span>Ready for Review</span>
+          {proposal.requires_decision && (
+            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 flex items-center gap-1">
+              <Lock className="w-3 h-3 text-blue-600" />
+              <span>Alex Sign-off</span>
             </span>
           )}
         </div>
       </div>
 
-      {/* 2. Implementation Title & Description */}
-      <div className="space-y-1.5">
-        <h3 className="text-sm font-bold text-white tracking-tight">
-          {title}
+      {/* 2. Implementation Title */}
+      <div className="mb-2">
+        <h3 className="font-semibold text-sm text-slate-900 leading-snug flex items-center gap-2">
+          <Layers className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+          <span>{title}</span>
         </h3>
-        <p className="text-xs text-slate-300 leading-relaxed line-clamp-2">
+      </div>
+
+      {/* 3. Summary */}
+      <div className="mb-3 p-2.5 rounded-lg bg-slate-50/70 border border-slate-200/60">
+        <p className="text-[10px] font-bold uppercase tracking-wider text-teal-900 mb-0.5">
+          Engineering Summary
+        </p>
+        <p className="text-xs text-slate-600 leading-relaxed line-clamp-2">
           {implSummary}
         </p>
       </div>
 
-      {/* 3. Sections & Quality Badges */}
-      <div className="mt-3 flex flex-wrap items-center gap-1.5">
-        <span className="text-[10px] uppercase font-mono text-slate-500 mr-1">Target:</span>
-        {sections.map((sec) => (
-          <span
-            key={sec}
-            className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded border"
-            style={{
-              background: 'rgba(34, 211, 238, 0.08)',
-              borderColor: 'rgba(34, 211, 238, 0.2)',
-              color: '#67E8F9',
-            }}
-          >
-            {sec}
-          </span>
-        ))}
-
-        <div className="ml-auto flex items-center gap-2">
-          <span
-            className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded border"
-            style={{
-              background: 'rgba(52, 211, 153, 0.1)',
-              borderColor: 'rgba(52, 211, 153, 0.25)',
-              color: '#34D399',
-            }}
-          >
-            Tests 89/89 pass
-          </span>
-          <span
-            className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded border"
-            style={{
-              background: 'rgba(167, 139, 250, 0.1)',
-              borderColor: 'rgba(167, 139, 250, 0.25)',
-              color: '#A78BFA',
-            }}
-          >
-            NOVA Verified
-          </span>
+      {/* 4. Target sections & tests */}
+      <div className="flex flex-wrap items-center gap-2 mb-3 text-xs text-slate-500 pb-2.5 border-b border-slate-100">
+        <div className="flex items-center gap-1.5 text-[11px]">
+          <span className="text-slate-400">Sections:</span>
+          {sections.map((sec) => (
+            <span key={sec} className="px-1.5 py-0.2 rounded bg-slate-100 font-mono text-[10px] text-slate-700">
+              {sec}
+            </span>
+          ))}
+        </div>
+        <span className="text-slate-300">•</span>
+        <div className="flex items-center gap-1 text-[11px] text-emerald-700">
+          <CheckCircle2 className="w-3 h-3" />
+          <span>{testResults.passed || 89} tests clean</span>
         </div>
       </div>
 
-      {/* 4. Action Buttons */}
-      <div
-        className="mt-4 pt-3 border-t flex flex-wrap items-center justify-between gap-2.5"
-        style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}
-      >
+      {/* 5. Raw JSON toggle */}
+      <div className="mb-3">
         <button
           type="button"
-          onClick={() => onOpenImplementation(proposal)}
-          className="h-8 px-3.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border"
-          style={{
-            background: 'rgba(255, 255, 255, 0.04)',
-            borderColor: 'rgba(255, 255, 255, 0.08)',
-            color: '#F1F5F9',
-          }}
+          onClick={() => setShowTechnicalDetails(!showTechnicalDetails)}
+          className="flex items-center justify-between w-full text-[11px] font-medium text-slate-400 hover:text-slate-700 py-0.5 transition cursor-pointer"
         >
-          <Code2 className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Inspect code diff</span>
+          <span>{showTechnicalDetails ? 'Hide technical operations' : 'Inspect JSON operations & diff'}</span>
+          {showTechnicalDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </button>
 
-        {isConflict && onCompareConflict && (
-          <button
-            type="button"
-            onClick={() => onCompareConflict(proposal)}
-            className="h-8 px-3.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer border"
-            style={{
-              background: 'rgba(244, 63, 94, 0.15)',
-              borderColor: 'rgba(244, 63, 94, 0.3)',
-              color: '#FB7185',
-            }}
-          >
-            <GitCompare className="w-3.5 h-3.5" />
-            <span>Compare conflict</span>
-          </button>
-        )}
-
-        {isPending && !isConflict && (
-          <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => onRedirect(proposal)}
-              className="h-8 px-3 rounded-xl text-xs font-semibold transition cursor-pointer text-slate-400 hover:text-white"
-            >
-              Redirect
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onReject(proposal.proposal_id)}
-              className="h-8 px-3 rounded-xl text-xs font-semibold transition cursor-pointer text-slate-400 hover:text-rose-400"
-            >
-              Reject
-            </button>
-
-            <button
-              type="button"
-              onClick={() => onApprove(proposal.proposal_id)}
-              disabled={isRestrictedByAlex}
-              className="h-8 px-4 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer disabled:opacity-40"
-              style={{
-                background: 'linear-gradient(135deg, #06B6D4, #22D3EE)',
-                color: '#042F2E',
-                boxShadow: '0 0 15px rgba(34, 211, 238, 0.4)',
-              }}
-            >
-              {isRestrictedByAlex ? (
-                <>
-                  <Lock className="w-3.5 h-3.5" />
-                  <span>Requires Alex</span>
-                </>
-              ) : (
-                <>
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Approve & Merge</span>
-                </>
-              )}
-            </button>
+        {showTechnicalDetails && (
+          <div className="mt-2 space-y-1.5 bg-slate-900 text-slate-200 p-2.5 rounded-lg overflow-x-auto max-h-40 font-mono text-[10px]">
+            <pre>{JSON.stringify(proposal.changes || proposal, null, 2)}</pre>
           </div>
         )}
+      </div>
+
+      {/* 6. Review Actions Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+        <div>
+          {isConflict && onCompareConflict && (
+            <button
+              type="button"
+              onClick={() => onCompareConflict(proposal)}
+              className="px-2.5 py-1.5 rounded-md bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+            >
+              <GitCompare className="w-3 h-3 text-rose-600" />
+              <span>Compare Conflict</span>
+            </button>
+          )}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          {onChooseExecutionEnvironment && (
+            <button
+              type="button"
+              onClick={() => onChooseExecutionEnvironment(proposal)}
+              className="px-2.5 py-1.5 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+              title="Choose execution environment"
+            >
+              <Terminal className="w-3 h-3 text-slate-500" />
+              <span>Execution Env</span>
+            </button>
+          )}
+
+          <button
+            type="button"
+            onClick={() => onOpenImplementation(proposal)}
+            className="px-3 py-1.5 rounded-md bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 text-xs font-medium flex items-center gap-1.5 transition cursor-pointer"
+          >
+            <Code2 className="w-3 h-3 text-teal-600" />
+            <span>Diff & Code</span>
+            <ArrowRight className="w-3 h-3 text-slate-400" />
+          </button>
+
+          {isPending && (
+            <>
+              <button
+                type="button"
+                onClick={() => onRedirect(proposal)}
+                className="px-2.5 py-1.5 rounded-md hover:bg-slate-100 text-slate-600 text-xs font-medium flex items-center gap-1 transition cursor-pointer"
+                title="Send redirect instructions to PIXEL"
+              >
+                <CornerDownRight className="w-3 h-3" />
+                <span>Redirect</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => onReject(proposal.proposal_id || proposal.id || '')}
+                className="px-2.5 py-1.5 rounded-md hover:bg-rose-50 text-slate-500 hover:text-rose-600 text-xs font-medium flex items-center gap-1 transition cursor-pointer"
+              >
+                <X className="w-3 h-3" />
+                <span>Reject</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isRestrictedByAlex || isConflict}
+                onClick={() => onApprove(proposal.proposal_id || proposal.id || '')}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5 ${
+                  isRestrictedByAlex
+                    ? 'bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed'
+                    : isConflict
+                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                    : 'bg-slate-900 hover:bg-slate-800 text-white cursor-pointer shadow-2xs'
+                }`}
+                title={isConflict ? 'Conflict must be resolved before approval' : isRestrictedByAlex ? 'Requires Alex sign-off' : 'Approve and apply changes'}
+              >
+                <Check className="w-3 h-3" />
+                <span>Approve & Apply</span>
+              </button>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

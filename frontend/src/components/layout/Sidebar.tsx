@@ -2,14 +2,15 @@ import React, { useState } from 'react';
 import {
   MessageSquare,
   LayoutDashboard,
-  Layers,
+  Palette,
   GitPullRequest,
-  Cpu,
+  Bot,
   History,
   Radio,
   ChevronLeft,
   ChevronRight,
-  Zap,
+  Sparkles,
+  ArrowUpRight,
 } from 'lucide-react';
 import { HumanIdentity } from '../../types';
 
@@ -34,17 +35,7 @@ interface SidebarProps {
   conflictedProposalsCount: number;
   pendingApprovalsCount?: number;
   identity: HumanIdentity;
-}
-
-interface NavItem {
-  id: NavigationTab;
-  label: string;
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number; style?: React.CSSProperties }>;
-  shortcut: string;
-  badge?: number;
-  badgeConflict?: boolean;
-  accentColor?: string;
-  glowColor?: string;
+  isMobileOpen?: boolean;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -52,259 +43,228 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectTab,
   pendingProposalsCount,
   conflictedProposalsCount,
+  isMobileOpen = false,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const totalDecisionCount = pendingProposalsCount + conflictedProposalsCount;
 
-  const workspaceItems: NavItem[] = [
-    { id: 'chat', label: 'Chat', icon: MessageSquare, shortcut: '⌘1', accentColor: '#818CF8', glowColor: 'rgba(129,140,248,0.3)' },
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard, shortcut: '⌘2', accentColor: '#60A5FA', glowColor: 'rgba(96,165,250,0.3)' },
-    { id: 'preview', label: 'Product Preview', icon: Layers, shortcut: '⌘3', accentColor: '#22D3EE', glowColor: 'rgba(34,211,238,0.3)' },
+  const mainNavItems = [
+    {
+      id: 'chat',
+      label: 'Chat',
+      description: 'Workspace conversation',
+      icon: MessageSquare,
+      shortcut: 'Ctrl+Shift+1',
+    },
+    {
+      id: 'overview',
+      label: 'Overview',
+      description: 'Product command centre',
+      icon: LayoutDashboard,
+      shortcut: 'Ctrl+Shift+2',
+    },
+    {
+      id: 'preview',
+      label: 'Product Preview',
+      description: 'LedgerFlow live canvas',
+      icon: Palette,
+      shortcut: 'Ctrl+Shift+3',
+    },
     {
       id: 'proposals',
       label: 'Proposals',
+      description: 'Requirements & code reviews',
       icon: GitPullRequest,
       badge: totalDecisionCount,
       badgeConflict: conflictedProposalsCount > 0,
-      shortcut: '⌘4',
-      accentColor: '#A78BFA',
-      glowColor: 'rgba(167,139,250,0.3)',
+      shortcut: 'Ctrl+Shift+4',
+    },
+    {
+      id: 'agents',
+      label: 'AI Team',
+      description: 'NOVA & PIXEL management',
+      icon: Bot,
+      shortcut: 'Ctrl+Shift+5',
+    },
+    {
+      id: 'activity',
+      label: 'Activity & History',
+      description: 'Event audit trail',
+      icon: History,
+      shortcut: 'Ctrl+Shift+6',
+    },
+    {
+      id: 'context',
+      label: 'Context Inspector',
+      description: 'Immutable context pack',
+      icon: Radio,
+      shortcut: 'Ctrl+Shift+7',
     },
   ];
 
-  const systemItems: NavItem[] = [
-    { id: 'agents', label: 'AI Team', icon: Cpu, shortcut: '⌘5', accentColor: '#F472B6', glowColor: 'rgba(244,114,182,0.3)' },
-    { id: 'activity', label: 'Activity & History', icon: History, shortcut: '⌘6', accentColor: '#34D399', glowColor: 'rgba(52,211,153,0.3)' },
-    { id: 'context', label: 'Context Inspector', icon: Radio, shortcut: '⌘7', accentColor: '#FBBF24', glowColor: 'rgba(251,191,36,0.3)' },
-  ];
-
-  const renderNavItem = (item: NavItem) => {
-    const Icon = item.icon;
-    const isActive =
-      currentTab === item.id ||
-      (item.id === 'overview' && currentTab === 'workspace') ||
-      (item.id === 'preview' && currentTab === 'canvas');
-
-    return (
-      <button
-        key={item.id}
-        type="button"
-        onClick={() => onSelectTab(item.id)}
-        aria-current={isActive ? 'page' : undefined}
-        title={isCollapsed ? `${item.label} (${item.shortcut})` : undefined}
-        className={`w-full flex items-center rounded-xl text-[13px] transition-all duration-200 cursor-pointer group relative ${
-          isCollapsed ? 'justify-center h-9 px-0' : 'justify-between h-9 px-3'
-        }`}
-        style={isActive ? {
-          background: `${item.accentColor}18`,
-          boxShadow: `inset 0 0 0 1px ${item.accentColor}30`,
-        } : {}}
-      >
-        {/* Active left accent bar */}
-        {isActive && !isCollapsed && (
-          <span
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 rounded-full"
-            style={{ background: item.accentColor, boxShadow: `0 0 8px ${item.glowColor}` }}
-          />
-        )}
-
-        <div className="flex items-center gap-2.5 min-w-0">
-          <Icon
-            strokeWidth={isActive ? 2 : 1.75}
-            className={`w-4 h-4 shrink-0 transition-all duration-200 ${
-              isActive ? '' : 'text-slate-500 group-hover:text-slate-300'
-            }`}
-            style={isActive ? { color: item.accentColor, filter: `drop-shadow(0 0 6px ${item.glowColor})` } : {}}
-          />
-          {!isCollapsed && (
-            <span
-              className={`truncate font-medium transition-colors ${
-                isActive ? 'text-slate-100' : 'text-slate-400 group-hover:text-slate-200'
-              }`}
-            >
-              {item.label}
-            </span>
-          )}
-        </div>
-
-        {!isCollapsed && (
-          <div className="flex items-center gap-1.5 shrink-0">
-            {item.badge !== undefined && item.badge > 0 && (
-              <span
-                className={`text-[11px] font-mono font-semibold px-1.5 py-0.5 rounded-md ${
-                  item.badgeConflict
-                    ? 'bg-rose-500/20 text-rose-400 ring-1 ring-rose-500/30'
-                    : 'bg-violet-500/20 text-violet-300 ring-1 ring-violet-500/30'
-                }`}
-              >
-                {item.badge}
-              </span>
-            )}
-            <span
-              className={`text-[10px] font-mono text-slate-600 transition-opacity ${
-                isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-              }`}
-            >
-              {item.shortcut}
-            </span>
-          </div>
-        )}
-
-        {isCollapsed && item.badge !== undefined && item.badge > 0 && (
-          <span
-            className={`w-2 h-2 rounded-full absolute top-1.5 right-1.5 ${
-              item.badgeConflict ? 'bg-rose-500' : 'bg-violet-400'
-            }`}
-            style={{ boxShadow: item.badgeConflict ? '0 0 6px rgba(239,68,68,0.6)' : '0 0 6px rgba(167,139,250,0.6)' }}
-          />
-        )}
-      </button>
-    );
-  };
-
   return (
     <aside
-      className={`app-sidebar relative flex flex-col justify-between select-none shrink-0 transition-all duration-200 ease-out h-full overflow-hidden glass-sidebar ${
-        isCollapsed ? 'w-16 py-3' : 'w-60 py-4'
+      className={`fixed left-0 top-[68px] bottom-0 z-50 md:relative md:top-auto md:bottom-auto md:z-auto flex flex-col justify-between select-none shrink-0 transition-all duration-200 ease-out md:h-full overflow-hidden bg-[radial-gradient(ellipse_at_20%_0%,rgba(54,113,190,.18),transparent_42%),linear-gradient(180deg,#101b2e_0%,#0e192b_100%)] border-r border-[#293c58] shadow-[8px_0_26px_rgba(10,22,40,.12)] ${isMobileOpen ? 'flex' : 'hidden md:flex'} ${
+        isCollapsed ? 'w-[72px] py-4' : 'w-[260px] py-5'
       }`}
     >
       <div className="flex flex-col h-full overflow-hidden">
-        {/* Brand Wordmark */}
-        <div className={`px-3.5 mb-4 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+        {/* ── Brand Header ─────────────────────────────────── */}
+        <div className={`px-4 mb-7 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           <div className="flex items-center gap-2.5">
-            {/* Logo mark */}
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
-              style={{
-                background: 'linear-gradient(135deg, #818CF8 0%, #22D3EE 100%)',
-                boxShadow: '0 0 16px rgba(129,140,248,0.4), inset 0 1px 0 rgba(255,255,255,0.2)',
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <rect x="2" y="2" width="5" height="5" rx="1.2" fill="#FFFFFF" />
-                <rect x="9" y="2" width="5" height="5" rx="1.2" fill="rgba(255,255,255,0.65)" />
-                <rect x="2" y="9" width="5" height="5" rx="1.2" fill="rgba(255,255,255,0.65)" />
-                <rect x="9" y="9" width="5" height="5" rx="1.2" fill="rgba(255,255,255,0.3)" />
-              </svg>
+            <div className="w-10 h-10 rounded-[13px] bg-gradient-to-br from-[#60A5FA] to-[#2563EB] flex items-center justify-center font-black text-white text-lg shadow-[0_8px_22px_rgba(37,99,235,.25)] shrink-0 ring-1 ring-white/15">
+              C
             </div>
             {!isCollapsed && (
               <div className="flex flex-col min-w-0">
-                <span className="font-bold text-[13px] text-white tracking-[-0.02em] leading-none gradient-text">
-                  COFRAME
-                </span>
-                <span className="text-[10px] text-slate-500 truncate mt-0.5 leading-none font-mono">
-                  AI workspace
+                <div className="flex items-center gap-1.5">
+                  <span className="font-bold text-[15px] text-white tracking-[-.03em]">COFRAME</span>
+                  <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-[#22354F] text-sky-200 border border-[#334B6B]">
+                    2.0
+                  </span>
+                </div>
+                <span className="text-[11px] text-[#91A4BE] truncate">
+                  Human + AI workspace
                 </span>
               </div>
             )}
           </div>
         </div>
 
-        {/* Active Project Pill */}
+        {/* ── Active Project Card ──────────────────────────── */}
         {!isCollapsed ? (
-          <div className="px-3 mb-4">
-            <button
-              type="button"
+          <div className="px-3 mb-7">
+            <button type="button"
               onClick={() => onSelectTab('preview')}
-              className="w-full text-left px-3 py-2.5 rounded-xl transition-all duration-150 cursor-pointer group flex items-center justify-between"
-              style={{
-                background: 'rgba(34, 211, 238, 0.07)',
-                border: '1px solid rgba(34, 211, 238, 0.18)',
-              }}
-              title="Open LedgerFlow canvas"
+              className="w-full text-left p-4 rounded-2xl bg-gradient-to-br from-[#213854] to-[#1A2B42] hover:from-[#284466] hover:to-[#203652] border border-[#37506C] transition-colors duration-150 cursor-pointer group flex items-center justify-between shadow-[0_12px_28px_-18px_#000]"
+              title="Current project: LedgerFlow (click to open canvas)"
             >
-              <div className="min-w-0 pr-2">
+              <div className="min-w-0 pr-1.5">
                 <div className="flex items-center gap-1.5">
-                  <span
-                    className="w-1.5 h-1.5 rounded-full shrink-0"
-                    style={{ background: '#34D399', boxShadow: '0 0 6px rgba(52,211,153,0.8)' }}
-                  />
-                  <span className="text-[11px] font-semibold text-cyan-300">LedgerFlow</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+                  <span className="text-[10px] font-bold uppercase tracking-[.14em] text-[#A7CFFF]">
+                    Current project
+                  </span>
                 </div>
-                <div className="text-[10px] text-slate-500 truncate mt-0.5">Spend Governance</div>
+                <h3 className="text-sm font-semibold text-white truncate mt-2">
+                  LedgerFlow
+                </h3>
+                <p className="text-[11px] text-[#9BAFC7] truncate mt-0.5">
+                  Open product canvas
+                </p>
               </div>
-              <div
-                className="w-6 h-6 rounded-lg flex items-center justify-center shrink-0 transition"
-                style={{ background: 'rgba(34,211,238,0.12)', color: '#22D3EE' }}
-              >
-                <Zap className="w-3 h-3" />
+              <div className="w-6 h-6 rounded-md bg-[#2A4360] flex items-center justify-center text-[#A8C7EB] group-hover:text-white transition shrink-0">
+                <ArrowUpRight className="w-3.5 h-3.5" />
               </div>
             </button>
           </div>
         ) : (
-          <div className="px-2 mb-4 flex justify-center">
-            <button
-              type="button"
+          <div className="px-2 mb-3 flex justify-center">
+            <button type="button"
               onClick={() => onSelectTab('preview')}
-              className="w-9 h-9 rounded-xl flex items-center justify-center relative cursor-pointer transition"
-              style={{ background: 'rgba(34,211,238,0.10)', border: '1px solid rgba(34,211,238,0.20)' }}
-              title="LedgerFlow"
+              className="w-9 h-9 rounded-lg bg-[#1C3049] border border-[#334B68] flex items-center justify-center relative cursor-pointer hover:bg-[#27415D] transition"
+              title="LedgerFlow (Spend Governance)"
             >
-              <span className="text-[11px] font-bold text-cyan-300">LF</span>
-              <span
-                className="w-2 h-2 rounded-full absolute -top-0.5 -right-0.5"
-                style={{ background: '#34D399', boxShadow: '0 0 6px rgba(52,211,153,0.8)' }}
-              />
+              <span className="text-[11px] font-bold text-white">LF</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-400 absolute -top-0.5 -right-0.5 ring-2 ring-[#111B2A]" />
             </button>
           </div>
         )}
 
-        {/* Divider */}
-        <div className="mx-3 mb-3 divider" />
+        {/* ── Navigation List ──────────────────────────────── */}
+        <div className="flex-1 overflow-y-auto px-3 space-y-1 dark-scroll">
+          {!isCollapsed && (
+            <div className="px-3 pt-1 pb-2 text-[10px] font-bold uppercase tracking-[.18em] text-[#8499B5]">
+              Workspace
+            </div>
+          )}
 
-        {/* Navigation Groups */}
-        <div className="flex-1 overflow-y-auto px-2.5 sidebar-scroll space-y-4">
-          <div>
-            {!isCollapsed && (
-              <div className="px-3 mb-1.5 text-[10px] font-semibold text-slate-600 uppercase tracking-widest">
-                Workspace
-              </div>
-            )}
-            <div className="space-y-0.5">{workspaceItems.map(renderNavItem)}</div>
-          </div>
+          {mainNavItems.map((item) => {
+            const Icon = item.icon;
+            const isActive =
+              currentTab === item.id ||
+              (item.id === 'overview' && currentTab === 'workspace') ||
+              (item.id === 'preview' && currentTab === 'canvas');
 
-          <div>
-            {!isCollapsed && (
-              <div className="px-3 mb-1.5 text-[10px] font-semibold text-slate-600 uppercase tracking-widest">
-                System
-              </div>
-            )}
-            <div className="space-y-0.5">{systemItems.map(renderNavItem)}</div>
-          </div>
+            return (
+              <button
+                key={item.id}
+                onClick={() => onSelectTab(item.id as NavigationTab)}
+                title={isCollapsed ? `${item.label} (${item.shortcut})` : undefined}
+                className={`w-full flex items-center rounded-xl text-sm transition-all duration-150 cursor-pointer group relative ${
+                  isCollapsed ? 'justify-center p-3' : 'justify-between px-3 py-3'
+                } ${
+                  isActive
+                    ? 'bg-gradient-to-r from-[#24476d] to-[#203c5c] text-white font-semibold shadow-[inset_3px_0_0_#67a5ff,0_5px_16px_rgba(3,12,25,.18)] ring-1 ring-white/[.06]'
+                    : 'text-[#A7B7CB] hover:text-white hover:bg-white/[.055]'
+                }`}
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <Icon
+                    className={`w-[18px] h-[18px] shrink-0 transition-colors ${
+                      isActive ? 'text-[#9bc4ff]' : 'text-[#8AA2BD] group-hover:text-[#dceaff]'
+                    }`}
+                  />
+                  {!isCollapsed && (
+                    <span className="truncate text-[13px]">{item.label}</span>
+                  )}
+                </div>
+
+                {!isCollapsed && (
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {'badge' in item && item.badge !== undefined && item.badge > 0 && (
+                      <span
+                        className={`text-[10px] font-semibold px-1.5 py-0.2 rounded-full ${
+                          isActive
+                            ? 'bg-blue-500 text-white'
+                            : item.badgeConflict
+                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
+                            : 'bg-blue-500/20 text-blue-200 border border-blue-500/30'
+                        }`}
+                      >
+                        {item.badge}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {/* Collapsed dot badge */}
+                {isCollapsed && 'badge' in item && item.badge !== undefined && item.badge > 0 && (
+                  <span
+                    className={`w-2 h-2 rounded-full absolute top-1 right-1 ring-2 ring-[#111B2A] ${
+                      item.badgeConflict ? 'bg-rose-500' : 'bg-blue-500'
+                    }`}
+                  />
+                )}
+              </button>
+            );
+          })}
         </div>
 
-        {/* Footer */}
-        <div className="pt-3 px-2.5 mt-auto border-t border-white/[0.05] flex flex-col gap-1">
+        {/* ── Footer / Collapse ───────────────────────────── */}
+        <div className="pt-2 px-2 mt-auto border-t border-[#25344A]">
           {!isCollapsed && (
-            <div className="px-3 py-1 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                <span className="text-[10px] font-mono font-semibold" style={{ color: '#A78BFA' }}>NOVA</span>
-                <span className="text-slate-700 text-[10px]">·</span>
-                <span className="text-[10px] font-mono font-semibold" style={{ color: '#22D3EE' }}>PIXEL</span>
+            <div className="p-2.5 mb-2 rounded-xl bg-[#1B2B40] border border-[#30445E]">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                <Sparkles className="w-3.5 h-3.5 text-sky-300 shrink-0" />
+                <span>HUMAN + AI</span>
               </div>
-              <span
-                className="text-[9px] font-mono px-1.5 py-0.5 rounded"
-                style={{ background: 'rgba(52,211,153,0.1)', color: '#34D399', border: '1px solid rgba(52,211,153,0.2)' }}
-              >
-                live
-              </span>
+              <p className="text-[10px] text-[#A0B0C7] mt-0.5 leading-snug">
+                Sequential Product Lifecycle · NOVA + PIXEL
+              </p>
             </div>
           )}
 
           <button
-            type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="w-full flex items-center justify-center h-8 rounded-xl transition-all cursor-pointer text-slate-600 hover:text-slate-300"
-            style={{ background: 'transparent' }}
-            onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.04)')}
-            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+            className="w-full flex items-center justify-center p-1.5 rounded-lg text-[#8DA3BE] hover:text-white hover:bg-[#20334B] transition cursor-pointer text-xs"
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isCollapsed ? (
               <ChevronRight className="w-4 h-4" />
             ) : (
-              <div className="flex items-center gap-1.5 text-[11px] font-medium">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium text-[#9BAEC8]">
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span>Collapse</span>
               </div>

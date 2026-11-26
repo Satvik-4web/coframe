@@ -403,6 +403,7 @@ export interface PRDAcceptanceCriteria {
 
 export interface PRD {
   id: string;
+  generation_mode?: 'live_model' | 'template_fallback';
   version: number;
   prompt: string;
   title: string;

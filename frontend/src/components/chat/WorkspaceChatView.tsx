@@ -64,7 +64,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
   const [isTyping, setIsTyping] = useState<string | null>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
-  const [showRightPanel, setShowRightPanel] = useState(false);
+  const [showRightPanel, setShowRightPanel] = useState(true);
   const [stageInfo, setStageInfo] = useState<WorkflowStageInfo | null>(null);
 
   const loadWorkflowStage = async () => {
@@ -277,54 +277,38 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
   );
 
   return (
-    <div className="flex h-full w-full overflow-hidden select-text" style={{ background: 'var(--bg-base)' }}>
+    <div className="flex h-full w-full bg-[#FAFBFD] overflow-hidden select-text">
       {/* 1. LEFT COLUMN: Conversations Sidebar */}
-      <div
-        className="w-72 border-r flex flex-col h-full shrink-0"
-        style={{
-          background: 'rgba(10, 13, 22, 0.95)',
-          borderColor: 'rgba(255, 255, 255, 0.06)',
-        }}
-      >
+      <div className="w-72 border-r border-[#E7ECF2] bg-white flex flex-col h-full shrink-0">
         {/* Header */}
-        <div
-          className="h-14 px-4 border-b flex items-center justify-between"
-          style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}
-        >
+        <div className="p-4 border-b border-[#E7ECF2] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-indigo-400" strokeWidth={1.75} />
-            <h2 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+            <span className="p-1 rounded-lg bg-teal-50 border border-teal-200">
+              <MessageSquare className="w-4 h-4 text-teal-700" />
+            </span>
+            <h2 className="text-xs font-bold text-[#172033] uppercase tracking-wider">
               Conversations
             </h2>
           </div>
           <button
-            type="button"
             onClick={() => setShowNewModal(true)}
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-white border transition cursor-pointer"
-            style={{
-              background: 'rgba(255, 255, 255, 0.04)',
-              borderColor: 'rgba(255, 255, 255, 0.08)',
-            }}
-            title="Create new room"
+            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+            title="Create new conversation room"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {/* Search */}
-        <div className="p-3 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}>
+        <div className="p-3 border-b border-[#F0F3F7]">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-500" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#94A3B8]" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations..."
-              className="w-full pl-8 pr-3 py-1.5 rounded-lg text-xs text-white placeholder-slate-500 outline-none border transition"
-              style={{
-                background: 'rgba(0, 0, 0, 0.3)',
-                borderColor: 'rgba(255, 255, 255, 0.08)',
-              }}
+              className="w-full pl-8 pr-3 py-1.5 bg-[#F8FAFC] border border-[#E7ECF2] rounded-xl text-xs text-[#172033] placeholder-[#94A3B8] focus:bg-white focus:border-teal-500 outline-hidden transition"
             />
           </div>
         </div>
@@ -340,42 +324,32 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
             return (
               <button
-                type="button"
                 key={conv.id}
                 onClick={() => setActiveConversationId(conv.id)}
-                className="w-full text-left p-3 rounded-xl transition cursor-pointer flex flex-col gap-1 border"
-                style={
+                className={`w-full text-left p-3 rounded-xl transition cursor-pointer flex flex-col gap-1 border ${
                   isActive
-                    ? {
-                        background: 'rgba(129, 140, 248, 0.12)',
-                        borderColor: 'rgba(129, 140, 248, 0.3)',
-                        boxShadow: '0 0 15px rgba(129, 140, 248, 0.15)',
-                      }
-                    : {
-                        background: 'transparent',
-                        borderColor: 'transparent',
-                        color: '#94A3B8',
-                      }
-                }
+                    ? 'bg-teal-50/60 border-teal-200 text-[#172033] shadow-2xs'
+                    : 'bg-transparent border-transparent hover:bg-[#F8FAFC] text-[#657189]'
+                }`}
               >
                 <div className="flex items-center justify-between w-full">
                   <span
-                    className={`text-xs truncate ${
-                      isActive ? 'text-white font-bold' : 'text-slate-300 font-medium'
+                    className={`text-xs font-semibold truncate ${
+                      isActive ? 'text-teal-950 font-bold' : 'text-[#172033]'
                     }`}
                   >
                     {conv.title}
                   </span>
                   {timeStr && (
-                    <span className="text-[10px] text-slate-500 font-mono shrink-0 ml-1">
+                    <span className="text-[10px] text-[#94A3B8] font-mono shrink-0 ml-1">
                       {timeStr}
                     </span>
                   )}
                 </div>
 
                 {lastMsg && (
-                  <p className="text-[11px] text-slate-400 line-clamp-1 break-words">
-                    <span className="font-semibold text-slate-300">
+                  <p className="text-[11px] text-[#657189] line-clamp-1 break-words">
+                    <span className="font-semibold text-[#475569]">
                       {lastMsg.sender_name}:
                     </span>{' '}
                     {lastMsg.message_content || lastMsg.content}
@@ -383,26 +357,12 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 )}
 
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span
-                    className="text-[10px] font-mono px-1.5 py-0.5 rounded border"
-                    style={{
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      borderColor: 'rgba(255, 255, 255, 0.08)',
-                      color: '#94A3B8',
-                    }}
-                  >
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
                     {conv.message_count} msgs
                   </span>
                   {conv.conversation_type === 'team_shared' && (
-                    <span
-                      className="text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold border"
-                      style={{
-                        background: 'rgba(129, 140, 248, 0.12)',
-                        borderColor: 'rgba(129, 140, 248, 0.25)',
-                        color: '#A78BFA',
-                      }}
-                    >
-                      Team room
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium border border-emerald-200">
+                      Team Room
                     </span>
                   )}
                 </div>
@@ -411,7 +371,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
           })}
 
           {filteredConversations.length === 0 && (
-            <div className="p-6 text-center text-xs text-slate-500">
+            <div className="p-6 text-center text-xs text-[#94A3B8]">
               No conversations found.
             </div>
           )}
@@ -419,72 +379,62 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
       </div>
 
       {/* 2. CENTRE COLUMN: Active Chat Stream */}
-      <div className="flex-1 flex flex-col h-full overflow-hidden" style={{ background: 'var(--bg-base)' }}>
+      <div className="flex-1 flex flex-col h-full bg-[#FAFBFD] overflow-hidden">
         {/* Stream Top Header */}
-        <div
-          className="h-14 px-6 border-b flex items-center justify-between shrink-0"
-          style={{
-            background: 'rgba(8, 11, 20, 0.85)',
-            borderColor: 'rgba(255, 255, 255, 0.06)',
-            backdropFilter: 'blur(20px)',
-          }}
-        >
+        <div className="h-14 px-6 border-b border-[#E7ECF2] bg-white flex items-center justify-between shrink-0 shadow-2xs">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-sm font-bold text-white tracking-tight">
+              <h1 className="text-sm font-bold text-[#172033]">
                 {activeConv?.title || 'LedgerFlow Workspace Chat'}
               </h1>
-              <span
-                className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border"
-                style={{
-                  background: 'rgba(52, 211, 153, 0.1)',
-                  borderColor: 'rgba(52, 211, 153, 0.25)',
-                  color: '#34D399',
-                }}
-              >
-                Shared space
+              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+                Shared Space
               </span>
             </div>
-            <p className="text-[11px] text-slate-400 mt-0.5">
-              Alex, Maya, NOVA & PIXEL
+            <p className="text-[10px] text-[#657189] mt-0.5">
+              Humans (Alex, Maya) + AI Collaborators (NOVA, PIXEL)
             </p>
           </div>
 
           <div className="flex items-center gap-3">
             {/* Active Participant Avatars */}
             <div className="flex items-center -space-x-1.5">
-              {[
-                { label: 'A', title: 'Alex', bg: 'rgba(96,165,250,0.2)', color: '#60A5FA', ring: '#60A5FA' },
-                { label: 'M', title: 'Maya', bg: 'rgba(244,114,182,0.2)', color: '#F472B6', ring: '#F472B6' },
-                { label: 'N', title: 'NOVA', bg: 'rgba(167,139,250,0.2)', color: '#A78BFA', ring: '#A78BFA' },
-                { label: 'P', title: 'PIXEL', bg: 'rgba(34,211,238,0.2)', color: '#22D3EE', ring: '#22D3EE' },
-              ].map(({ label, title, bg, color, ring }) => (
-                <div
-                  key={label}
-                  className="w-6 h-6 rounded-full font-bold text-[10px] flex items-center justify-center border"
-                  title={title}
-                  style={{ background: bg, color, borderColor: ring }}
-                >
-                  {label}
-                </div>
-              ))}
+              <div
+                className="w-7 h-7 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
+                title="Alex (Founder / Decision Owner)"
+              >
+                A
+              </div>
+              <div
+                className="w-7 h-7 rounded-full bg-[#D946A1] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
+                title="Maya (Product Designer)"
+              >
+                M
+              </div>
+              <div
+                className="w-7 h-7 rounded-full bg-[#7C3AED] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
+                title="NOVA (AI Product Strategist)"
+              >
+                N
+              </div>
+              <div
+                className="w-7 h-7 rounded-full bg-[#0D9488] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
+                title="PIXEL (AI Software Engineer)"
+              >
+                P
+              </div>
             </div>
 
             {/* Context Panel Toggle */}
             <button
-              type="button"
               onClick={() => setShowRightPanel(!showRightPanel)}
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white border transition cursor-pointer"
-              style={{
-                background: 'rgba(255, 255, 255, 0.04)',
-                borderColor: 'rgba(255, 255, 255, 0.08)',
-              }}
+              className="p-1.5 rounded-lg border border-[#E7ECF2] hover:bg-[#F8FAFC] text-[#657189] hover:text-[#172033] transition cursor-pointer"
               title={showRightPanel ? 'Hide context panel' : 'Show context panel'}
             >
               {showRightPanel ? (
-                <PanelRightClose className="w-4 h-4" strokeWidth={1.75} />
+                <PanelRightClose className="w-4 h-4" />
               ) : (
-                <PanelRightOpen className="w-4 h-4" strokeWidth={1.75} />
+                <PanelRightOpen className="w-4 h-4" />
               )}
             </button>
           </div>
@@ -541,20 +491,12 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                   : 'Product Designer');
 
               const cardBorder = isNova
-                ? 'rgba(167, 139, 250, 0.25)'
+                ? 'border-violet-200/90 bg-white ring-1 ring-violet-100/50'
                 : isPixel
-                ? 'rgba(34, 211, 238, 0.25)'
+                ? 'border-teal-200/90 bg-white ring-1 ring-teal-100/50'
                 : msg.sender_id === 'maya'
-                ? 'rgba(244, 114, 182, 0.25)'
-                : 'rgba(96, 165, 250, 0.25)';
-
-              const cardBg = isNova
-                ? 'rgba(167, 139, 250, 0.05)'
-                : isPixel
-                ? 'rgba(34, 211, 238, 0.05)'
-                : msg.sender_id === 'maya'
-                ? 'rgba(244, 114, 182, 0.05)'
-                : 'rgba(96, 165, 250, 0.05)';
+                ? 'border-pink-200/90 bg-white ring-1 ring-pink-100/50'
+                : 'border-blue-200/90 bg-white ring-1 ring-blue-100/50';
 
               const timeStr = msg.created_at
                 ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -577,36 +519,30 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
                   {/* Message Bubble Card */}
                   <div
-                    className="flex-1 rounded-2xl p-4 space-y-2 border"
-                    style={{
-                      background: cardBg,
-                      borderColor: cardBorder,
-                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
-                    }}
+                    className={`flex-1 border ${cardBorder} rounded-2xl p-4 shadow-xs space-y-2`}
                   >
                     {/* Header */}
-                    <div className="flex items-center justify-between pb-1.5 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}>
+                    <div className="flex items-center justify-between pb-1.5 border-b border-[#F0F3F7]">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-white">
+                        <span className="text-xs font-bold text-[#172033]">
                           {msg.sender_name}
                         </span>
-                        <span className="text-[10px] text-slate-400 font-medium">
+                        <span className="text-[10px] text-[#657189] font-medium">
                           {roleLabel}
                         </span>
                         {!isHuman && (
                           <span
-                            className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider font-mono border"
-                            style={
+                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider ${
                               isNova
-                                ? { background: 'rgba(167, 139, 250, 0.15)', color: '#A78BFA', borderColor: 'rgba(167, 139, 250, 0.3)' }
-                                : { background: 'rgba(34, 211, 238, 0.15)', color: '#22D3EE', borderColor: 'rgba(34, 211, 238, 0.3)' }
-                            }
+                                ? 'bg-violet-50 text-violet-700 border border-violet-200'
+                                : 'bg-teal-50 text-teal-700 border border-teal-200'
+                            }`}
                           >
                             AI Agent
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] text-slate-500 font-mono">{timeStr}</span>
+                      <span className="text-[10px] text-[#94A3B8] font-mono">{timeStr}</span>
                     </div>
 
                     {/* Markdown Body */}
@@ -614,7 +550,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
                     {/* Delivery Status & Retry */}
                     {msg.status === 'failed' && (
-                      <div className="mt-2 p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/30 flex items-center justify-between text-xs text-rose-300">
+                      <div className="mt-2 p-2.5 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-between text-xs text-rose-700">
                         <span className="font-medium">
                           Failed to deliver message to agent. Check network or model quota.
                         </span>
@@ -629,63 +565,45 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                     )}
 
                     {msg.status === 'sending' && (
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium italic pt-1">
-                        <span className="w-2.5 h-2.5 rounded-full border border-slate-500 border-t-transparent animate-spin" />
+                      <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium italic pt-1">
+                        <span className="w-2.5 h-2.5 rounded-full border border-slate-400 border-t-transparent animate-spin" />
                         <span>Sending message...</span>
                       </div>
                     )}
 
                     {/* Embedded Linked Proposal Card if attached */}
                     {(msg.related_proposal_id || msg.related_proposal) && (
-                      <div
-                        className="mt-3 p-4 rounded-2xl border space-y-2.5"
-                        style={{
-                          background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(34, 211, 238, 0.08))',
-                          borderColor: 'rgba(167, 139, 250, 0.3)',
-                          boxShadow: '0 0 20px rgba(167, 139, 250, 0.15)',
-                        }}
-                      >
+                      <div className="mt-3 p-4 rounded-2xl bg-gradient-to-r from-violet-50/70 via-white to-teal-50/50 border border-violet-200/90 shadow-xs space-y-2.5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="p-1 rounded-lg bg-violet-500/20 text-violet-300">
+                            <span className="p-1 rounded-lg bg-violet-100 text-violet-700">
                               <Sparkles className="w-3.5 h-3.5" />
                             </span>
-                            <span className="text-xs font-bold text-white tracking-wide uppercase font-mono">
+                            <span className="text-xs font-bold text-[#172033] tracking-wide uppercase">
                               {msg.related_proposal?.proposal_type === 'prd_requirement'
                                 ? 'Formal Product Requirements Document (PRD)'
                                 : 'Actionable Engineering Proposal'}
                             </span>
                           </div>
-                          <span
-                            className="text-[10px] font-bold px-2 py-0.5 rounded-full border font-mono"
-                            style={{
-                              background: 'rgba(251, 191, 36, 0.15)',
-                              borderColor: 'rgba(251, 191, 36, 0.3)',
-                              color: '#FBBF24',
-                            }}
-                          >
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
                             {msg.related_proposal?.status ? msg.related_proposal.status.toUpperCase() : 'AWAITING CONFIRMATION'}
                           </span>
                         </div>
 
-                        <p className="text-xs text-white font-semibold leading-relaxed">
+                        <p className="text-xs text-[#172033] font-semibold leading-relaxed">
                           {msg.related_proposal?.summary ||
                             `Proposal #${(msg.related_proposal_id || '').slice(-6)}`}
                         </p>
 
-                        <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}>
-                          <span className="text-[11px] text-slate-400">
-                            Author: <strong className="text-slate-200">{msg.related_proposal?.author || msg.sender_name}</strong>
+                        <div className="flex items-center justify-between pt-2 border-t border-[#E8EAF2]">
+                          <span className="text-[11px] text-[#657189]">
+                            Author: <strong className="text-[#172033]">{msg.related_proposal?.author || msg.sender_name}</strong>
                           </span>
                           <button
                             onClick={() =>
                               onNavigateTab('proposals', msg.related_proposal_id || msg.related_proposal?.id)
                             }
-                            className="px-3.5 py-1.5 rounded-xl text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
-                            style={{
-                              background: 'linear-gradient(135deg, #818CF8, #A78BFA)',
-                              boxShadow: '0 0 15px rgba(129, 140, 248, 0.4)',
-                            }}
+                            className="px-3.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-xs cursor-pointer"
                           >
                             <span>View PRD in Proposals</span>
                             <ArrowRight className="w-3.5 h-3.5" />
@@ -701,8 +619,8 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
           {/* Typing Indicator */}
           {isTyping && (
-            <div className="flex items-center gap-3 text-xs text-slate-400 italic pl-2 py-2">
-              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
+            <div className="flex items-center gap-3 text-xs text-[#657189] italic pl-2 py-2">
+              <span className="w-2 h-2 rounded-full bg-teal-600 animate-ping" />
               <span>{isTyping}</span>
             </div>
           )}
@@ -711,92 +629,58 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
         </div>
 
         {/* Message Composer Area */}
-        <div
-          className="p-4 shrink-0 space-y-3 border-t"
-          style={{
-            background: 'rgba(8, 11, 20, 0.95)',
-            borderColor: 'rgba(255, 255, 255, 0.08)',
-            backdropFilter: 'blur(20px)',
-          }}
-        >
+        <div className="p-4 bg-white border-t border-[#E7ECF2] shadow-sm shrink-0 space-y-3">
           {/* Recipient Selector Toggle */}
           <div className="flex items-center justify-between">
-            <div
-              className="flex items-center gap-0.5 p-1 rounded-xl border"
-              style={{
-                background: 'rgba(0, 0, 0, 0.4)',
-                borderColor: 'rgba(255, 255, 255, 0.08)',
-              }}
-            >
-              <span className="text-[11px] font-medium text-slate-400 px-2.5">
-                To:
+            <div className="flex items-center gap-1.5 p-1 bg-[#F8FAFC] border border-[#E7ECF2] rounded-xl shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#657189] px-2">
+                Send to:
               </span>
               <button
                 type="button"
                 onClick={() => setRecipient('team')}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer"
-                style={
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                   recipient === 'team'
-                    ? {
-                        background: 'rgba(96, 165, 250, 0.2)',
-                        color: '#60A5FA',
-                        boxShadow: '0 0 10px rgba(96, 165, 250, 0.25)',
-                      }
-                    : { color: '#64748B' }
-                }
+                    ? 'bg-slate-900 text-white font-semibold shadow-2xs'
+                    : 'text-[#657189] hover:text-[#172033] hover:bg-white'
+                }`}
               >
-                <Users className="w-3.5 h-3.5" strokeWidth={1.75} />
+                <Users className="w-3 h-3" />
                 <span>Entire Team</span>
               </button>
               <button
                 type="button"
                 onClick={() => setRecipient('nova')}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer"
-                style={
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                   recipient === 'nova'
-                    ? {
-                        background: 'rgba(167, 139, 250, 0.2)',
-                        color: '#A78BFA',
-                        boxShadow: '0 0 10px rgba(167, 139, 250, 0.25)',
-                      }
-                    : { color: '#64748B' }
-                }
+                    ? 'bg-violet-600 text-white font-semibold shadow-2xs'
+                    : 'text-[#657189] hover:text-[#172033] hover:bg-white'
+                }`}
               >
-                <Bot className="w-3.5 h-3.5" strokeWidth={1.75} />
+                <Bot className="w-3 h-3 text-violet-300" />
                 <span>NOVA</span>
               </button>
               <button
                 type="button"
                 onClick={() => setRecipient('pixel')}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer"
-                style={
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                   recipient === 'pixel'
-                    ? {
-                        background: 'rgba(34, 211, 238, 0.2)',
-                        color: '#22D3EE',
-                        boxShadow: '0 0 10px rgba(34, 211, 238, 0.25)',
-                      }
-                    : { color: '#64748B' }
-                }
+                    ? 'bg-teal-600 text-white font-semibold shadow-2xs'
+                    : 'text-[#657189] hover:text-[#172033] hover:bg-white'
+                }`}
               >
-                <Code className="w-3.5 h-3.5" strokeWidth={1.75} />
+                <Code className="w-3 h-3 text-teal-300" />
                 <span>PIXEL</span>
               </button>
             </div>
 
-            <div className="text-[11px] text-slate-400 hidden sm:block">
-              Posting as <strong className="font-semibold text-white">{identity === 'alex' ? 'Alex' : 'Maya'}</strong>
+            <div className="text-[11px] text-[#94A3B8] hidden sm:block">
+              Posting as <strong className="text-[#172033]">{identity === 'alex' ? 'Alex' : 'Maya'}</strong>
             </div>
           </div>
 
           {/* Textarea Composer */}
-          <div
-            className="relative rounded-xl p-3.5 border transition focus-within:border-indigo-400/50"
-            style={{
-              background: 'rgba(0, 0, 0, 0.35)',
-              borderColor: 'rgba(255, 255, 255, 0.08)',
-            }}
-          >
+          <div className="relative bg-[#F8FAFC] border border-[#D9E1EC] focus-within:border-teal-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-100 rounded-xl transition shadow-2xs p-3">
             <textarea
               ref={textareaRef}
               rows={2}
@@ -810,37 +694,37 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                   ? 'Message PIXEL: "Please update the hero headline and add spend trends to dashboard"'
                   : 'Message entire team: "How should we adjust manager approval thresholds?"'
               }
-              className="w-full text-[13px] text-white placeholder-slate-500 resize-none outline-none bg-transparent leading-relaxed"
+              className="w-full text-xs text-[#172033] placeholder-[#94A3B8] resize-none outline-hidden bg-transparent"
             />
 
-            <div
-              className="flex items-center justify-between pt-2.5 mt-2 border-t"
-              style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}
-            >
-              <span className="text-[11px] text-slate-500">
-                Press <kbd className="px-1.5 py-0.5 rounded text-[10px] font-mono border" style={{ background: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#94A3B8' }}>Enter</kbd> to send
+            <div className="flex items-center justify-between pt-2 border-t border-[#E7ECF2] mt-2">
+              <span className="text-[11px] text-[#94A3B8]">
+                Press <kbd className="px-1 py-0.5 rounded bg-slate-200/70 border border-slate-300 text-[10px] font-mono">Enter</kbd> to send, <kbd className="px-1 py-0.5 rounded bg-slate-200/70 border border-slate-300 text-[10px] font-mono">Shift+Enter</kbd> for newline
               </span>
 
               <button
                 type="button"
                 disabled={!inputText.trim() || isSending}
                 onClick={() => handleSendMessage()}
-                className="flex items-center gap-1.5 h-8 px-4 rounded-xl text-xs font-semibold transition cursor-pointer disabled:opacity-40"
-                style={{
-                  background: 'linear-gradient(135deg, #818CF8, #A78BFA)',
-                  color: '#FFFFFF',
-                  boxShadow: '0 0 15px rgba(129, 140, 248, 0.4)',
-                }}
+                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold shadow-2xs transition cursor-pointer ${
+                  !inputText.trim() || isSending
+                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    : recipient === 'nova'
+                    ? 'bg-violet-600 hover:bg-violet-700 text-white'
+                    : recipient === 'pixel'
+                    ? 'bg-teal-600 hover:bg-teal-700 text-white'
+                    : 'bg-slate-900 hover:bg-slate-800 text-white'
+                }`}
               >
                 {isSending ? (
                   <>
                     <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Sending...</span>
+                    <span>Processing...</span>
                   </>
                 ) : (
                   <>
                     <Send className="w-3 h-3" />
-                    <span>Send message</span>
+                    <span>Send Message</span>
                   </>
                 )}
               </button>

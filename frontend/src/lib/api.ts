@@ -646,7 +646,7 @@ export async function fetchExpenses(
   projectId: string = 'demo-ledgerflow',
   status?: string,
   category?: string
-): Promise<{ total: number; expenses: any[]; metrics: any }> {
+  ): Promise<{ total: number; expenses: any[]; metrics: any; approval_threshold: number }> {
   let url = `${API_BASE}/projects/${projectId}/expenses`;
   const params = new URLSearchParams();
   if (status) params.append('status', status);
@@ -711,12 +711,13 @@ export async function analyseProductPrompt(
   prompt: string,
   constraints?: string,
   submitterId: string = 'alex',
-  projectId: string = 'demo-ledgerflow'
+    projectId: string = 'demo-ledgerflow',
+    referenceNotes?: string[]
 ): Promise<{ status: string; message: string; prd: any }> {
   const res = await fetch(`${API_BASE}/projects/${projectId}/prd/analyse`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ prompt, constraints, submitter_id: submitterId }),
+      body: JSON.stringify({ prompt, constraints, submitter_id: submitterId, reference_materials: referenceNotes }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

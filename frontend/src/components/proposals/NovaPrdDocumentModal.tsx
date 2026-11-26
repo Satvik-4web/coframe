@@ -72,40 +72,40 @@ export const NovaPrdDocumentModal: React.FC<NovaPrdDocumentModalProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 backdrop-blur-xs p-4 sm:p-6 overflow-hidden animate-in fade-in duration-200">
-      <div className="bg-white rounded-2xl border border-slate-900/[0.1] shadow-[0_24px_48px_rgba(15,23,42,0.16)] w-full max-w-5xl h-[92vh] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4 sm:p-6 overflow-hidden animate-in fade-in duration-200">
+      <div className="bg-white rounded-3xl border border-[#D9E1EC] shadow-2xl w-full max-w-5xl h-[92vh] flex flex-col overflow-hidden">
         {/* Modal Top Header */}
-        <div className="p-5 border-b border-slate-900/[0.07] bg-white flex items-center justify-between shrink-0">
+        <div className="p-6 border-b border-[#E7ECF2] bg-gradient-to-r from-white via-white to-violet-50/40 flex items-center justify-between shrink-0">
           <div className="flex items-center space-x-3.5">
-            <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-200/70 text-[#6D28D9] flex items-center justify-center">
-              <Brain className="w-5 h-5" strokeWidth={1.75} />
+            <div className="w-11 h-11 rounded-2xl bg-violet-600 text-white flex items-center justify-center font-bold text-sm shadow-sm">
+              <Brain className="w-6 h-6 text-violet-100" />
             </div>
 
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-sm text-slate-900">NOVA</span>
-                <span className="text-xs text-slate-500">Product Strategist</span>
-                <span className="text-[11px] font-medium px-2 py-0.2 rounded-md bg-violet-50 text-[#6D28D9] border border-violet-200/60">
-                  PRD Specification
+                <span className="font-extrabold text-sm text-[#172033]">NOVA</span>
+                <span className="text-xs text-[#657189] font-semibold">AI Product Strategist</span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 uppercase tracking-wider">
+                  Product Requirements Document
                 </span>
-                <span className="text-[11px] font-mono px-2 py-0.2 rounded-md bg-slate-100 text-slate-700">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
                   v{prd?.version || 1}.0
                 </span>
               </div>
-              <h2 className="text-base font-semibold text-slate-900 tracking-tight mt-0.5">{title}</h2>
+              <h2 className="text-base font-bold text-[#172033] mt-0.5">{title}</h2>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             {isConfirmed ? (
-              <span className="text-xs font-medium px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200/70 flex items-center gap-1.5">
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-300 flex items-center gap-1.5 shadow-2xs">
                 <Check className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Confirmed</span>
+                <span>CONFIRMED</span>
               </span>
             ) : (
-              <span className="text-xs font-medium px-3 py-1 rounded-full bg-blue-50 text-[#2563EB] border border-blue-200/70 flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB]" />
-                <span>Ready for review</span>
+              <span className="text-xs font-bold px-3 py-1 rounded-full bg-violet-50 text-violet-700 border border-violet-300 flex items-center gap-1.5 shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-violet-500 animate-pulse" />
+                <span>READY FOR REVIEW</span>
               </span>
             )}
 

@@ -1,233 +1,36 @@
 import React from 'react';
 import { HumanIdentity } from '../../types';
-import { ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowRight, Bot, Code2, ShieldCheck, Sparkles } from 'lucide-react';
 
-interface IdentityPickerProps {
-  onSelect: (id: HumanIdentity) => void;
-}
+interface IdentityPickerProps { onSelect: (id: HumanIdentity) => void; }
 
-export const IdentityPicker: React.FC<IdentityPickerProps> = ({ onSelect }) => {
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'var(--bg-base)' }}>
-      {/* Ambient glow orbs */}
-      <div
-        className="fixed inset-0 pointer-events-none overflow-hidden"
-        aria-hidden="true"
-      >
-        <div
-          className="absolute w-[600px] h-[600px] rounded-full -top-32 -left-32 opacity-30"
-          style={{ background: 'radial-gradient(circle, rgba(129,140,248,0.3) 0%, transparent 70%)' }}
-        />
-        <div
-          className="absolute w-[500px] h-[500px] rounded-full -bottom-20 -right-20 opacity-20"
-          style={{ background: 'radial-gradient(circle, rgba(34,211,238,0.25) 0%, transparent 70%)' }}
-        />
+export const IdentityPicker: React.FC<IdentityPickerProps> = ({ onSelect }) => (
+  <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#111B2A] px-5 py-12 text-white">
+    <div className="dashboard-hero-grid pointer-events-none absolute inset-0 opacity-40" />
+    <div className="pointer-events-none absolute -left-32 top-10 h-96 w-96 rounded-full bg-blue-500/20 blur-[110px]" />
+    <div className="pointer-events-none absolute -right-32 bottom-0 h-96 w-96 rounded-full bg-sky-400/15 blur-[110px]" />
+    <div className="relative w-full max-w-[920px]">
+      <div className="mb-10 text-center">
+        <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-[18px] bg-gradient-to-br from-blue-400 to-blue-700 text-2xl font-black shadow-[0_15px_40px_rgba(37,99,235,.35)]">C</div>
+        <p className="mb-4 text-xs font-bold uppercase tracking-[.22em] text-sky-300">COFRAME / LedgerFlow</p>
+        <h1 className="text-[clamp(2.3rem,5vw,4.2rem)] font-semibold leading-[1.08] tracking-[-.05em]">Build together.<br /><span className="text-[#93C5FD]">Decide with clarity.</span></h1>
+        <p className="mx-auto mt-5 max-w-lg text-sm leading-6 text-slate-300 sm:text-base">Choose your role to enter the shared product workspace. Your decisions and agent work stay connected.</p>
       </div>
-
-      <div className="max-w-2xl w-full relative z-10">
-        {/* Brand Header */}
-        <div className="text-center mb-12">
-          {/* Logo */}
-          <div className="flex items-center justify-center mb-6">
-            <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center"
-              style={{
-                background: 'linear-gradient(135deg, #818CF8 0%, #22D3EE 100%)',
-                boxShadow: '0 0 40px rgba(129,140,248,0.5), 0 0 80px rgba(34,211,238,0.2)',
-              }}
-            >
-              <svg width="22" height="22" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                <rect x="2" y="2" width="5" height="5" rx="1.2" fill="#FFFFFF" />
-                <rect x="9" y="2" width="5" height="5" rx="1.2" fill="rgba(255,255,255,0.7)" />
-                <rect x="2" y="9" width="5" height="5" rx="1.2" fill="rgba(255,255,255,0.7)" />
-                <rect x="9" y="9" width="5" height="5" rx="1.2" fill="rgba(255,255,255,0.35)" />
-              </svg>
-            </div>
-          </div>
-
-          {/* Pill badge */}
-          <div
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-5 text-xs font-mono font-semibold"
-            style={{
-              background: 'rgba(129,140,248,0.10)',
-              border: '1px solid rgba(129,140,248,0.25)',
-              color: '#A78BFA',
-            }}
-          >
-            <Zap className="w-3 h-3" />
-            COFRAME · LedgerFlow Workspace
-          </div>
-
-          <h1 className="text-[32px] font-bold tracking-[-0.03em] leading-tight text-white mb-3">
-            Select your{' '}
-            <span className="gradient-text">collaborator role</span>
-          </h1>
-          <p className="text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
-            Enter the shared workspace to review requirements, approve specifications, and guide NOVA and PIXEL.
-          </p>
-        </div>
-
-        {/* Role Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-6">
-          {/* Alex Card */}
-          <div
-            onClick={() => onSelect('alex')}
-            className="group cursor-pointer flex flex-col justify-between rounded-2xl p-6 transition-all duration-200"
-            style={{
-              background: 'rgba(96,165,250,0.06)',
-              border: '1px solid rgba(96,165,250,0.18)',
-              boxShadow: '0 0 0 0 rgba(96,165,250,0)',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLDivElement).style.background = 'rgba(96,165,250,0.10)';
-              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(96,165,250,0.35)';
-              (e.currentTarget as HTMLDivElement).style.boxShadow = '0 0 30px rgba(96,165,250,0.15)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLDivElement).style.background = 'rgba(96,165,250,0.06)';
-              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(96,165,250,0.18)';
-              (e.currentTarget as HTMLDivElement).style.boxShadow = '0 0 0 0 rgba(96,165,250,0)';
-            }}
-          >
-            <div>
-              <div className="flex items-center justify-between mb-5">
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg"
-                  style={{
-                    background: 'rgba(96,165,250,0.15)',
-                    border: '1px solid rgba(96,165,250,0.30)',
-                    color: '#60A5FA',
-                    boxShadow: '0 0 16px rgba(96,165,250,0.2)',
-                  }}
-                >
-                  A
-                </div>
-                <span
-                  className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
-                  style={{ background: 'rgba(96,165,250,0.12)', color: '#60A5FA', border: '1px solid rgba(96,165,250,0.25)' }}
-                >
-                  Decision Owner
-                </span>
-              </div>
-
-              <h2 className="text-lg font-bold text-white tracking-tight">Alex</h2>
-              <p className="text-xs font-semibold mt-0.5" style={{ color: '#60A5FA' }}>Founder & Approver</p>
-              <p className="text-[13px] text-slate-400 mt-3 leading-relaxed">
-                Sets product direction, confirms NOVA specifications, and holds exclusive approval authority over high-impact changes.
-              </p>
-            </div>
-
-            <div className="mt-6 pt-4" style={{ borderTop: '1px solid rgba(96,165,250,0.12)' }}>
-              <button
-                type="button"
-                onClick={e => { e.stopPropagation(); onSelect('alex'); }}
-                className="w-full h-10 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all"
-                style={{
-                  background: 'rgba(96,165,250,0.15)',
-                  color: '#60A5FA',
-                  border: '1px solid rgba(96,165,250,0.30)',
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(96,165,250,0.25)';
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 20px rgba(96,165,250,0.3)';
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(96,165,250,0.15)';
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
-                }}
-              >
-                <span>Continue as Alex</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-            </div>
-          </div>
-
-          {/* Maya Card */}
-          <div
-            onClick={() => onSelect('maya')}
-            className="group cursor-pointer flex flex-col justify-between rounded-2xl p-6 transition-all duration-200"
-            style={{
-              background: 'rgba(244,114,182,0.06)',
-              border: '1px solid rgba(244,114,182,0.18)',
-              boxShadow: '0 0 0 0 rgba(244,114,182,0)',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLDivElement).style.background = 'rgba(244,114,182,0.10)';
-              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(244,114,182,0.35)';
-              (e.currentTarget as HTMLDivElement).style.boxShadow = '0 0 30px rgba(244,114,182,0.15)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLDivElement).style.background = 'rgba(244,114,182,0.06)';
-              (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(244,114,182,0.18)';
-              (e.currentTarget as HTMLDivElement).style.boxShadow = '0 0 0 0 rgba(244,114,182,0)';
-            }}
-          >
-            <div>
-              <div className="flex items-center justify-between mb-5">
-                <div
-                  className="w-12 h-12 rounded-xl flex items-center justify-center font-bold text-lg"
-                  style={{
-                    background: 'rgba(244,114,182,0.15)',
-                    border: '1px solid rgba(244,114,182,0.30)',
-                    color: '#F472B6',
-                    boxShadow: '0 0 16px rgba(244,114,182,0.2)',
-                  }}
-                >
-                  M
-                </div>
-                <span
-                  className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
-                  style={{ background: 'rgba(244,114,182,0.12)', color: '#F472B6', border: '1px solid rgba(244,114,182,0.25)' }}
-                >
-                  Collaborator
-                </span>
-              </div>
-
-              <h2 className="text-lg font-bold text-white tracking-tight">Maya</h2>
-              <p className="text-xs font-semibold mt-0.5" style={{ color: '#F472B6' }}>Product Designer</p>
-              <p className="text-[13px] text-slate-400 mt-3 leading-relaxed">
-                Refines interface sections directly on canvas, resolves concurrent conflicts, and redirects PIXEL engineering runs.
-              </p>
-            </div>
-
-            <div className="mt-6 pt-4" style={{ borderTop: '1px solid rgba(244,114,182,0.12)' }}>
-              <button
-                type="button"
-                onClick={e => { e.stopPropagation(); onSelect('maya'); }}
-                className="w-full h-10 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all"
-                style={{
-                  background: 'rgba(244,114,182,0.15)',
-                  color: '#F472B6',
-                  border: '1px solid rgba(244,114,182,0.30)',
-                }}
-                onMouseEnter={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(244,114,182,0.25)';
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 20px rgba(244,114,182,0.3)';
-                }}
-                onMouseLeave={e => {
-                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(244,114,182,0.15)';
-                  (e.currentTarget as HTMLButtonElement).style.boxShadow = 'none';
-                }}
-              >
-                <span>Continue as Maya</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer badge */}
-        <div
-          className="px-4 py-3 rounded-xl text-xs text-slate-500 flex items-center justify-between"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
-        >
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 shrink-0" style={{ color: '#34D399' }} strokeWidth={1.75} />
-            <span>Multi-user workspace · Live WebSocket sync</span>
-          </div>
-          <span className="text-[11px] font-mono text-slate-600">LedgerFlow</span>
-        </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <button type="button" onClick={() => onSelect('alex')} className="group flex min-h-[285px] flex-col rounded-[26px] border border-white/15 bg-white/[.08] p-6 text-left backdrop-blur-xl transition hover:-translate-y-1 hover:border-blue-300/60 hover:bg-white/[.12] hover:shadow-[0_25px_60px_-25px_rgba(37,99,235,.35)] sm:p-8">
+          <span className="flex items-start justify-between"><span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-400/20 text-2xl font-bold text-blue-200 ring-1 ring-blue-300/30">A</span><span className="rounded-full border border-blue-300/30 bg-blue-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-200">Decision owner</span></span>
+          <span className="mt-7 text-2xl font-semibold tracking-tight">Alex</span><span className="mt-1 text-sm font-medium text-blue-200">Founder & product lead</span>
+          <span className="mt-3 max-w-sm text-sm leading-6 text-slate-300">Set direction, create briefs, and approve changes to the product.</span>
+          <span className="mt-auto flex items-center justify-between border-t border-white/10 pt-5 text-sm font-semibold">Enter as Alex <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" /></span>
+        </button>
+        <button type="button" onClick={() => onSelect('maya')} className="group flex min-h-[285px] flex-col rounded-[26px] border border-white/15 bg-white/[.08] p-6 text-left backdrop-blur-xl transition hover:-translate-y-1 hover:border-sky-300/60 hover:bg-white/[.12] hover:shadow-[0_25px_60px_-25px_rgba(56,189,248,.3)] sm:p-8">
+          <span className="flex items-start justify-between"><span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-sky-400/20 text-2xl font-bold text-sky-200 ring-1 ring-sky-300/30">M</span><span className="rounded-full border border-sky-300/30 bg-sky-400/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-sky-200">Collaborator</span></span>
+          <span className="mt-7 text-2xl font-semibold tracking-tight">Maya</span><span className="mt-1 text-sm font-medium text-sky-200">Product designer</span>
+          <span className="mt-3 max-w-sm text-sm leading-6 text-slate-300">Shape the experience, review proposals, and resolve design conflicts.</span>
+          <span className="mt-auto flex items-center justify-between border-t border-white/10 pt-5 text-sm font-semibold">Enter as Maya <ArrowRight className="h-5 w-5 transition group-hover:translate-x-1" /></span>
+        </button>
       </div>
+      <div className="mt-7 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-xs text-slate-400"><span className="flex items-center gap-1.5"><ShieldCheck className="h-4 w-4 text-emerald-300" /> Human approval</span><span className="flex items-center gap-1.5"><Sparkles className="h-4 w-4 text-sky-300" /> Shared context</span><span className="flex items-center gap-1.5"><Bot className="h-4 w-4 text-blue-300" /> NOVA</span><span className="flex items-center gap-1.5"><Code2 className="h-4 w-4 text-sky-300" /> PIXEL</span></div>
     </div>
-  );
-};
+  </main>
+);
