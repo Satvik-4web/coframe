@@ -165,7 +165,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <aside
-      className={`relative flex flex-col justify-between select-none shrink-0 transition-all duration-200 ease-out h-full overflow-hidden glass-sidebar ${
+      className={`app-sidebar relative flex flex-col justify-between select-none shrink-0 transition-all duration-200 ease-out h-full overflow-hidden glass-sidebar ${
         isCollapsed ? 'w-16 py-3' : 'w-60 py-4'
       }`}
     >

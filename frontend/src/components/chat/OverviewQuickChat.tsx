@@ -77,7 +77,7 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
 
   return (
     <div
-      className="p-5 relative overflow-hidden rounded-2xl"
+      className="overview-work-card p-5 relative overflow-hidden rounded-2xl"
       style={{
         background: 'rgba(255, 255, 255, 0.03)',
         border: '1px solid rgba(255, 255, 255, 0.08)',
@@ -120,6 +120,7 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
           <button
             type="button"
             onClick={() => setRecipient('nova')}
+            aria-pressed={recipient === 'nova'}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
             style={
               recipient === 'nova'
@@ -138,6 +139,7 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
           <button
             type="button"
             onClick={() => setRecipient('pixel')}
+            aria-pressed={recipient === 'pixel'}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
             style={
               recipient === 'pixel'
@@ -156,6 +158,7 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
           <button
             type="button"
             onClick={() => setRecipient('team')}
+            aria-pressed={recipient === 'team'}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer"
             style={
               recipient === 'team'
@@ -176,13 +179,14 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
 
       {/* Input Composer Box */}
       <div
-        className="relative rounded-xl transition p-3.5 border focus-within:border-indigo-400/50"
+          className="overview-composer relative rounded-xl transition p-3.5 border focus-within:border-indigo-400/50"
         style={{
           background: 'rgba(0, 0, 0, 0.35)',
           borderColor: 'rgba(255, 255, 255, 0.08)',
         }}
       >
         <textarea
+          aria-label="Describe a product capability or refinement"
           rows={2}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
@@ -251,7 +255,7 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
               key={item.label}
               type="button"
               onClick={() => handleSend(item.text, item.recipient)}
-              className="text-left p-3 rounded-xl border transition cursor-pointer group flex flex-col justify-between"
+              className="overview-starter text-left p-3 rounded-xl border transition cursor-pointer group flex flex-col justify-between"
               style={{
                 background: 'rgba(255, 255, 255, 0.02)',
                 borderColor: 'rgba(255, 255, 255, 0.05)',

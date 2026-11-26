@@ -165,7 +165,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
   const activeStageIdx = Math.min(stageInfo?.active_index ?? 0, LIFECYCLE_STEPS.length - 1);
 
   return (
-    <div className="space-y-6 max-w-6xl mx-auto pb-8">
+    <div className="space-y-6 studio-page max-w-6xl mx-auto pb-8">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-1">
         <div>
@@ -174,7 +174,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
             <span className="text-slate-700">/</span>
             <span className="text-slate-500 font-medium">LedgerFlow</span>
           </div>
-          <h1 className="text-[26px] font-bold text-white tracking-[-0.025em] leading-tight">
+          <h1 className="text-[26px] font-bold studio-title tracking-[-0.025em] leading-tight">
             Product Overview
           </h1>
           <p className="text-sm text-slate-500 mt-1 max-w-xl">
@@ -186,8 +186,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
           <button
             type="button"
             onClick={() => setShowPromptModal(true)}
-            className="h-9 px-3.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all"
-            style={{ background: 'rgba(255,255,255,0.06)', color: '#94A3B8', border: '1px solid rgba(255,255,255,0.09)' }}
+            className="studio-action studio-action-muted h-9 px-3.5 rounded-lg text-xs font-semibold flex items-center gap-1.5"
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.09)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.06)'; }}
           >
@@ -198,8 +197,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
           <button
             type="button"
             onClick={() => onNavigateTab('preview')}
-            className="h-9 px-3.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all"
-            style={{ background: 'rgba(34,211,238,0.10)', color: '#22D3EE', border: '1px solid rgba(34,211,238,0.22)' }}
+            className="studio-action studio-action-outline h-9 px-3.5 rounded-lg text-xs font-semibold flex items-center gap-1.5"
             onMouseEnter={e => {
               (e.currentTarget as HTMLButtonElement).style.background = 'rgba(34,211,238,0.18)';
               (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 20px rgba(34,211,238,0.2)';
@@ -239,8 +237,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
 
       {/* Lifecycle Pipeline Rail */}
       <div
-        className="rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+        className="studio-pipeline rounded-xl px-4 py-3 flex flex-wrap items-center justify-between gap-3"
       >
         <div className="flex items-center gap-2">
           <span
@@ -255,7 +252,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
           </span>
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto">
+        <div className="studio-workflow-steps flex items-center gap-1.5 overflow-x-auto" role="list" aria-label="Product workflow progress">
           {LIFECYCLE_STEPS.map((label, idx) => {
             const isDone = idx < activeStageIdx;
             const isCurrent = idx === activeStageIdx;
@@ -263,6 +260,8 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
             return (
               <React.Fragment key={label}>
                 <span
+                  role="listitem"
+                  aria-current={isCurrent ? 'step' : undefined}
                   className="px-2 py-0.5 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all"
                   style={
                     isCurrent
@@ -366,8 +365,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
         <div className="lg:col-span-7 space-y-5">
           {/* Attention Queue */}
           <div
-            className="rounded-xl p-5 space-y-3.5"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+            className="studio-pipeline rounded-xl p-5 space-y-3.5"
           >
             <div className="flex items-center justify-between pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
               <div className="flex items-center gap-2">
@@ -403,19 +401,12 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
             ) : (
               <div className="space-y-2">
                 {attentionItems.map((item, idx) => (
-                  <div
+                  <button
+                    type="button"
                     key={item.id || ('attn_' + idx)}
                     onClick={item.action}
-                    className="p-3.5 rounded-xl cursor-pointer transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    className="studio-attention-item w-full text-left p-3.5 rounded-xl cursor-pointer transition-all group flex flex-col sm:flex-row sm:items-center justify-between gap-3"
                     style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
-                    onMouseEnter={e => {
-                      (e.currentTarget as HTMLDivElement).style.background = 'rgba(129,140,248,0.06)';
-                      (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(129,140,248,0.20)';
-                    }}
-                    onMouseLeave={e => {
-                      (e.currentTarget as HTMLDivElement).style.background = 'rgba(255,255,255,0.03)';
-                      (e.currentTarget as HTMLDivElement).style.borderColor = 'rgba(255,255,255,0.06)';
-                    }}
                   >
                     <div className="space-y-1 flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -434,7 +425,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                       <span>{item.actionLabel}</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </div>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
@@ -450,8 +441,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
 
           {/* Recent Activity */}
           <div
-            className="rounded-xl p-5 space-y-3.5"
-            style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}
+            className="studio-pipeline rounded-xl p-5 space-y-3.5"
           >
             <div className="flex items-center justify-between pb-3" style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
               <div className="flex items-center gap-2">
@@ -590,8 +580,7 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
                 </div>
               </div>
               <span
-                className="text-[11px] font-semibold px-2 py-0.5 rounded-full"
-                style={{ background: 'rgba(34,211,238,0.10)', color: '#22D3EE', border: '1px solid rgba(34,211,238,0.22)' }}
+                className="text-[11px] font-semibold px-2 py-0.5 rounded-full studio-action-outline"
               >
                 {stageInfo?.pixel_status?.includes('Waiting') ? 'Awaiting PRD' : 'Standby'}
               </span>
@@ -639,3 +628,6 @@ export const WorkspaceView: React.FC<WorkspaceViewProps> = ({
     </div>
   );
 };
+
+
+

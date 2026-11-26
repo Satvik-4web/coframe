@@ -126,7 +126,7 @@ export function App() {
   ).length;
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden font-sans antialiased" style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
+    <div className={`cf-dark app-light app-theme flex h-screen flex-col overflow-hidden font-sans antialiased theme-${currentTab}`}>
       {/* 1. Global Top Navigation */}
       <TopBar
         project={state?.project}
@@ -169,7 +169,7 @@ export function App() {
         />
 
         {/* Central Content Panel */}
-        <main className={`flex-1 relative ${currentTab === 'chat' ? 'overflow-hidden p-0' : 'overflow-y-auto p-6 lg:p-8 max-w-7xl mx-auto w-full'}`}>
+        <main className={`flex-1 relative ${currentTab === 'chat' ? 'overflow-hidden p-0' : 'cf-main-surface overflow-y-auto p-6 lg:p-8 max-w-7xl mx-auto w-full'}`}>
           {currentTab === 'chat' && state && (
             <WorkspaceChatView
               projectId={projectId}
@@ -285,3 +285,6 @@ export function App() {
 }
 
 export default App;
+
+
+

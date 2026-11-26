@@ -19,8 +19,8 @@ export const ObserverSummaryBanner: React.FC<ObserverSummaryBannerProps> = ({
     <div
       className="px-5 text-xs select-none transition-colors border-b"
       style={{
-        background: 'rgba(129, 140, 248, 0.04)',
-        borderColor: 'rgba(255, 255, 255, 0.06)',
+        background: '#F1F5FC',
+        borderColor: '#E1E7F0',
       }}
     >
       <div className="max-w-7xl mx-auto py-2">
@@ -30,18 +30,18 @@ export const ObserverSummaryBanner: React.FC<ObserverSummaryBannerProps> = ({
             <span
               className="w-2 h-2 rounded-full shrink-0"
               style={{
-                background: '#818CF8',
-                boxShadow: '0 0 8px rgba(129, 140, 248, 0.8)',
+                background: '#5279CC',
+                boxShadow: 'none',
               }}
             />
             <div className="flex items-center gap-1.5 shrink-0">
-              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-              <span className="text-[11px] font-mono font-semibold text-indigo-300 uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-blue-700" />
+              <span className="text-[11px] font-mono font-semibold text-blue-700 uppercase tracking-wider">
                 Live State
               </span>
             </div>
-            <span className="text-slate-600 shrink-0">·</span>
-            <p className="text-xs text-slate-300 font-medium truncate">
+            <span className="text-slate-400 shrink-0">·</span>
+            <p className="text-xs text-slate-700 font-medium truncate">
               {summary.what_changed || 'Collaboration update available'}
             </p>
           </div>
@@ -50,7 +50,7 @@ export const ObserverSummaryBanner: React.FC<ObserverSummaryBannerProps> = ({
             <button
               type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-200 transition cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-600 hover:text-slate-900 transition cursor-pointer"
               style={{ background: 'rgba(255, 255, 255, 0.04)' }}
             >
               <span>{isExpanded ? 'Hide details' : 'Context'}</span>
@@ -106,7 +106,7 @@ export const ObserverSummaryBanner: React.FC<ObserverSummaryBannerProps> = ({
                 border: '1px solid rgba(129, 140, 248, 0.15)',
               }}
             >
-              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-indigo-400 block mb-1">
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-blue-700 block mb-1">
                 Next step
               </span>
               <p className="text-xs text-indigo-200 font-medium leading-relaxed">
@@ -119,3 +119,5 @@ export const ObserverSummaryBanner: React.FC<ObserverSummaryBannerProps> = ({
     </div>
   );
 };
+
+

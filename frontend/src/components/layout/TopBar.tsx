@@ -66,7 +66,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   const connectionLabel = isConnected ? 'Live' : 'Connecting';
 
   return (
-    <header className="h-12 glass-header px-5 flex items-center justify-between z-30 select-none sticky top-0">
+    <header className="app-topbar h-12 glass-header px-5 flex items-center justify-between z-30 select-none sticky top-0">
       {/* Left: Project Breadcrumb & Status */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2 text-[13px]">
