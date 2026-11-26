@@ -89,21 +89,21 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner & Header */}
-      <div className="bg-[#1A202C] border border-[#303A4B] p-5 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center space-x-3.5">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-violet-600 via-teal-600 to-emerald-600 flex items-center justify-center text-white shadow-xs">
             <Bot className="w-5 h-5" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-base font-bold text-[#E7EDF7] tracking-tight">
+              <h1 className="text-base font-bold text-[#172033] tracking-tight">
                 AI Collaborator Team
               </h1>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/25">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
                 2 Agents Active
               </span>
             </div>
-            <p className="text-xs text-[#A3B0C4] mt-0.5">
+            <p className="text-xs text-[#657189] mt-0.5">
               Specialized autonomous AI partners collaborating with Alex & Maya on LedgerFlow
             </p>
           </div>
@@ -114,21 +114,21 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
           {onNavigateTab && (
             <button
               onClick={() => onNavigateTab('context')}
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/10 border border-teal-500/25 text-xs font-semibold text-teal-300 shadow-xs transition cursor-pointer"
+              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100/70 border border-teal-200 text-xs font-semibold text-teal-900 shadow-xs transition cursor-pointer"
             >
-              <Radio className="w-3.5 h-3.5 text-teal-300" />
+              <Radio className="w-3.5 h-3.5 text-teal-700" />
               <span>Full Context Inspector</span>
-              <ExternalLink className="w-3 h-3 text-teal-400 ml-0.5" />
+              <ExternalLink className="w-3 h-3 text-teal-600 ml-0.5" />
             </button>
           )}
 
           <button
             onClick={() => handleRestart(selectedAgent)}
             disabled={restarting}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-[#1A202C] hover:bg-[#141A24] border border-[#303A4B] text-xs font-semibold text-[#E7EDF7] shadow-xs transition cursor-pointer disabled:opacity-50"
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-[#E7ECF2] text-xs font-semibold text-[#172033] shadow-xs transition cursor-pointer disabled:opacity-50"
             title="Demonstrate Step 5: Restart this agent and recover fresh Context Pack from persisted state"
           >
-            <RotateCcw className={`w-3.5 h-3.5 text-amber-400 ${restarting ? 'animate-spin' : ''}`} />
+            <RotateCcw className={`w-3.5 h-3.5 text-amber-600 ${restarting ? 'animate-spin' : ''}`} />
             <span>Restart & Recover Context</span>
           </button>
         </div>
@@ -141,8 +141,8 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
           onClick={() => setSelectedAgent('nova')}
           className={`p-5 rounded-3xl border transition-all cursor-pointer ${
             selectedAgent === 'nova'
-              ? 'bg-[#1A202C] border-violet-400 ring-2 ring-violet-100 shadow-md'
-              : 'bg-[#1A202C] border-[#303A4B] hover:border-violet-500/25 hover:shadow-xs'
+              ? 'bg-white border-violet-400 ring-2 ring-violet-100 shadow-md'
+              : 'bg-white border-[#E7ECF2] hover:border-violet-200 hover:shadow-xs'
           }`}
         >
           <div className="flex items-start justify-between">
@@ -152,25 +152,25 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm font-bold text-[#E7EDF7]">NOVA</h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-300 border border-violet-500/25">
+                  <h3 className="text-sm font-bold text-[#172033]">NOVA</h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
                     Product Strategist
                   </span>
-                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-[#1D2633] text-[#C6D2E4] border border-[#303A4B]">
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                     gemini-2.5-flash
                   </span>
                 </div>
-                <p className="text-[11px] text-[#A3B0C4] mt-0.5">
+                <p className="text-[11px] text-[#657189] mt-0.5">
                   Idea discovery, requirements formulation & PRD authoring
                 </p>
               </div>
             </div>
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border shadow-2xs ${
               novaRun?.status === 'working'
-                ? 'bg-violet-500/10 text-violet-300 border-violet-500/25'
+                ? 'bg-violet-50 text-violet-700 border-violet-200'
                 : novaRun?.status === 'waiting_for_review'
-                ? 'bg-amber-500/10 text-amber-300 border-amber-500/25'
-                : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25'
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
             }`}>
               <span className={`w-2 h-2 rounded-full ${
                 novaRun?.status === 'working' ? 'bg-violet-500 animate-ping' : 'bg-emerald-500'
@@ -185,23 +185,23 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
             </span>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#293445] grid grid-cols-3 gap-2 text-xs">
-            <div className="bg-[#141A24] p-2.5 rounded-xl border border-[#303A4B]">
-              <span className="text-[10px] text-[#A3B0C4] block font-medium">Context Base</span>
-              <span className="font-mono font-bold text-blue-300">v{novaRun?.base_context_version || 1}</span>
+          <div className="mt-4 pt-3 border-t border-[#F0F3F7] grid grid-cols-3 gap-2 text-xs">
+            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
+              <span className="text-[10px] text-[#657189] block font-medium">Context Base</span>
+              <span className="font-mono font-bold text-blue-700">v{novaRun?.base_context_version || 1}</span>
             </div>
-            <div className="bg-[#141A24] p-2.5 rounded-xl border border-[#303A4B]">
-              <span className="text-[10px] text-[#A3B0C4] block font-medium">Artifact Base</span>
-              <span className="font-mono font-bold text-emerald-300">v{novaRun?.base_artifact_version || 1}</span>
+            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
+              <span className="text-[10px] text-[#657189] block font-medium">Artifact Base</span>
+              <span className="font-mono font-bold text-emerald-700">v{novaRun?.base_artifact_version || 1}</span>
             </div>
-            <div className="bg-[#141A24] p-2.5 rounded-xl border border-[#303A4B]">
-              <span className="text-[10px] text-[#A3B0C4] block font-medium">Model Engine</span>
-              <span className="font-bold text-violet-300 truncate block">Gemini 2.5</span>
+            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
+              <span className="text-[10px] text-[#657189] block font-medium">Model Engine</span>
+              <span className="font-bold text-violet-700 truncate block">Gemini 2.5</span>
             </div>
           </div>
 
-          <p className="mt-3 text-xs text-[#A3B0C4] line-clamp-2 leading-relaxed">
-            <strong className="text-[#E7EDF7]">Current Task: </strong>
+          <p className="mt-3 text-xs text-[#657189] line-clamp-2 leading-relaxed">
+            <strong className="text-[#172033]">Current Task: </strong>
             {novaRun?.current_task || novaRun?.task_description || 'Synthesizing market requirements & audience fit'}
           </p>
         </div>
@@ -211,8 +211,8 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
           onClick={() => setSelectedAgent('pixel')}
           className={`p-5 rounded-3xl border transition-all cursor-pointer ${
             selectedAgent === 'pixel'
-              ? 'bg-[#1A202C] border-teal-400 ring-2 ring-teal-100 shadow-md'
-              : 'bg-[#1A202C] border-[#303A4B] hover:border-teal-500/25 hover:shadow-xs'
+              ? 'bg-white border-teal-400 ring-2 ring-teal-100 shadow-md'
+              : 'bg-white border-[#E7ECF2] hover:border-teal-200 hover:shadow-xs'
           }`}
         >
           <div className="flex items-start justify-between">
@@ -222,25 +222,25 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm font-bold text-[#E7EDF7]">PIXEL</h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/25">
+                  <h3 className="text-sm font-bold text-[#172033]">PIXEL</h3>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
                     AI Software Engineer
                   </span>
-                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-[#1D2633] text-[#C6D2E4] border border-[#303A4B]">
+                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
                     gemini-2.5-flash
                   </span>
                 </div>
-                <p className="text-[11px] text-[#A3B0C4] mt-0.5">
+                <p className="text-[11px] text-[#657189] mt-0.5">
                   Implementation plans, schema mutations & automated tests
                 </p>
               </div>
             </div>
             <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border shadow-2xs ${
               pixelRun?.status === 'working'
-                ? 'bg-teal-500/10 text-teal-300 border-teal-500/25'
+                ? 'bg-teal-50 text-teal-700 border-teal-200'
                 : pixelRun?.status === 'waiting_for_review'
-                ? 'bg-amber-500/10 text-amber-300 border-amber-500/25'
-                : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25'
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
             }`}>
               <span className={`w-2 h-2 rounded-full ${
                 pixelRun?.status === 'working' ? 'bg-teal-500 animate-ping' : 'bg-emerald-500'
@@ -255,39 +255,39 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
             </span>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#293445] grid grid-cols-3 gap-2 text-xs">
-            <div className="bg-[#141A24] p-2.5 rounded-xl border border-[#303A4B]">
-              <span className="text-[10px] text-[#A3B0C4] block font-medium">Context Base</span>
-              <span className="font-mono font-bold text-blue-300">v{pixelRun?.base_context_version || 1}</span>
+          <div className="mt-4 pt-3 border-t border-[#F0F3F7] grid grid-cols-3 gap-2 text-xs">
+            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
+              <span className="text-[10px] text-[#657189] block font-medium">Context Base</span>
+              <span className="font-mono font-bold text-blue-700">v{pixelRun?.base_context_version || 1}</span>
             </div>
-            <div className="bg-[#141A24] p-2.5 rounded-xl border border-[#303A4B]">
-              <span className="text-[10px] text-[#A3B0C4] block font-medium">Artifact Base</span>
-              <span className="font-mono font-bold text-emerald-300">v{pixelRun?.base_artifact_version || 1}</span>
+            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
+              <span className="text-[10px] text-[#657189] block font-medium">Artifact Base</span>
+              <span className="font-mono font-bold text-emerald-700">v{pixelRun?.base_artifact_version || 1}</span>
             </div>
-            <div className="bg-[#141A24] p-2.5 rounded-xl border border-[#303A4B]">
-              <span className="text-[10px] text-[#A3B0C4] block font-medium">Model Engine</span>
-              <span className="font-bold text-teal-300 truncate block">Gemini 2.5</span>
+            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
+              <span className="text-[10px] text-[#657189] block font-medium">Model Engine</span>
+              <span className="font-bold text-teal-700 truncate block">Gemini 2.5</span>
             </div>
           </div>
 
-          <p className="mt-3 text-xs text-[#A3B0C4] line-clamp-2 leading-relaxed">
-            <strong className="text-[#E7EDF7]">Current Task: </strong>
+          <p className="mt-3 text-xs text-[#657189] line-clamp-2 leading-relaxed">
+            <strong className="text-[#172033]">Current Task: </strong>
             {pixelRun?.current_task || pixelRun?.task_description || 'Implementing LedgerFlow hero and approval policy sections'}
           </p>
         </div>
       </div>
 
       {/* Sub-tab Navigation */}
-      <div className="flex items-center space-x-2 border-b border-[#303A4B] pb-2">
+      <div className="flex items-center space-x-2 border-b border-[#E7ECF2] pb-2">
         <button
           onClick={() => setActiveSubTab('context')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-2 ${
             activeSubTab === 'context'
-              ? 'bg-[#1A202C] text-teal-300 border border-[#303A4B] shadow-2xs'
-              : 'text-[#A3B0C4] hover:text-[#E7EDF7]'
+              ? 'bg-white text-teal-800 border border-[#E7ECF2] shadow-2xs'
+              : 'text-[#657189] hover:text-[#172033]'
           }`}
         >
-          <Cpu className="w-3.5 h-3.5 text-violet-400" />
+          <Cpu className="w-3.5 h-3.5 text-violet-600" />
           <span>Context Pack & Recovery Inspector ({selectedAgent.toUpperCase()})</span>
         </button>
 
@@ -295,11 +295,11 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
           onClick={() => setActiveSubTab('delegation')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-2 ${
             activeSubTab === 'delegation'
-              ? 'bg-[#1A202C] text-teal-300 border border-[#303A4B] shadow-2xs'
-              : 'text-[#A3B0C4] hover:text-[#E7EDF7]'
+              ? 'bg-white text-teal-800 border border-[#E7ECF2] shadow-2xs'
+              : 'text-[#657189] hover:text-[#172033]'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+          <Sparkles className="w-3.5 h-3.5 text-teal-600" />
           <span>Agent-to-Agent Delegation ({delegations.length})</span>
         </button>
 
@@ -307,11 +307,11 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
           onClick={() => setActiveSubTab('mcp')}
           className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-2 ${
             activeSubTab === 'mcp'
-              ? 'bg-[#1A202C] text-teal-300 border border-[#303A4B] shadow-2xs'
-              : 'text-[#A3B0C4] hover:text-[#E7EDF7]'
+              ? 'bg-white text-teal-800 border border-[#E7ECF2] shadow-2xs'
+              : 'text-[#657189] hover:text-[#172033]'
           }`}
         >
-          <Code2 className="w-3.5 h-3.5 text-blue-400" />
+          <Code2 className="w-3.5 h-3.5 text-blue-600" />
           <span>MCP Tool Explorer</span>
         </button>
       </div>
@@ -320,11 +320,11 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
       {activeSubTab === 'context' && (
         <div className="space-y-5">
           {loading ? (
-            <div className="text-center py-16 text-xs text-[#A3B0C4] bg-[#1A202C] rounded-2xl border border-[#303A4B] shadow-sm">
+            <div className="text-center py-16 text-xs text-[#657189] bg-white rounded-2xl border border-[#E7ECF2] shadow-sm">
               Loading authoritative Context Pack...
             </div>
           ) : !packData ? (
-            <div className="text-center py-16 text-xs text-[#A3B0C4] bg-[#1A202C] rounded-2xl border border-[#303A4B] shadow-sm">
+            <div className="text-center py-16 text-xs text-[#657189] bg-white rounded-2xl border border-[#E7ECF2] shadow-sm">
               No active runs found for {selectedAgent.toUpperCase()}. Start collaboration first or click Restart.
             </div>
           ) : (
@@ -332,15 +332,15 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
               {/* Left 2 Cols: Pack Structure Breakdown */}
               <div className="lg:col-span-2 space-y-4">
                 {/* Version Metadata Summary */}
-                <div className="bg-[#1A202C] border border-[#303A4B] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#A3B0C4]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#657189]">
                       Run Context Metadata
                     </span>
                     {onNavigateTab && (
                       <button
                         onClick={() => onNavigateTab('context')}
-                        className="text-[11px] font-semibold text-teal-300 hover:text-teal-300 flex items-center gap-1 cursor-pointer"
+                        className="text-[11px] font-semibold text-teal-700 hover:text-teal-900 flex items-center gap-1 cursor-pointer"
                       >
                         <span>Open in Context Inspector</span>
                         <ArrowRight className="w-3 h-3" />
@@ -348,44 +348,44 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
                     )}
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                    <div className="bg-[#141A24] p-3 rounded-xl border border-[#303A4B]">
-                      <span className="text-[11px] text-[#A3B0C4] block mb-0.5 font-medium">Run ID</span>
-                      <span className="font-mono text-teal-300 font-semibold">{packData.run_id}</span>
+                    <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
+                      <span className="text-[11px] text-[#657189] block mb-0.5 font-medium">Run ID</span>
+                      <span className="font-mono text-teal-700 font-semibold">{packData.run_id}</span>
                     </div>
-                    <div className="bg-[#141A24] p-3 rounded-xl border border-[#303A4B]">
-                      <span className="text-[11px] text-[#A3B0C4] block mb-0.5 font-medium">Context Version</span>
-                      <span className="font-mono text-blue-300 font-semibold">v{pack.context_version}</span>
+                    <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
+                      <span className="text-[11px] text-[#657189] block mb-0.5 font-medium">Context Version</span>
+                      <span className="font-mono text-blue-700 font-semibold">v{pack.context_version}</span>
                     </div>
-                    <div className="bg-[#141A24] p-3 rounded-xl border border-[#303A4B]">
-                      <span className="text-[11px] text-[#A3B0C4] block mb-0.5 font-medium">Artifact Version</span>
-                      <span className="font-mono text-emerald-300 font-semibold">v{pack.artifact_version}</span>
+                    <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
+                      <span className="text-[11px] text-[#657189] block mb-0.5 font-medium">Artifact Version</span>
+                      <span className="font-mono text-emerald-700 font-semibold">v{pack.artifact_version}</span>
                     </div>
-                    <div className="bg-[#141A24] p-3 rounded-xl border border-[#303A4B]">
-                      <span className="text-[11px] text-[#A3B0C4] block mb-0.5 font-medium">Data Source</span>
-                      <span className="font-mono text-violet-300 font-semibold">{packData.source}</span>
+                    <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
+                      <span className="text-[11px] text-[#657189] block mb-0.5 font-medium">Data Source</span>
+                      <span className="font-mono text-violet-700 font-semibold">{packData.source}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Verified Requirements Pack */}
-                <div className="bg-[#1A202C] border border-[#303A4B] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#A3B0C4] block mb-3">
+                <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#657189] block mb-3">
                     Supplied Requirements ({pack.requirements?.length || 0})
                   </span>
                   <div className="space-y-2 text-xs">
                     {pack.requirements?.map((req: any) => (
                       <div
                         key={req.id || req.key}
-                        className="flex items-center justify-between p-3 rounded-xl bg-[#141A24] border border-[#303A4B]"
+                        className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2]"
                       >
                         <div>
                           <div className="flex items-center space-x-2">
-                            <span className="font-mono text-blue-300 font-bold">{req.key}</span>
-                            <span className="text-[11px] font-medium text-[#A3B0C4] bg-[#1A202C] px-1.5 py-0.5 rounded border border-[#303A4B]">
+                            <span className="font-mono text-blue-700 font-bold">{req.key}</span>
+                            <span className="text-[11px] font-medium text-[#657189] bg-white px-1.5 py-0.5 rounded border border-[#E7ECF2]">
                               v{req.version}
                             </span>
                           </div>
-                          <span className="text-xs text-[#E7EDF7] mt-1 block font-medium">{req.value}</span>
+                          <span className="text-xs text-[#172033] mt-1 block font-medium">{req.value}</span>
                         </div>
                       </div>
                     ))}
@@ -393,14 +393,14 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
                 </div>
 
                 {/* Raw JSON Context Viewer (Targeted by Playwright) */}
-                <div className="bg-[#1A202C] border border-[#303A4B] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#A3B0C4]">
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#657189]">
                       Authoritative Immutable JSON
                     </span>
                     <button
                       onClick={handleCopyJson}
-                      className="flex items-center space-x-1.5 text-xs text-teal-400 hover:text-teal-300 font-semibold cursor-pointer"
+                      className="flex items-center space-x-1.5 text-xs text-teal-600 hover:text-teal-800 font-semibold cursor-pointer"
                     >
                       <Copy className="w-3.5 h-3.5" />
                       <span>{copied ? 'Copied!' : 'Copy JSON'}</span>
@@ -414,33 +414,33 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
 
               {/* Right Col: Recovery Summary & Agent Task (Targeted by Playwright) */}
               <div className="space-y-4">
-                <div className="bg-violet-500/10 border border-violet-500/25 rounded-2xl p-5 shadow-xs">
-                  <div className="flex items-center space-x-2 mb-3 text-violet-300">
+                <div className="bg-violet-50/50 border border-violet-200 rounded-2xl p-5 shadow-xs">
+                  <div className="flex items-center space-x-2 mb-3 text-violet-700">
                     <Sparkles className="w-4 h-4" />
-                    <h3 className="font-bold text-xs uppercase tracking-wider text-violet-300">
+                    <h3 className="font-bold text-xs uppercase tracking-wider text-violet-900">
                       Context Recovery Summary
                     </h3>
                   </div>
 
                   <div className="space-y-3.5 text-xs">
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#A3B0C4] block mb-0.5">Status</span>
-                      <p className="text-emerald-300 font-semibold flex items-center space-x-1">
-                        <CheckCircle2 className="w-4 h-4 inline mr-1 text-emerald-400" />
+                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Status</span>
+                      <p className="text-emerald-700 font-semibold flex items-center space-x-1">
+                        <CheckCircle2 className="w-4 h-4 inline mr-1 text-emerald-600" />
                         <span>State Reconstructed from Database</span>
                       </p>
                     </div>
 
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#A3B0C4] block mb-0.5">Agent Task</span>
-                      <p className="text-[#E7EDF7] font-medium leading-relaxed">
+                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Agent Task</span>
+                      <p className="text-[#172033] font-medium leading-relaxed">
                         {pack.agent_task?.description || 'Active background strategy and prototype execution'}
                       </p>
                     </div>
 
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#A3B0C4] block mb-0.5">Offline Changes</span>
-                      <p className="text-[#A3B0C4] leading-relaxed">
+                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Offline Changes</span>
+                      <p className="text-[#657189] leading-relaxed">
                         {pack.offline_changes?.length > 0
                           ? `${pack.offline_changes.length} event(s) logged while offline`
                           : 'Pack incorporates all latest requirement version updates'}
@@ -449,8 +449,8 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-[#1A202C] border border-[#303A4B] text-xs text-[#A3B0C4] leading-relaxed shadow-xs">
-                  💡 <strong className="text-[#E7EDF7]">Deterministic Recovery:</strong> When an agent restarts, COFRAME does not rely on transient chat logs. The backend reconstitutes an authoritative Context Pack consisting of verified requirement versions, artifact section versions, and unapplied changes.
+                <div className="p-4 rounded-2xl bg-white border border-[#E7ECF2] text-xs text-[#657189] leading-relaxed shadow-xs">
+                  💡 <strong className="text-[#172033]">Deterministic Recovery:</strong> When an agent restarts, COFRAME does not rely on transient chat logs. The backend reconstitutes an authoritative Context Pack consisting of verified requirement versions, artifact section versions, and unapplied changes.
                 </div>
               </div>
             </div>

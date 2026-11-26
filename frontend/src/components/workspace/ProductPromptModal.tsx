@@ -31,8 +31,8 @@ const PRESET_IDEAS = [
     constraints: 'Integrate directly with LedgerFlow Dashboard metrics.',
   },
   {
-    title: 'Receipt Reconciliation',
-    prompt: 'Add receipt reconciliation for USD expenses, including missing receipt flags and an audit trail.',
+    title: 'Global Multi-Currency Treasury',
+    prompt: 'Enable submitting and reimbursing corporate expenses in EUR, GBP, and USD with automated receipt reconciliation.',
     constraints: 'Must retain atomic SQLite commit guarantees.',
   },
 ];
@@ -66,9 +66,7 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
       const res = await analyseProductPrompt(
         prompt.trim(),
         constraints.trim() || undefined,
-        identity || 'alex',
-        'demo-ledgerflow',
-        referenceNote.trim() ? [referenceNote.trim()] : undefined
+        identity || 'alex'
       );
       if (res.prd) {
         onAnalysisComplete(res.prd);
@@ -88,25 +86,25 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-[#1A202C] rounded-2xl max-w-2xl w-full border border-[#E5EAF0] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-2xl max-w-2xl w-full border border-[#E5EAF0] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="p-6 border-b border-[#E5EAF0] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-violet-500/10 border border-violet-500/25 text-violet-300 flex items-center justify-center">
-              <Bot className="w-5 h-5 text-violet-300" />
+            <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-200 text-violet-700 flex items-center justify-center">
+              <Bot className="w-5 h-5 text-violet-700" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-[#E7EDF7]">
+              <h2 className="text-base font-bold text-[#172033]">
                 What would you like to create?
               </h2>
-              <p className="text-xs text-[#A3B0C4] mt-0.5">
+              <p className="text-xs text-[#657189] mt-0.5">
                 Describe your idea. NOVA will turn it into a structured product plan.
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-[#A3B0C4] hover:bg-[#1D2633] hover:text-[#E7EDF7] transition"
+            className="p-2 rounded-xl text-[#657189] hover:bg-slate-100 hover:text-[#172033] transition"
           >
             <X className="w-4 h-4" />
           </button>
@@ -115,14 +113,14 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
         {/* Form Body */}
         <div className="p-6 overflow-y-auto space-y-5">
           {error && (
-            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/25 text-xs text-red-300">
+            <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-800">
               {error}
             </div>
           )}
 
           {/* Quick Presets */}
           <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#A3B0C4] mb-2">
+            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#657189] mb-2">
               Fast Presets
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -131,12 +129,12 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
                   key={idx}
                   type="button"
                   onClick={() => handleApplyPreset(preset)}
-                  className="p-3 text-left rounded-xl border border-[#E5EAF0] bg-[#141A24] hover:border-violet-300 hover:bg-violet-500/10 transition text-xs group"
+                  className="p-3 text-left rounded-xl border border-[#E5EAF0] bg-[#F8FAFC] hover:border-violet-300 hover:bg-violet-50/30 transition text-xs group"
                 >
-                  <p className="font-bold text-[#E7EDF7] group-hover:text-violet-300">
+                  <p className="font-bold text-[#172033] group-hover:text-violet-700">
                     {preset.title}
                   </p>
-                  <p className="text-[10px] text-[#A3B0C4] mt-1 line-clamp-2">
+                  <p className="text-[10px] text-[#657189] mt-1 line-clamp-2">
                     {preset.prompt}
                   </p>
                 </button>
@@ -146,7 +144,7 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
 
           {/* Main Prompt Textarea */}
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-[#E7EDF7]">
+            <label className="block text-xs font-bold text-[#172033]">
               Product Objective & Functional Scope *
             </label>
             <textarea
@@ -155,27 +153,27 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
               disabled={isSubmitting}
               rows={4}
               placeholder="e.g. We need to implement tiered manager expense approvals where any spend exceeding $500 requires Alex's explicit decision..."
-              className="w-full p-3.5 rounded-xl border border-[#E5EAF0] text-xs text-[#E7EDF7] placeholder:text-[#8495AD] focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 bg-[#1A202C]"
+              className="w-full p-3.5 rounded-xl border border-[#E5EAF0] text-xs text-[#172033] placeholder:text-slate-400 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 bg-white"
             />
-            <p className="text-[11px] text-[#A3B0C4]">
+            <p className="text-[11px] text-[#657189]">
               NOVA will analyze target audience, functional constraints, and acceptance criteria.
             </p>
           </div>
 
           {/* Advanced Constraints Accordion */}
-          <div className="pt-2 border-t border-[#293445]">
+          <div className="pt-2 border-t border-[#F0F3F7]">
             <button
               type="button"
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="text-xs font-semibold text-teal-300 hover:underline flex items-center gap-1"
+              className="text-xs font-semibold text-teal-700 hover:underline flex items-center gap-1"
             >
               <span>{showAdvanced ? 'Hide Optional Constraints' : 'Add Constraints & Reference Materials'}</span>
             </button>
 
             {showAdvanced && (
-              <div className="mt-3 space-y-3 pl-3 border-l-2 border-teal-500/25">
+              <div className="mt-3 space-y-3 pl-3 border-l-2 border-teal-200">
                 <div>
-                  <label className="block text-xs font-semibold text-[#E7EDF7] mb-1">
+                  <label className="block text-xs font-semibold text-[#172033] mb-1">
                     System Constraints
                   </label>
                   <input
@@ -183,12 +181,12 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
                     value={constraints}
                     onChange={(e) => setConstraints(e.target.value)}
                     placeholder="e.g. Strict role validation; compare-and-swap atomic update"
-                    className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs text-[#E7EDF7] placeholder:text-[#8495AD] focus:outline-none focus:border-teal-500"
+                    className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs text-[#172033] placeholder:text-slate-400 focus:outline-none focus:border-teal-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-[#E7EDF7] mb-1">
+                  <label className="block text-xs font-semibold text-[#172033] mb-1">
                     Reference Context Notes
                   </label>
                   <input
@@ -196,7 +194,7 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
                     value={referenceNote}
                     onChange={(e) => setReferenceNote(e.target.value)}
                     placeholder="e.g. Aligns with LedgerFlow approval_queue component v1"
-                    className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs text-[#E7EDF7] placeholder:text-[#8495AD] focus:outline-none focus:border-teal-500"
+                    className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs text-[#172033] placeholder:text-slate-400 focus:outline-none focus:border-teal-500"
                   />
                 </div>
               </div>
@@ -205,9 +203,9 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-[#141A24] border-t border-[#E5EAF0] flex items-center justify-between">
-          <div className="text-xs text-[#A3B0C4] flex items-center gap-1.5">
-            <Bot className="w-3.5 h-3.5 text-violet-400" />
+        <div className="p-4 bg-[#F8FAFC] border-t border-[#E5EAF0] flex items-center justify-between">
+          <div className="text-xs text-[#657189] flex items-center gap-1.5">
+            <Bot className="w-3.5 h-3.5 text-violet-600" />
             <span>NOVA acts as your AI Product Strategist</span>
           </div>
 
@@ -216,7 +214,7 @@ export const ProductPromptModal: React.FC<ProductPromptModalProps> = ({
               type="button"
               onClick={onClose}
               disabled={isSubmitting}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#A3B0C4] hover:bg-[#303D50] transition"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#657189] hover:bg-slate-200 transition"
             >
               Cancel
             </button>

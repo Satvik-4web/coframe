@@ -23,7 +23,7 @@ export const ChatMessageMarkdown: React.FC<ChatMessageMarkdownProps> = ({ conten
           return (
             <div key={index} className="my-2 rounded-xl bg-slate-900 text-slate-100 p-3 font-mono text-[11px] overflow-x-auto shadow-inner">
               {language && (
-                <div className="text-[10px] text-[#8495AD] font-semibold uppercase tracking-wider mb-1.5 pb-1 border-b border-slate-800">
+                <div className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider mb-1.5 pb-1 border-b border-slate-800">
                   {language}
                 </div>
               )}
@@ -46,21 +46,21 @@ export const ChatMessageMarkdown: React.FC<ChatMessageMarkdownProps> = ({ conten
               // Headers
               if (trimmed.startsWith('### ')) {
                 return (
-                  <h4 key={lIdx} className="text-xs font-bold text-[#E7EDF7] mt-2 mb-1">
+                  <h4 key={lIdx} className="text-xs font-bold text-[#172033] mt-2 mb-1">
                     {renderInline(trimmed.slice(4))}
                   </h4>
                 );
               }
               if (trimmed.startsWith('## ')) {
                 return (
-                  <h3 key={lIdx} className="text-sm font-bold text-[#E7EDF7] mt-2.5 mb-1">
+                  <h3 key={lIdx} className="text-sm font-bold text-[#172033] mt-2.5 mb-1">
                     {renderInline(trimmed.slice(3))}
                   </h3>
                 );
               }
               if (trimmed.startsWith('# ')) {
                 return (
-                  <h2 key={lIdx} className="text-sm font-extrabold text-[#E7EDF7] mt-3 mb-1">
+                  <h2 key={lIdx} className="text-sm font-extrabold text-[#172033] mt-3 mb-1">
                     {renderInline(trimmed.slice(2))}
                   </h2>
                 );
@@ -70,7 +70,7 @@ export const ChatMessageMarkdown: React.FC<ChatMessageMarkdownProps> = ({ conten
               if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
                 return (
                   <div key={lIdx} className="flex items-start gap-2 pl-2">
-                    <span className="text-teal-400 font-bold select-none">•</span>
+                    <span className="text-teal-600 font-bold select-none">•</span>
                     <span>{renderInline(trimmed.slice(2))}</span>
                   </div>
                 );
@@ -93,7 +93,7 @@ export const ChatMessageMarkdown: React.FC<ChatMessageMarkdownProps> = ({ conten
               if (numMatch) {
                 return (
                   <div key={lIdx} className="flex items-start gap-2 pl-2">
-                    <span className="text-[#96A6BE] font-semibold text-[11px] select-none min-w-[14px]">
+                    <span className="text-slate-500 font-semibold text-[11px] select-none min-w-[14px]">
                       {numMatch[1]}.
                     </span>
                     <span>{renderInline(numMatch[2])}</span>
@@ -124,7 +124,7 @@ function renderInline(text: string): React.ReactNode {
       return (
         <code
           key={i}
-          className="px-1.5 py-0.5 rounded bg-[#1D2633] text-[#DCE5F2] font-mono text-[11px] border border-[#303A4B]"
+          className="px-1.5 py-0.5 rounded bg-slate-100 text-slate-800 font-mono text-[11px] border border-slate-200"
         >
           {token.slice(1, -1)}
         </code>
@@ -132,7 +132,7 @@ function renderInline(text: string): React.ReactNode {
     }
     if (token.startsWith('**') && token.endsWith('**') && token.length >= 4) {
       return (
-        <strong key={i} className="font-bold text-[#E7EDF7]">
+        <strong key={i} className="font-bold text-[#0F172A]">
           {token.slice(2, -2)}
         </strong>
       );

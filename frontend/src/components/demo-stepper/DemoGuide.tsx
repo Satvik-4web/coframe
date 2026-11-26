@@ -174,23 +174,23 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
   const isLoading = loadingStep === currentStepData.step;
 
   return (
-    <div className="fixed top-16 right-0 bottom-0 w-full max-w-md bg-[#1A202C] shadow-xl z-30 border-l border-[#E5EAF0] flex flex-col animate-in slide-in-from-right duration-250">
+    <div className="fixed top-16 right-0 bottom-0 w-full max-w-md bg-white shadow-xl z-30 border-l border-[#E5EAF0] flex flex-col animate-in slide-in-from-right duration-250">
       {/* Drawer Header */}
-      <div className="p-5 border-b border-[#E5EAF0] flex items-center justify-between bg-[#1A202C]">
+      <div className="p-5 border-b border-[#E5EAF0] flex items-center justify-between bg-white">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/25 text-teal-300 flex items-center justify-center font-bold">
-              <Compass className="w-4 h-4 text-teal-300" />
+            <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center font-bold">
+              <Compass className="w-4 h-4 text-teal-700" />
             </div>
             <div>
               <div className="flex items-center space-x-2">
-                <h3 className="font-bold text-sm text-[#E7EDF7]">
+                <h3 className="font-bold text-sm text-[#172033]">
                   Guided Demo Assistant
                 </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/25">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
                   Step {currentStep} of 7
                 </span>
               </div>
-              <p className="text-xs text-[#A3B0C4] mt-0.5">
+              <p className="text-xs text-[#657189] mt-0.5">
                 Deterministic 7-step judging walkthrough
               </p>
             </div>
@@ -198,7 +198,7 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-[#A3B0C4] hover:text-[#E7EDF7] hover:bg-[#1D2633] transition cursor-pointer"
+            className="p-1.5 rounded-lg text-[#657189] hover:text-[#172033] hover:bg-slate-100 transition cursor-pointer"
             title="Close Assistant"
           >
             <X className="w-5 h-5" />
@@ -206,7 +206,7 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
         </div>
 
         {/* Progress Line */}
-        <div className="w-full h-1 bg-[#1D2633] overflow-hidden">
+        <div className="w-full h-1 bg-slate-100 overflow-hidden">
           <div
             className="h-full bg-teal-600 transition-all duration-300"
             style={{ width: `${progressPercent}%` }}
@@ -214,16 +214,16 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
         </div>
 
         {/* Step Selector Chips (1 through 7) */}
-        <div className="p-4 bg-[#141A24] border-b border-[#E5EAF0]">
+        <div className="p-4 bg-[#F8FAFC] border-b border-[#E5EAF0]">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#A3B0C4]">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#657189]">
               Jump to Step
             </span>
-            <span className="text-[11px] font-semibold text-teal-300">
+            <span className="text-[11px] font-semibold text-teal-800">
               {progressPercent}% Complete
             </span>
           </div>
-          <div className="grid grid-cols-7 gap-1.5 bg-[#1A202C] p-1.5 rounded-xl border border-[#E5EAF0]">
+          <div className="grid grid-cols-7 gap-1.5 bg-white p-1.5 rounded-xl border border-[#E5EAF0]">
             {steps.map((s) => {
               const isCompleted = currentStep > s.step;
               const isCurrent = currentStep === s.step;
@@ -236,8 +236,8 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
                     isCurrent
                       ? 'bg-teal-600 text-white shadow-xs'
                       : isCompleted
-                      ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/25'
-                      : 'text-[#A3B0C4] hover:text-[#E7EDF7] hover:bg-[#1D2633]'
+                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                      : 'text-[#657189] hover:text-[#172033] hover:bg-slate-100'
                   }`}
                   title={s.title}
                 >
@@ -250,23 +250,23 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
 
         {/* Drawer Body: Active Step Detail */}
         <div className="p-5 flex-1 overflow-y-auto space-y-4">
-          <div className="p-4 rounded-xl bg-teal-500/10 border border-teal-500/25 space-y-2">
+          <div className="p-4 rounded-xl bg-teal-50/40 border border-teal-200/80 space-y-2">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-teal-600 text-white">
                 Step {currentStepData.step}
               </span>
-              <h4 className="text-xs font-bold text-[#E7EDF7]">
+              <h4 className="text-xs font-bold text-[#172033]">
                 {currentStepData.title}
               </h4>
             </div>
-            <p className="text-xs text-[#A3B0C4] leading-relaxed">
+            <p className="text-xs text-[#657189] leading-relaxed">
               {currentStepData.description}
             </p>
           </div>
 
           {/* Steps Overview Checklist */}
           <div className="space-y-2 pt-2">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#A3B0C4] block">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[#657189] block">
               Walkthrough Roadmap
             </span>
             {steps.map((s) => {
@@ -278,23 +278,23 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
                   onClick={() => onSetStep(s.step)}
                   className={`p-2.5 rounded-xl border text-xs cursor-pointer transition flex items-center justify-between ${
                     isCur
-                      ? 'bg-teal-500/10 border-teal-500/25 text-teal-300 font-semibold'
+                      ? 'bg-teal-50 border-teal-200 text-teal-900 font-semibold'
                       : isDone
-                      ? 'bg-emerald-500/10 border-emerald-500/25 text-[#E7EDF7]'
-                      : 'bg-[#1A202C] border-[#E5EAF0] text-[#A3B0C4] hover:bg-[#141A24]'
+                      ? 'bg-emerald-50/30 border-emerald-100 text-[#172033]'
+                      : 'bg-white border-[#E5EAF0] text-[#657189] hover:bg-slate-50'
                   }`}
                 >
                   <div className="flex items-center gap-2 truncate">
                     {isDone ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                     ) : (
-                      <span className={`w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0 ${isCur ? 'bg-teal-600 text-white' : 'bg-[#303D50] text-[#ACBAD0]'}`}>
+                      <span className={`w-4 h-4 rounded-full text-[10px] font-bold flex items-center justify-center shrink-0 ${isCur ? 'bg-teal-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
                         {s.step}
                       </span>
                     )}
                     <span className="truncate">{s.title.split(': ')[1] || s.title}</span>
                   </div>
-                  {isCur && <span className="text-[10px] font-bold text-teal-300">Active</span>}
+                  {isCur && <span className="text-[10px] font-bold text-teal-700">Active</span>}
                 </div>
               );
             })}
@@ -302,7 +302,7 @@ export const DemoGuide: React.FC<DemoGuideProps> = ({
         </div>
 
         {/* Drawer Action Footer */}
-        <div className="p-4 border-t border-[#E5EAF0] bg-[#141A24]">
+        <div className="p-4 border-t border-[#E5EAF0] bg-[#F8FAFC]">
           <button
             onClick={currentStepData.action}
             disabled={isLoading}

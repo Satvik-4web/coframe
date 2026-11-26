@@ -27,33 +27,6 @@ const rawApiUrl = (import.meta as any).env?.VITE_API_URL;
 const ENV_API_URL = rawApiUrl ? String(rawApiUrl).replace(/\/+$/, '') : '';
 const API_BASE = ENV_API_URL ? `${ENV_API_URL}/api` : '/api';
 
-// Bound requests so an unreachable provider cannot leave a control busy forever.
-async function fetch(input: RequestInfo | URL, init: RequestInit = {}): Promise<Response> {
-  const controller = new AbortController();
-  const abort = () => controller.abort();
-  init.signal?.addEventListener('abort', abort, { once: true });
-  if (init.signal?.aborted) controller.abort();
-  const timeout = window.setTimeout(abort, init.method && init.method !== 'GET' ? 120000 : 20000);
-  try {
-    return await globalThis.fetch(input, { ...init, signal: controller.signal });
-  } catch (error) {
-    if (controller.signal.aborted) throw new Error('The request timed out. Refresh to check whether your change was saved before trying again.');
-    throw error;
-  } finally {
-    window.clearTimeout(timeout);
-    init.signal?.removeEventListener('abort', abort);
-  }
-}
-
-export interface WorkspaceSetup {
-  checks: { id: string; title: string; ready: boolean; detail: string }[];
-}
-export async function fetchWorkspaceSetup(): Promise<WorkspaceSetup> {
-  const response = await fetch(`${API_BASE}/setup-status`);
-  if (!response.ok) throw new Error('Setup status is unavailable. Check the backend connection.');
-  return response.json();
-}
-
 export async function fetchProjectState(projectId: string = 'demo-ledgerflow'): Promise<FullProjectState> {
   const res = await fetch(`${API_BASE}/projects/${projectId}/state`);
   if (!res.ok) throw new Error('Failed to fetch project state');
@@ -673,7 +646,7 @@ export async function fetchExpenses(
   projectId: string = 'demo-ledgerflow',
   status?: string,
   category?: string
-  ): Promise<{ total: number; expenses: any[]; metrics: any; approval_threshold: number }> {
+): Promise<{ total: number; expenses: any[]; metrics: any }> {
   let url = `${API_BASE}/projects/${projectId}/expenses`;
   const params = new URLSearchParams();
   if (status) params.append('status', status);
@@ -738,13 +711,12 @@ export async function analyseProductPrompt(
   prompt: string,
   constraints?: string,
   submitterId: string = 'alex',
-    projectId: string = 'demo-ledgerflow',
-    referenceNotes?: string[]
+  projectId: string = 'demo-ledgerflow'
 ): Promise<{ status: string; message: string; prd: any }> {
   const res = await fetch(`${API_BASE}/projects/${projectId}/prd/analyse`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt, constraints, submitter_id: submitterId, reference_materials: referenceNotes }),
+    body: JSON.stringify({ prompt, constraints, submitter_id: submitterId }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

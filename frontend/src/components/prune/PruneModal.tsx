@@ -89,14 +89,14 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
                   BIOS V2 Official Workshop
                 </span>
               </div>
-              <p className="text-xs text-[#8495AD]">
+              <p className="text-xs text-slate-400">
                 Key Vault • Shield Guardrails • Semantic Cache • Fallback • Ed25519 Signed Receipts
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-[#8495AD] hover:text-white p-2 rounded-lg hover:bg-slate-800/80 transition-colors"
+            className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-800/80 transition-colors"
           >
             ✕
           </button>
@@ -105,27 +105,27 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
         {/* METRICS / STATUS STRIP */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 px-6 py-3 bg-slate-950/60 border-b border-slate-800/80 text-xs">
           <div className="flex flex-col">
-            <span className="text-[#8495AD]">Shield Status</span>
+            <span className="text-slate-400">Shield Status</span>
             <span className="font-semibold text-emerald-400 flex items-center gap-1">
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               Guarded (Active)
             </span>
           </div>
           <div className="flex flex-col">
-            <span className="text-[#8495AD]">Cache Hit Rate</span>
+            <span className="text-slate-400">Cache Hit Rate</span>
             <span className="font-semibold text-teal-300">
               {status ? `${status.savings.cache_hit_rate_pct}%` : '0.0%'}
-              <span className="text-[10px] text-[#8495AD] ml-1">($0 repeats)</span>
+              <span className="text-[10px] text-slate-400 ml-1">($0 repeats)</span>
             </span>
           </div>
           <div className="flex flex-col">
-            <span className="text-[#8495AD]">Total Dollars Saved</span>
+            <span className="text-slate-400">Total Dollars Saved</span>
             <span className="font-semibold text-emerald-300">
               ${status ? status.savings.total_saved_usd.toFixed(4) : '0.0000'}
             </span>
           </div>
           <div className="flex flex-col">
-            <span className="text-[#8495AD]">Cryptographic Receipts</span>
+            <span className="text-slate-400">Cryptographic Receipts</span>
             <span className="font-semibold text-purple-300 flex items-center gap-1">
               🔏 Ed25519 Verified
             </span>
@@ -139,7 +139,7 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
             className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
               activeTab === 'demo'
                 ? 'border-emerald-400 text-emerald-400'
-                : 'border-transparent text-[#8495AD] hover:text-slate-200'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             <span>⚡</span> Workshop Live Demo (Slide 4)
@@ -149,7 +149,7 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
             className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
               activeTab === 'receipts'
                 ? 'border-emerald-400 text-emerald-400'
-                : 'border-transparent text-[#8495AD] hover:text-slate-200'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             <span>📜</span> Signed Receipts ({receipts.length})
@@ -159,7 +159,7 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
             className={`pb-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2 ${
               activeTab === 'vault'
                 ? 'border-emerald-400 text-emerald-400'
-                : 'border-transparent text-[#8495AD] hover:text-slate-200'
+                : 'border-transparent text-slate-400 hover:text-slate-200'
             }`}
           >
             <span>🔐</span> Vault & Coding Agent Setup
@@ -176,7 +176,7 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <h3 className="font-semibold text-white text-base">Prompt-to-Receipt Live Verification</h3>
-                    <p className="text-xs text-[#8495AD] mt-1 max-w-xl">
+                    <p className="text-xs text-slate-400 mt-1 max-w-xl">
                       Replicates the exact sequence from the BIOS V2 Workshop presentation:
                       1) Send prompt through Prune; 2) Repeat identical prompt to prove <strong>$0 Cache Hit</strong>;
                       3) Test prompt-injection attack to prove <strong>Prune Shield</strong> blocking; 4) Inspect Ed25519 receipts.
@@ -210,7 +210,7 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
               {/* DEMO EXECUTION TRACE */}
               {demoTrace ? (
                 <div className="space-y-4">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-[#8495AD]">Execution Results</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Execution Results</h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {demoTrace.steps.map((st) => (
@@ -226,7 +226,7 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
                       >
                         <div>
                           <div className="flex items-center justify-between text-xs mb-2">
-                            <span className="font-bold text-[#8495AD]">Step 0{st.step}</span>
+                            <span className="font-bold text-slate-400">Step 0{st.step}</span>
                             <span
                               className={`px-2 py-0.5 rounded-full font-semibold text-[10px] ${
                                 st.step === 1
@@ -247,7 +247,7 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
                           </div>
 
                           {st.result_preview && (
-                            <p className="text-xs text-[#8495AD] italic mb-3">
+                            <p className="text-xs text-slate-400 italic mb-3">
                               "{st.result_preview}"
                             </p>
                           )}
@@ -260,13 +260,13 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
                         </div>
 
                         <div className="pt-3 border-t border-slate-800/80 text-xs flex items-center justify-between">
-                          <span className="text-[#8495AD]">Cost:</span>
+                          <span className="text-slate-400">Cost:</span>
                           <span
                             className={`font-mono font-bold ${
                               st.step === 2
                                 ? 'text-emerald-400'
                                 : st.step === 3
-                                ? 'text-[#8495AD]'
+                                ? 'text-slate-400'
                                 : 'text-blue-300'
                             }`}
                           >
@@ -283,13 +283,13 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
                       <div className="text-2xl">💰</div>
                       <div>
                         <div className="text-sm font-bold text-white">Prune Optimization Guarantee</div>
-                        <div className="text-xs text-[#8495AD]">
+                        <div className="text-xs text-slate-400">
                           Repeat questions incur <strong>$0 token billing</strong>; simpler queries smart-route to lighter models (~94% cheaper vs raw GPT-4o).
                         </div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-xs text-[#8495AD]">Ed25519 Public Key</div>
+                      <div className="text-xs text-slate-400">Ed25519 Public Key</div>
                       <div className="font-mono text-[10px] text-emerald-400 max-w-xs truncate">
                         {demoTrace.public_key}
                       </div>
@@ -300,7 +300,7 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
                 <div className="text-center py-10 bg-slate-950/40 border border-dashed border-slate-800 rounded-xl">
                   <div className="text-3xl mb-2">🛡️</div>
                   <div className="text-sm font-medium text-slate-300">Ready to test Prune Seatbelt</div>
-                  <div className="text-xs text-[#96A6BE] mt-1">
+                  <div className="text-xs text-slate-500 mt-1">
                     Click "Run Workshop Sequence" to execute the live prompt-to-receipt flow.
                   </div>
                 </div>
@@ -314,7 +314,7 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold text-white text-sm">Ed25519 Cryptographic Receipts Log</h3>
-                  <p className="text-xs text-[#8495AD]">
+                  <p className="text-xs text-slate-400">
                     Every agent proposal (NOVA, PIXEL) and test query generates an immutable, signed receipt.
                   </p>
                 </div>
@@ -329,8 +329,8 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
               {receipts.length === 0 ? (
                 <div className="text-center py-12 bg-slate-950/40 border border-slate-800 rounded-xl">
                   <div className="text-3xl mb-2">📜</div>
-                  <div className="text-sm text-[#8495AD]">No signed receipts generated yet.</div>
-                  <div className="text-xs text-[#96A6BE] mt-1">
+                  <div className="text-sm text-slate-400">No signed receipts generated yet.</div>
+                  <div className="text-xs text-slate-500 mt-1">
                     Run the workshop demo or generate agent proposals to inspect receipts.
                   </div>
                 </div>
@@ -363,20 +363,20 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
                             {rec.cache_hit ? '⚡ CACHE HIT ($0)' : rec.shield_status === 'blocked' ? '🛡️ SHIELD BLOCKED' : 'UPSTREAM'}
                           </span>
                           <span className="font-mono text-xs font-semibold text-slate-200">{rec.receipt_id}</span>
-                          <span className="text-[11px] text-[#96A6BE]">{new Date(rec.timestamp).toLocaleTimeString()}</span>
+                          <span className="text-[11px] text-slate-500">{new Date(rec.timestamp).toLocaleTimeString()}</span>
                         </div>
                         <div className="flex items-center gap-4 text-xs font-mono">
-                          <span className="text-[#8495AD]">
+                          <span className="text-slate-400">
                             Tokens: <strong className="text-slate-200">{rec.tokens_prompt + rec.tokens_completion}</strong>
                           </span>
-                          <span className="text-[#8495AD]">
+                          <span className="text-slate-400">
                             Cost: <strong className={rec.cost_usd === 0 ? 'text-emerald-400' : 'text-slate-200'}>${rec.cost_usd.toFixed(6)}</strong>
                           </span>
                         </div>
                       </div>
 
                       <div className="mt-3 flex items-center justify-between text-xs pt-2 border-t border-slate-800/80">
-                        <div className="text-[11px] text-[#96A6BE] font-mono truncate max-w-md">
+                        <div className="text-[11px] text-slate-500 font-mono truncate max-w-md">
                           Sig: {rec.ed25519_signature.slice(0, 36)}...
                         </div>
                         <span className="text-emerald-400 text-[11px] font-medium flex items-center gap-1">
@@ -436,7 +436,7 @@ export const PruneModal: React.FC<PruneModalProps> = ({ isOpen, onClose }) => {
                   </div>
                   <div>
                     <h3 className="font-semibold text-white text-base">Key Vault & Coding Agent Setup</h3>
-                    <p className="text-xs text-[#8495AD]">
+                    <p className="text-xs text-slate-400">
                       Slide 5: "Point your coding agent (Cursor, Claude Code, Roo Code, Antigravity) at Prune too."
                     </p>
                   </div>
@@ -464,7 +464,7 @@ PRUNE_MAX_SPEND_USD=100.0`}
 
                   <div className="p-3 bg-slate-900 rounded-xl border border-slate-800">
                     <div className="text-xs font-bold text-slate-300 mb-1">3. Point Cursor / Claude Code / Roo Code</div>
-                    <p className="text-xs text-[#8495AD] mb-2">
+                    <p className="text-xs text-slate-400 mb-2">
                       In your IDE or coding agent settings, configure the OpenAI-compatible proxy:
                     </p>
                     <ul className="text-xs text-slate-300 space-y-1 list-disc list-inside">
@@ -481,7 +481,7 @@ PRUNE_MAX_SPEND_USD=100.0`}
         </div>
 
         {/* MODAL FOOTER */}
-        <div className="px-6 py-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-xs text-[#8495AD]">
+        <div className="px-6 py-4 bg-slate-950 border-t border-slate-800 flex items-center justify-between text-xs text-slate-400">
           <div className="flex items-center gap-2">
             <span>Powered by</span>
             <a

@@ -14,51 +14,49 @@ interface LedgerFlowHeroProps {
 
 export const LedgerFlowHero: React.FC<LedgerFlowHeroProps> = ({ data, version }) => {
   return (
-    <div className="relative overflow-hidden rounded-[24px] border border-[#2C4851] bg-gradient-to-br from-[#152D32] via-[#19232E] to-[#1B2B40] p-6 shadow-[0_18px_38px_-28px_rgba(12,78,71,.4)] sm:p-10">
-      <div className="pointer-events-none absolute -right-20 -top-28 h-72 w-72 rounded-full border-[38px] border-teal-400/10" />
-      <div className="pointer-events-none absolute -bottom-32 right-1/4 h-64 w-64 rounded-full bg-indigo-300/20 blur-[60px]" />
+    <div className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-white border border-slate-200 rounded-xl p-8 shadow-sm">
       {/* Subtle version badge in top right */}
-      <div className="absolute right-4 top-4 flex items-center space-x-1 rounded-full border border-teal-500/25 bg-[#1A202C]/80 px-2.5 py-1 font-mono text-[10px] text-teal-300">
+      <div className="absolute top-4 right-4 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-[10px] text-slate-500 font-mono">
         <span>hero section</span>
-        <span className="font-bold text-[#C6D2E4]">v{version}</span>
+        <span className="font-bold text-slate-700">v{version}</span>
       </div>
 
-      <div className="relative max-w-2xl pt-6 sm:pt-3">
+      <div className="max-w-2xl">
         {data.badge && (
-          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-teal-500/10 border border-teal-500/25 text-teal-300 text-xs font-semibold mb-4">
-            <Sparkles className="w-3.5 h-3.5 text-teal-400" />
+          <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold mb-4">
+            <Sparkles className="w-3.5 h-3.5 text-teal-600" />
             <span>{data.badge}</span>
           </div>
         )}
 
-        <h1 className="text-[clamp(2rem,4vw,3.5rem)] font-semibold text-[#E1EFF4] tracking-[-.05em] leading-[1.1]">
+        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
           {data.headline}
         </h1>
 
-        <p className="mt-5 text-sm text-[#ACBAD0] leading-7 max-w-xl sm:text-base">
+        <p className="mt-3 text-sm text-slate-600 leading-relaxed max-w-xl">
           {data.subheadline}
         </p>
 
         <div className="mt-6 flex flex-wrap items-center gap-3">
-          <span aria-label="Preview of primary call to action" className="px-5 py-3 rounded-xl bg-[#0F766E] text-white font-semibold text-sm shadow-md shadow-teal-700/20 flex items-center space-x-1.5">
+          <button className="px-5 py-2.5 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs shadow-md shadow-teal-700/20 transition flex items-center space-x-1.5 cursor-pointer">
             <span>{data.cta_text}</span>
             <ArrowRight className="w-3.5 h-3.5" />
-          </span>
+          </button>
 
           {data.secondary_cta && (
-            <span aria-label="Preview of secondary call to action" className="px-5 py-3 rounded-xl bg-[#1A202C] text-[#C6D2E4] border border-[#303A4B] font-semibold text-sm">
+            <button className="px-5 py-2.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium text-xs transition cursor-pointer">
               {data.secondary_cta}
-            </span>
+            </button>
           )}
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-teal-900/10 pt-5 text-xs text-[#ACBAD0]">
+        <div className="mt-6 pt-4 border-t border-slate-100 flex items-center space-x-6 text-[11px] text-slate-500">
           <div className="flex items-center space-x-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
             <span>Automated Receipt Scanning</span>
           </div>
           <div className="flex items-center space-x-1">
-            <CheckCircle2 className="w-3.5 h-3.5 text-teal-400" />
+            <CheckCircle2 className="w-3.5 h-3.5 text-teal-600" />
             <span>1-Click ERP Synchronization</span>
           </div>
         </div>

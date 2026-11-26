@@ -117,22 +117,22 @@ export const MCPToolExplorer: React.FC<MCPToolExplorerProps> = ({ identity, onNa
   };
 
   return (
-    <div className="bg-[#1A202C] border border-[#E5EAF0] rounded-2xl p-6 shadow-xs space-y-6">
+    <div className="bg-white border border-[#E5EAF0] rounded-2xl p-6 shadow-xs space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#E5EAF0]">
         <div>
           <div className="flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-teal-500/10 border border-teal-500/25">
-              <Cpu className="w-4 h-4 text-teal-300" />
+            <span className="p-1.5 rounded-lg bg-teal-50 border border-teal-100">
+              <Cpu className="w-4 h-4 text-teal-700" />
             </span>
-            <h2 className="text-base font-bold text-[#E7EDF7]">
+            <h2 className="text-base font-bold text-[#172033]">
               COFRAME Model Context Protocol (MCP) Server
             </h2>
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-100">
               Active ({tools.length} Tools)
             </span>
           </div>
-          <p className="text-xs text-[#A3B0C4] mt-1">
+          <p className="text-xs text-[#657189] mt-1">
             Standardized tool interfaces allowing external agents, IDEs, and local models to inspect context, query artifacts, and dispatch actions safely.
           </p>
         </div>
@@ -140,9 +140,9 @@ export const MCPToolExplorer: React.FC<MCPToolExplorerProps> = ({ identity, onNa
         <button
           onClick={loadTools}
           disabled={loading}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#A3B0C4] bg-[#1A202C] border border-[#E5EAF0] rounded-xl hover:bg-[#141A24] transition"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[#657189] bg-white border border-[#E5EAF0] rounded-xl hover:bg-[#F8FAFC] transition"
         >
-          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-teal-400' : ''}`} />
+          <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin text-teal-600' : ''}`} />
           Refresh Tools
         </button>
       </div>
@@ -150,8 +150,8 @@ export const MCPToolExplorer: React.FC<MCPToolExplorerProps> = ({ identity, onNa
       {/* Tool Browser & Interactive Runner */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Tool List */}
-        <div className="lg:col-span-4 space-y-2 border-r border-[#293445] pr-0 lg:pr-4">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-[#A3B0C4] mb-2">
+        <div className="lg:col-span-4 space-y-2 border-r border-[#F0F3F7] pr-0 lg:pr-4">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#657189] mb-2">
             Registered Workspace Tools
           </p>
           <div className="space-y-1.5 max-h-[460px] overflow-y-auto pr-1">
@@ -163,17 +163,17 @@ export const MCPToolExplorer: React.FC<MCPToolExplorerProps> = ({ identity, onNa
                   onClick={() => handleSelectTool(tool)}
                   className={`w-full text-left p-3 rounded-xl transition text-xs flex flex-col gap-1 border ${
                     isSelected
-                      ? 'bg-teal-500/10 border-teal-500/25 text-teal-300 font-semibold shadow-2xs'
-                      : 'bg-[#141A24] border-transparent hover:border-[#E5EAF0] text-[#E7EDF7]'
+                      ? 'bg-teal-50/80 border-teal-200 text-teal-950 font-semibold shadow-2xs'
+                      : 'bg-[#F8FAFC] border-transparent hover:border-[#E5EAF0] text-[#172033]'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-mono font-bold text-xs">{tool.name}</span>
-                    <span className="text-[10px] uppercase font-bold text-[#A3B0C4] bg-[#1A202C] px-1.5 py-0.5 rounded border border-[#E5EAF0]">
+                    <span className="text-[10px] uppercase font-bold text-[#657189] bg-white px-1.5 py-0.5 rounded border border-[#E5EAF0]">
                       {tool.allowed_callers.join(', ')}
                     </span>
                   </div>
-                  <p className="text-[11px] text-[#A3B0C4] line-clamp-1">{tool.description}</p>
+                  <p className="text-[11px] text-[#657189] line-clamp-1">{tool.description}</p>
                 </button>
               );
             })}
@@ -185,18 +185,18 @@ export const MCPToolExplorer: React.FC<MCPToolExplorerProps> = ({ identity, onNa
           {selectedTool ? (
             <div className="space-y-4">
               {/* Tool Header */}
-              <div className="bg-[#141A24] p-4 rounded-xl border border-[#E5EAF0]">
+              <div className="bg-[#F8FAFC] p-4 rounded-xl border border-[#E5EAF0]">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold font-mono text-[#E7EDF7]">{selectedTool.name}</h3>
-                  <div className="flex items-center gap-1.5 text-xs text-[#A3B0C4]">
-                    <ShieldCheck className="w-3.5 h-3.5 text-teal-400" />
+                  <h3 className="text-sm font-bold font-mono text-[#172033]">{selectedTool.name}</h3>
+                  <div className="flex items-center gap-1.5 text-xs text-[#657189]">
+                    <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
                     <span>Authorized callers: </span>
-                    <span className="font-semibold text-[#E7EDF7]">
+                    <span className="font-semibold text-[#172033]">
                       {selectedTool.allowed_callers.join(', ')}
                     </span>
                   </div>
                 </div>
-                <p className="text-xs text-[#A3B0C4] mt-1.5 leading-relaxed">
+                <p className="text-xs text-[#657189] mt-1.5 leading-relaxed">
                   {selectedTool.description}
                 </p>
               </div>
@@ -204,12 +204,12 @@ export const MCPToolExplorer: React.FC<MCPToolExplorerProps> = ({ identity, onNa
               {/* JSON Parameters Input */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#A3B0C4]">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#657189]">
                     Arguments (JSON Payload)
                   </span>
                   <button
                     onClick={() => initDefaultPayload(selectedTool)}
-                    className="text-[11px] text-teal-300 hover:underline font-medium"
+                    className="text-[11px] text-teal-700 hover:underline font-medium"
                   >
                     Reset Defaults
                   </button>
@@ -242,14 +242,14 @@ export const MCPToolExplorer: React.FC<MCPToolExplorerProps> = ({ identity, onNa
               {executionResult && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-300">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>Response Payload (200 OK)</span>
                     </div>
                     {onNavigateTab && (executionResult?.result?.proposal_id || executionResult?.result?.proposal?.id) && (
                       <button
                         onClick={() => onNavigateTab('proposals', executionResult?.result?.proposal_id || executionResult?.result?.proposal?.id)}
-                        className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-teal-500/10 hover:bg-teal-500/10 text-teal-300 border border-teal-500/25 flex items-center gap-1 transition cursor-pointer"
+                        className="text-xs font-semibold px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 flex items-center gap-1 transition cursor-pointer"
                       >
                         <span>View Created Proposal</span>
                         <ChevronRight className="w-3 h-3" />
@@ -264,18 +264,18 @@ export const MCPToolExplorer: React.FC<MCPToolExplorerProps> = ({ identity, onNa
 
               {executionError && (
                 <div className="space-y-1.5">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-red-300">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-red-700">
                     <AlertCircle className="w-3.5 h-3.5" />
                     <span>Execution Error</span>
                   </div>
-                  <div className="p-3 bg-red-500/10 text-red-300 text-xs rounded-xl border border-red-500/25">
+                  <div className="p-3 bg-red-50 text-red-900 text-xs rounded-xl border border-red-200">
                     {executionError}
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <div className="text-center py-12 text-[#A3B0C4] text-xs">
+            <div className="text-center py-12 text-[#657189] text-xs">
               Select an MCP tool from the left to inspect its schema and execute test payloads.
             </div>
           )}

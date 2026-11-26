@@ -47,7 +47,7 @@ export const PullRequestCard: React.FC<PullRequestCardProps> = ({
                 ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
                 : isOpen
                 ? 'bg-teal-500/10 text-teal-400 border border-teal-500/20'
-                : 'bg-gray-500/10 text-[#8495AD] border border-gray-500/20'
+                : 'bg-gray-500/10 text-gray-400 border border-gray-500/20'
             }`}
           >
             {isMerged ? (
@@ -83,7 +83,7 @@ export const PullRequestCard: React.FC<PullRequestCardProps> = ({
             </span>
           )}
           {isClosed && (
-            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-gray-500/10 text-[#8495AD] border border-gray-500/20 flex items-center space-x-1">
+            <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-gray-500/10 text-gray-400 border border-gray-500/20 flex items-center space-x-1">
               <XCircle className="w-2.5 h-2.5" />
               <span>Closed</span>
             </span>

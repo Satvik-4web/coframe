@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Proposal, HumanIdentity, ArtifactSection, ProposalStats } from '../../types';
 import { ProposalCard } from './ProposalCard';
 import { NovaPrdCard } from './NovaPrdCard';
@@ -42,7 +42,6 @@ import {
 } from 'lucide-react';
 
 interface ProposalListProps {
-  focusedProposalId?: string;
   proposals: Proposal[];
   sections: Record<string, ArtifactSection>;
   identity: HumanIdentity;
@@ -59,7 +58,6 @@ type FilterPill =
   | 'rejected';
 
 export const ProposalList: React.FC<ProposalListProps> = ({
-  focusedProposalId,
   proposals,
   sections,
   identity,
@@ -75,17 +73,6 @@ export const ProposalList: React.FC<ProposalListProps> = ({
   const [actionError, setActionError] = useState<string | null>(null);
   const [stats, setStats] = useState<ProposalStats | null>(null);
   const [isStatsLoading, setIsStatsLoading] = useState(false);
-  const openedProposalId = useRef<string | undefined>(undefined);
-  useEffect(() => {
-    if (!focusedProposalId || openedProposalId.current === focusedProposalId) return;
-    const proposal = proposals.find(p => p.proposal_id === focusedProposalId);
-    if (!proposal) return;
-    openedProposalId.current = focusedProposalId;
-    setActiveFilter('all');
-    if (proposal.status === 'conflict') setConflictedProposal(proposal);
-    else if ((proposal.created_by || proposal.agent_id || '').toLowerCase() === 'nova' || ['prd_requirement', 'requirements', 'product_requirements'].includes(proposal.proposal_type || '')) setSelectedNovaProposal(proposal);
-    else setSelectedPixelProposal(proposal);
-  }, [focusedProposalId, proposals]);
 
   // Load stats from server
   const loadStats = async () => {
@@ -272,21 +259,21 @@ export const ProposalList: React.FC<ProposalListProps> = ({
       {/* 1. Header & Live Stats */}
       <div className="space-y-3">
         {/* Main Title & Action Bar */}
-        <div className="bg-[#1A202C] border border-[#303A4B]/80 p-4 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="bg-white border border-slate-200/80 p-4 rounded-xl shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-indigo-500/10 border border-indigo-500/25 text-indigo-400 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-600 flex items-center justify-center shrink-0">
               <GitPullRequest className="w-4 h-4" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-base font-bold text-[#EDF2FA] tracking-tight">
+                <h1 className="text-base font-bold text-slate-900 tracking-tight">
                   Proposals & Specifications
                 </h1>
-                <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded bg-[#1D2633] text-[#ACBAD0] border border-[#303A4B]">
+                <span className="text-[10px] font-mono font-medium px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 border border-slate-200">
                   {proposals.length} total
                 </span>
               </div>
-              <p className="text-xs text-[#96A6BE] mt-0.5">
+              <p className="text-xs text-slate-500 mt-0.5">
                 NOVA product requirements, PIXEL implementation plans, and human decisions.
               </p>
             </div>
@@ -311,18 +298,18 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             className={`p-3 rounded-lg border transition cursor-pointer ${
               activeFilter === "nova_prds"
                 ? "bg-slate-900 text-white border-slate-900 shadow-xs"
-                : "bg-[#1A202C] border-[#303A4B]/80 hover:border-[#303A4B]"
+                : "bg-white border-slate-200/80 hover:border-slate-300"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "nova_prds" ? "text-indigo-300" : "text-[#8495AD]"}`}>
+              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "nova_prds" ? "text-indigo-300" : "text-slate-400"}`}>
                 Awaiting PRD
               </span>
-              <Brain className={`w-3.5 h-3.5 ${activeFilter === "nova_prds" ? "text-indigo-300" : "text-purple-400"}`} />
+              <Brain className={`w-3.5 h-3.5 ${activeFilter === "nova_prds" ? "text-indigo-300" : "text-purple-600"}`} />
             </div>
             <div className="mt-1 flex items-baseline gap-1">
               <span className="text-xl font-bold font-mono">{awaitingCount}</span>
-              <span className={`text-[10px] ${activeFilter === "nova_prds" ? "text-white/60" : "text-[#8495AD]"}`}>specs</span>
+              <span className={`text-[10px] ${activeFilter === "nova_prds" ? "text-white/60" : "text-slate-400"}`}>specs</span>
             </div>
           </div>
 
@@ -332,18 +319,18 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             className={`p-3 rounded-lg border transition cursor-pointer ${
               activeFilter === "pixel_implementations"
                 ? "bg-slate-900 text-white border-slate-900 shadow-xs"
-                : "bg-[#1A202C] border-[#303A4B]/80 hover:border-[#303A4B]"
+                : "bg-white border-slate-200/80 hover:border-slate-300"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "pixel_implementations" ? "text-teal-300" : "text-[#8495AD]"}`}>
+              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "pixel_implementations" ? "text-teal-300" : "text-slate-400"}`}>
                 In Progress
               </span>
-              <RefreshCw className={`w-3.5 h-3.5 ${activeFilter === "pixel_implementations" ? "text-teal-300" : "text-teal-400"}`} />
+              <RefreshCw className={`w-3.5 h-3.5 ${activeFilter === "pixel_implementations" ? "text-teal-300" : "text-teal-600"}`} />
             </div>
             <div className="mt-1 flex items-baseline gap-1">
               <span className="text-xl font-bold font-mono">{inProgressCount}</span>
-              <span className={`text-[10px] ${activeFilter === "pixel_implementations" ? "text-white/60" : "text-[#8495AD]"}`}>tasks</span>
+              <span className={`text-[10px] ${activeFilter === "pixel_implementations" ? "text-white/60" : "text-slate-400"}`}>tasks</span>
             </div>
           </div>
 
@@ -353,18 +340,18 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             className={`p-3 rounded-lg border transition cursor-pointer ${
               activeFilter === "needs_attention"
                 ? "bg-slate-900 text-white border-slate-900 shadow-xs"
-                : "bg-[#1A202C] border-[#303A4B]/80 hover:border-[#303A4B]"
+                : "bg-white border-slate-200/80 hover:border-slate-300"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "needs_attention" ? "text-blue-300" : "text-[#8495AD]"}`}>
+              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "needs_attention" ? "text-blue-300" : "text-slate-400"}`}>
                 For Review
               </span>
-              <Code2 className={`w-3.5 h-3.5 ${activeFilter === "needs_attention" ? "text-blue-300" : "text-blue-400"}`} />
+              <Code2 className={`w-3.5 h-3.5 ${activeFilter === "needs_attention" ? "text-blue-300" : "text-blue-600"}`} />
             </div>
             <div className="mt-1 flex items-baseline gap-1">
               <span className="text-xl font-bold font-mono">{readyForReviewCount}</span>
-              <span className={`text-[10px] ${activeFilter === "needs_attention" ? "text-white/60" : "text-[#8495AD]"}`}>pending</span>
+              <span className={`text-[10px] ${activeFilter === "needs_attention" ? "text-white/60" : "text-slate-400"}`}>pending</span>
             </div>
           </div>
 
@@ -375,21 +362,21 @@ export const ProposalList: React.FC<ProposalListProps> = ({
               activeFilter === "conflicts"
                 ? "bg-rose-900 text-white border-rose-900 shadow-xs"
                 : conflictTotalCount > 0
-                ? "bg-rose-500/10 border-rose-500/25"
-                : "bg-[#1A202C] border-[#303A4B]/80 hover:border-[#303A4B]"
+                ? "bg-rose-50/50 border-rose-200"
+                : "bg-white border-slate-200/80 hover:border-slate-300"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "conflicts" ? "text-rose-200" : "text-[#8495AD]"}`}>
+              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "conflicts" ? "text-rose-200" : "text-slate-400"}`}>
                 Conflicts
               </span>
-              <ShieldAlert className={`w-3.5 h-3.5 ${activeFilter === "conflicts" ? "text-rose-200" : "text-rose-400"}`} />
+              <ShieldAlert className={`w-3.5 h-3.5 ${activeFilter === "conflicts" ? "text-rose-200" : "text-rose-600"}`} />
             </div>
             <div className="mt-1 flex items-baseline gap-1">
-              <span className={`text-xl font-bold font-mono ${conflictTotalCount > 0 && activeFilter !== "conflicts" ? "text-rose-400" : ""}`}>
+              <span className={`text-xl font-bold font-mono ${conflictTotalCount > 0 && activeFilter !== "conflicts" ? "text-rose-600" : ""}`}>
                 {conflictTotalCount}
               </span>
-              <span className={`text-[10px] ${activeFilter === "conflicts" ? "text-white/60" : "text-[#8495AD]"}`}>blocked</span>
+              <span className={`text-[10px] ${activeFilter === "conflicts" ? "text-white/60" : "text-slate-400"}`}>blocked</span>
             </div>
           </div>
 
@@ -399,31 +386,31 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             className={`p-3 rounded-lg border transition cursor-pointer ${
               activeFilter === "applied"
                 ? "bg-slate-900 text-white border-slate-900 shadow-xs"
-                : "bg-[#1A202C] border-[#303A4B]/80 hover:border-[#303A4B]"
+                : "bg-white border-slate-200/80 hover:border-slate-300"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "applied" ? "text-emerald-300" : "text-[#8495AD]"}`}>
+              <span className={`text-[10px] uppercase font-semibold tracking-wider ${activeFilter === "applied" ? "text-emerald-300" : "text-slate-400"}`}>
                 Applied
               </span>
-              <CheckCircle2 className={`w-3.5 h-3.5 ${activeFilter === "applied" ? "text-emerald-300" : "text-emerald-400"}`} />
+              <CheckCircle2 className={`w-3.5 h-3.5 ${activeFilter === "applied" ? "text-emerald-300" : "text-emerald-600"}`} />
             </div>
             <div className="mt-1 flex items-baseline gap-1">
               <span className="text-xl font-bold font-mono">{appliedTotalCount}</span>
-              <span className={`text-[10px] ${activeFilter === "applied" ? "text-white/60" : "text-[#8495AD]"}`}>merged</span>
+              <span className={`text-[10px] ${activeFilter === "applied" ? "text-white/60" : "text-slate-400"}`}>merged</span>
             </div>
           </div>
         </div>
       </div>
 
       {/* 2. Refined Monochromatic Filter Tabs */}
-      <div className="flex items-center gap-1 overflow-x-auto p-1 bg-[#1D2633]/70 border border-[#303A4B]/60 rounded-lg shrink-0">
+      <div className="flex items-center gap-1 overflow-x-auto p-1 bg-slate-100/70 border border-slate-200/60 rounded-lg shrink-0">
         <button
           onClick={() => setActiveFilter("all")}
           className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer shrink-0 ${
             activeFilter === "all"
-              ? "bg-[#1A202C] text-[#EDF2FA] shadow-2xs font-semibold"
-              : "text-[#ACBAD0] hover:text-[#EDF2FA]"
+              ? "bg-white text-slate-900 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
           All ({proposals.length})
@@ -433,11 +420,11 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           onClick={() => setActiveFilter("nova_prds")}
           className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
             activeFilter === "nova_prds"
-              ? "bg-[#1A202C] text-purple-300 shadow-2xs font-semibold"
-              : "text-[#ACBAD0] hover:text-[#EDF2FA]"
+              ? "bg-white text-purple-700 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          <Brain className="w-3 h-3 text-purple-400" />
+          <Brain className="w-3 h-3 text-purple-600" />
           <span>NOVA PRDs ({novaProposals.length})</span>
         </button>
 
@@ -445,11 +432,11 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           onClick={() => setActiveFilter("pixel_implementations")}
           className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
             activeFilter === "pixel_implementations"
-              ? "bg-[#1A202C] text-teal-300 shadow-2xs font-semibold"
-              : "text-[#ACBAD0] hover:text-[#EDF2FA]"
+              ? "bg-white text-teal-700 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          <Code2 className="w-3 h-3 text-teal-400" />
+          <Code2 className="w-3 h-3 text-teal-600" />
           <span>PIXEL Code ({pixelProposals.length})</span>
         </button>
 
@@ -457,11 +444,11 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           onClick={() => setActiveFilter("needs_attention")}
           className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
             activeFilter === "needs_attention"
-              ? "bg-[#1A202C] text-blue-300 shadow-2xs font-semibold"
-              : "text-[#ACBAD0] hover:text-[#EDF2FA]"
+              ? "bg-white text-blue-700 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          <Clock className="w-3 h-3 text-blue-400" />
+          <Clock className="w-3 h-3 text-blue-600" />
           <span>Needs Attention ({needsAttentionProposals.length})</span>
         </button>
 
@@ -469,11 +456,11 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           onClick={() => setActiveFilter("conflicts")}
           className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
             activeFilter === "conflicts"
-              ? "bg-[#1A202C] text-rose-300 shadow-2xs font-semibold"
-              : "text-[#ACBAD0] hover:text-[#EDF2FA]"
+              ? "bg-white text-rose-700 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          <ShieldAlert className="w-3 h-3 text-rose-400" />
+          <ShieldAlert className="w-3 h-3 text-rose-600" />
           <span>Conflicts ({conflictedProposals.length})</span>
         </button>
 
@@ -481,11 +468,11 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           onClick={() => setActiveFilter("applied")}
           className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
             activeFilter === "applied"
-              ? "bg-[#1A202C] text-emerald-300 shadow-2xs font-semibold"
-              : "text-[#ACBAD0] hover:text-[#EDF2FA]"
+              ? "bg-white text-emerald-700 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
-          <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
           <span>Applied ({appliedProposals.length})</span>
         </button>
 
@@ -493,8 +480,8 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           onClick={() => setActiveFilter("rejected")}
           className={`px-2.5 py-1 rounded-md text-xs font-medium transition cursor-pointer flex items-center gap-1.5 shrink-0 ${
             activeFilter === "rejected"
-              ? "bg-[#1A202C] text-[#DCE5F2] shadow-2xs font-semibold"
-              : "text-[#ACBAD0] hover:text-[#EDF2FA]"
+              ? "bg-white text-slate-800 shadow-2xs font-semibold"
+              : "text-slate-600 hover:text-slate-900"
           }`}
         >
           <span>Rejected ({rejectedProposals.length})</span>
@@ -502,14 +489,14 @@ export const ProposalList: React.FC<ProposalListProps> = ({
       </div>
 
       {actionError && (
-        <div className="px-3.5 py-2.5 rounded-lg bg-rose-500/10 border border-rose-500/25 text-rose-300 text-xs flex items-center justify-between shadow-2xs transition-all animate-in fade-in">
+        <div className="px-3.5 py-2.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-center justify-between shadow-2xs transition-all animate-in fade-in">
           <div className="flex items-center space-x-2">
-            <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
             <span className="font-medium">{actionError}</span>
           </div>
           <button
             onClick={() => setActionError(null)}
-            className="text-rose-300 hover:text-rose-300 text-xs font-semibold px-2 py-0.5 rounded hover:bg-rose-500/10 transition cursor-pointer"
+            className="text-rose-700 hover:text-rose-950 text-xs font-semibold px-2 py-0.5 rounded hover:bg-rose-100/60 transition cursor-pointer"
           >
             Dismiss
           </button>
@@ -518,10 +505,10 @@ export const ProposalList: React.FC<ProposalListProps> = ({
 
       {/* 3. Structured Content Queues */}
       {filteredProposals.length === 0 ? (
-        <div className="text-center py-16 bg-[#1A202C] border border-[#303A4B] rounded-xl p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-          <GitPullRequest className="w-10 h-10 text-[#A3B0C4] mx-auto mb-3 opacity-30" />
-          <h3 className="text-sm font-bold text-[#E7EDF7]">No proposals matching this filter</h3>
-          <p className="text-xs text-[#A3B0C4] mt-1 max-w-sm mx-auto">
+        <div className="text-center py-16 bg-white border border-[#E7ECF2] rounded-xl p-8 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+          <GitPullRequest className="w-10 h-10 text-[#657189] mx-auto mb-3 opacity-30" />
+          <h3 className="text-sm font-bold text-[#172033]">No proposals matching this filter</h3>
+          <p className="text-xs text-[#657189] mt-1 max-w-sm mx-auto">
             Try adjusting your filter selection above or create a new contribution.
           </p>
         </div>
@@ -532,15 +519,15 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center space-x-2">
-                  <Brain className="w-4 h-4 text-violet-400" />
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#E7EDF7]">
+                  <Brain className="w-4 h-4 text-violet-600" />
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
                     Requirements Queue (NOVA PRDs)
                   </h2>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-300 border border-violet-500/25">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
                     {novaProposals.length}
                   </span>
                 </div>
-                <span className="text-[11px] text-[#A3B0C4]">
+                <span className="text-[11px] text-[#657189]">
                   Confirmed PRDs automatically delegate to PIXEL
                 </span>
               </div>
@@ -572,15 +559,15 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center space-x-2">
-                  <Code2 className="w-4 h-4 text-teal-400" />
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#E7EDF7]">
+                  <Code2 className="w-4 h-4 text-teal-600" />
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
                     Engineering Queue (PIXEL Implementations)
                   </h2>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/25">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
                     {pixelProposals.length}
                   </span>
                 </div>
-                <span className="text-[11px] text-[#A3B0C4]">
+                <span className="text-[11px] text-[#657189]">
                   Code contributions reviewed by NOVA awaiting human approval
                 </span>
               </div>
@@ -612,22 +599,22 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             <div className="space-y-3 pt-2">
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center space-x-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#E7EDF7]">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <h2 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
                     Completed Contributions History
                   </h2>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
                     {appliedProposals.length} Applied
                   </span>
                 </div>
-                <span className="text-[11px] text-[#A3B0C4]">
+                <span className="text-[11px] text-[#657189]">
                   Cryptographically traceable decision and deployment audit log
                 </span>
               </div>
 
-              <div className="bg-[#1A202C] border border-[#303A4B] rounded-xl overflow-hidden shadow-2xs">
+              <div className="bg-white border border-[#E7ECF2] rounded-xl overflow-hidden shadow-2xs">
                 <table className="w-full text-xs text-left">
-                  <thead className="bg-[#FAFBFD] border-b border-[#303A4B] text-[10px] font-bold uppercase tracking-wider text-[#A3B0C4]">
+                  <thead className="bg-[#FAFBFD] border-b border-[#E7ECF2] text-[10px] font-bold uppercase tracking-wider text-[#657189]">
                     <tr>
                       <th className="py-3 px-4">Contribution</th>
                       <th className="py-3 px-4">Author</th>
@@ -638,7 +625,7 @@ export const ProposalList: React.FC<ProposalListProps> = ({
                       <th className="py-3 px-4 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#293445]">
+                  <tbody className="divide-y divide-[#F0F3F7]">
                     {appliedProposals.map((prop) => {
                       const author = prop.author || prop.created_by || 'PIXEL';
                       const reviewer = prop.reviewed_by || 'NOVA';
@@ -654,35 +641,35 @@ export const ProposalList: React.FC<ProposalListProps> = ({
                         : 'Recently';
 
                       return (
-                        <tr key={prop.proposal_id} className="hover:bg-[#141A24]/60 transition">
-                          <td className="py-3.5 px-4 font-semibold text-[#E7EDF7]">
+                        <tr key={prop.proposal_id} className="hover:bg-slate-50/60 transition">
+                          <td className="py-3.5 px-4 font-semibold text-[#172033]">
                             <div className="flex items-center space-x-2">
-                              <span className="font-mono text-[10px] text-[#96A6BE]">
+                              <span className="font-mono text-[10px] text-slate-500">
                                 #{prop.proposal_id.slice(-6)}
                               </span>
                               <span className="max-w-xs truncate">{prop.summary}</span>
                             </div>
                           </td>
                           <td className="py-3.5 px-4">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#1D2633] text-[#C6D2E4]">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700">
                               {author}
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 text-[#ACBAD0] font-medium">
+                          <td className="py-3.5 px-4 text-slate-600 font-medium">
                             <span className="flex items-center gap-1 text-[11px]">
                               <Brain className="w-3 h-3 text-violet-500" />
                               {reviewer}
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 text-[#ACBAD0] font-semibold">
-                            <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
+                          <td className="py-3.5 px-4 text-slate-600 font-semibold">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] bg-emerald-50 text-emerald-800 border border-emerald-200">
                               {approver.toUpperCase()}
                             </span>
                           </td>
-                          <td className="py-3.5 px-4 font-mono text-[11px] text-teal-300">
+                          <td className="py-3.5 px-4 font-mono text-[11px] text-teal-700">
                             {targetSec} (v{prop.base_artifact_version + 1})
                           </td>
-                          <td className="py-3.5 px-4 text-[#96A6BE] text-[11px]">{dateStr}</td>
+                          <td className="py-3.5 px-4 text-slate-500 text-[11px]">{dateStr}</td>
                           <td className="py-3.5 px-4 text-right">
                             <button
                               type="button"
@@ -690,7 +677,7 @@ export const ProposalList: React.FC<ProposalListProps> = ({
                                 if (isNovaProposal(prop)) setSelectedNovaProposal(prop);
                                 else setSelectedPixelProposal(prop);
                               }}
-                              className="px-2.5 py-1 rounded-lg bg-[#1D2633] hover:bg-[#303D50] text-[#E7EDF7] font-bold text-[10px] transition cursor-pointer"
+                              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-[#172033] font-bold text-[10px] transition cursor-pointer"
                             >
                               Inspect
                             </button>

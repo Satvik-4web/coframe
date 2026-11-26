@@ -36,12 +36,6 @@ export const PRDReviewModal: React.FC<PRDReviewModalProps> = ({
 }) => {
   if (!isOpen || !prd) return null;
 
-  return <PRDReviewContent key={`${prd.id}:${prd.version}`} prd={prd} identity={identity} onClose={onClose} onConfirmSuccess={onConfirmSuccess} onRefresh={onRefresh} />;
-};
-
-const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & { prd: PRD }> = ({
-  prd, identity, onClose, onConfirmSuccess, onRefresh,
-}) => {
   const [activeTab, setActiveTab] = useState<'overview' | 'requirements' | 'criteria' | 'questions'>('overview');
   const [title, setTitle] = useState(prd.title);
   const [targetAudience, setTargetAudience] = useState(prd.target_audience);
@@ -129,51 +123,45 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-[#1A202C] rounded-2xl max-w-4xl w-full border border-[#E5EAF0] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
+      <div className="bg-white rounded-2xl max-w-4xl w-full border border-[#E5EAF0] shadow-2xl overflow-hidden flex flex-col max-h-[92vh]">
         {/* Header */}
-        <div className="p-6 border-b border-[#E5EAF0] flex items-center justify-between bg-[#1A202C]">
+        <div className="p-6 border-b border-[#E5EAF0] flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-violet-500/10 text-violet-300 font-bold flex items-center justify-center">
-              <FileText className="w-5 h-5 text-violet-300" />
+            <div className="w-10 h-10 rounded-xl bg-violet-100 text-violet-700 font-bold flex items-center justify-center">
+              <FileText className="w-5 h-5 text-violet-700" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-300 border border-violet-500/25">
-                  PRD draft v{prd.version}
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
+                  NOVA PRD v{prd.version}
                 </span>
                 <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
-                  prd.status === 'confirmed' ? 'bg-emerald-500/10 text-emerald-300' : 'bg-amber-500/10 text-amber-300'
+                  prd.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700' : 'bg-amber-50 text-amber-800'
                 }`}>
                   {prd.status === 'confirmed' ? 'Confirmed & Active' : 'Awaiting Alex Confirmation'}
                 </span>
               </div>
-              <h2 className="text-base font-bold text-[#E7EDF7] mt-1">
+              <h2 className="text-base font-bold text-[#172033] mt-1">
                 {title}
               </h2>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-[#A3B0C4] hover:bg-[#1D2633] hover:text-[#E7EDF7] transition"
+            className="p-2 rounded-xl text-[#657189] hover:bg-slate-100 hover:text-[#172033] transition"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        {prd.generation_mode === 'template_fallback' && (
-          <div role="status" className="border-b border-amber-500/25 bg-amber-500/10 px-6 py-2.5 text-xs text-amber-300">
-            Live AI was unavailable. This is a demo template; review and edit its requirements before confirming.
-          </div>
-        )}
-
         {/* Tab Navigation */}
-        <div className="px-6 border-b border-[#E5EAF0] bg-[#141A24] flex items-center space-x-2">
+        <div className="px-6 border-b border-[#E5EAF0] bg-[#F8FAFC] flex items-center space-x-2">
           <button
             onClick={() => setActiveTab('overview')}
             className={`px-4 py-3 text-xs font-semibold border-b-2 transition cursor-pointer ${
               activeTab === 'overview'
-                ? 'border-violet-600 text-violet-300 font-bold'
-                : 'border-transparent text-[#A3B0C4] hover:text-[#E7EDF7]'
+                ? 'border-violet-600 text-violet-700 font-bold'
+                : 'border-transparent text-[#657189] hover:text-[#172033]'
             }`}
           >
             1. Product Overview
@@ -182,8 +170,8 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
             onClick={() => setActiveTab('requirements')}
             className={`px-4 py-3 text-xs font-semibold border-b-2 transition cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'requirements'
-                ? 'border-violet-600 text-violet-300 font-bold'
-                : 'border-transparent text-[#A3B0C4] hover:text-[#E7EDF7]'
+                ? 'border-violet-600 text-violet-700 font-bold'
+                : 'border-transparent text-[#657189] hover:text-[#172033]'
             }`}
           >
             <span>2. Requirements ({functionalReqs.length})</span>
@@ -192,8 +180,8 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
             onClick={() => setActiveTab('criteria')}
             className={`px-4 py-3 text-xs font-semibold border-b-2 transition cursor-pointer ${
               activeTab === 'criteria'
-                ? 'border-violet-600 text-violet-300 font-bold'
-                : 'border-transparent text-[#A3B0C4] hover:text-[#E7EDF7]'
+                ? 'border-violet-600 text-violet-700 font-bold'
+                : 'border-transparent text-[#657189] hover:text-[#172033]'
             }`}
           >
             3. Acceptance Criteria
@@ -202,8 +190,8 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
             onClick={() => setActiveTab('questions')}
             className={`px-4 py-3 text-xs font-semibold border-b-2 transition cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'questions'
-                ? 'border-violet-600 text-violet-300 font-bold'
-                : 'border-transparent text-[#A3B0C4] hover:text-[#E7EDF7]'
+                ? 'border-violet-600 text-violet-700 font-bold'
+                : 'border-transparent text-[#657189] hover:text-[#172033]'
             }`}
           >
             <span>4. Questions for Alex</span>
@@ -222,58 +210,58 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-[#E7EDF7] mb-1">
+                  <label className="block text-xs font-bold text-[#172033] mb-1">
                     Document Title
                   </label>
                   <input
                     type="text"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs font-semibold text-[#E7EDF7] bg-[#1A202C] focus:outline-none focus:border-violet-500"
+                    className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs font-semibold text-[#172033] bg-white focus:outline-none focus:border-violet-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-[#E7EDF7] mb-1">
+                  <label className="block text-xs font-bold text-[#172033] mb-1">
                     Target Audience
                   </label>
                   <input
                     type="text"
                     value={targetAudience}
                     onChange={(e) => setTargetAudience(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs font-semibold text-[#E7EDF7] bg-[#1A202C] focus:outline-none focus:border-violet-500"
+                    className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs font-semibold text-[#172033] bg-white focus:outline-none focus:border-violet-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#E7EDF7] mb-1">
+                <label className="block text-xs font-bold text-[#172033] mb-1">
                   Product Objective
                 </label>
                 <textarea
                   rows={2}
                   value={objective}
                   onChange={(e) => setObjective(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs text-[#E7EDF7] bg-[#1A202C] focus:outline-none focus:border-violet-500 leading-relaxed"
+                  className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs text-[#172033] bg-white focus:outline-none focus:border-violet-500 leading-relaxed"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#E7EDF7] mb-1">
+                <label className="block text-xs font-bold text-[#172033] mb-1">
                   Problem Being Solved
                 </label>
                 <textarea
                   rows={2}
                   value={problemStatement}
                   onChange={(e) => setProblemStatement(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs text-[#E7EDF7] bg-[#1A202C] focus:outline-none focus:border-violet-500 leading-relaxed"
+                  className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs text-[#172033] bg-white focus:outline-none focus:border-violet-500 leading-relaxed"
                 />
               </div>
 
-              <div className="p-4 rounded-xl bg-violet-500/10 border border-violet-500/25 space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-violet-300">
+              <div className="p-4 rounded-xl bg-violet-50/50 border border-violet-100 space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-violet-700">
                   Proposed Product Direction
                 </span>
-                <p className="text-xs text-[#E7EDF7] leading-relaxed">
+                <p className="text-xs text-[#172033] leading-relaxed">
                   {prd.product_direction}
                 </p>
               </div>
@@ -285,17 +273,17 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-xs font-bold text-[#E7EDF7]">
+                  <h3 className="text-xs font-bold text-[#172033]">
                     Functional Requirements
                   </h3>
-                  <p className="text-[11px] text-[#A3B0C4]">
+                  <p className="text-[11px] text-[#657189]">
                     Alex can edit, add, or remove requirements prior to confirming handoff to PIXEL.
                   </p>
                 </div>
                 <button
                   type="button"
                   onClick={() => setShowAddReq(true)}
-                  className="px-3 py-1.5 rounded-xl bg-violet-500/10 hover:bg-violet-500/10 text-violet-300 border border-violet-500/25 text-xs font-semibold flex items-center gap-1 transition"
+                  className="px-3 py-1.5 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 text-xs font-semibold flex items-center gap-1 transition"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   <span>Add Requirement</span>
@@ -303,10 +291,10 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
               </div>
 
               {showAddReq && (
-                <div className="p-4 rounded-xl border border-violet-300 bg-violet-500/10 space-y-3">
+                <div className="p-4 rounded-xl border border-violet-300 bg-violet-50/20 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-violet-300">New Functional Requirement</span>
-                    <button onClick={() => setShowAddReq(false)} className="text-[#A3B0C4] hover:text-[#E7EDF7]">
+                    <span className="text-xs font-bold text-violet-900">New Functional Requirement</span>
+                    <button onClick={() => setShowAddReq(false)} className="text-[#657189] hover:text-[#172033]">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -315,14 +303,14 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
                     placeholder="Requirement Title"
                     value={newReqTitle}
                     onChange={(e) => setNewReqTitle(e.target.value)}
-                    className="w-full p-2.5 rounded-lg border border-[#E5EAF0] text-xs bg-[#1A202C]"
+                    className="w-full p-2.5 rounded-lg border border-[#E5EAF0] text-xs bg-white"
                   />
                   <textarea
                     rows={2}
                     placeholder="Requirement Description and Expected Behavior"
                     value={newReqDesc}
                     onChange={(e) => setNewReqDesc(e.target.value)}
-                    className="w-full p-2.5 rounded-lg border border-[#E5EAF0] text-xs bg-[#1A202C]"
+                    className="w-full p-2.5 rounded-lg border border-[#E5EAF0] text-xs bg-white"
                   />
                   <button
                     type="button"
@@ -338,32 +326,32 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
                 {functionalReqs.map((req, idx) => (
                   <div
                     key={req.id || idx}
-                    className="p-4 rounded-xl border border-[#E5EAF0] bg-[#141A24] space-y-2 group"
+                    className="p-4 rounded-xl border border-[#E5EAF0] bg-[#F8FAFC] space-y-2 group"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#1A202C] border border-[#E5EAF0] text-violet-300">
+                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-white border border-[#E5EAF0] text-violet-700">
                           {req.id}
                         </span>
-                        <h4 className="text-xs font-bold text-[#E7EDF7]">
+                        <h4 className="text-xs font-bold text-[#172033]">
                           {req.title}
                         </h4>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-500/10 text-violet-300 border border-violet-500/25">
+                        <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
                           {req.priority || 'High'}
                         </span>
                         <button
                           type="button"
                           onClick={() => handleDeleteRequirement(req.id)}
-                          className="p-1 rounded text-[#8495AD] hover:text-red-400 transition"
+                          className="p-1 rounded text-slate-400 hover:text-red-600 transition"
                           title="Remove requirement"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
-                    <p className="text-xs text-[#A3B0C4] leading-relaxed">
+                    <p className="text-xs text-[#657189] leading-relaxed">
                       {req.description}
                     </p>
                   </div>
@@ -372,15 +360,15 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
 
               {/* Non-Functional Requirements */}
               <div className="pt-4 border-t border-[#E5EAF0]">
-                <h4 className="text-xs font-bold text-[#E7EDF7] mb-2">
+                <h4 className="text-xs font-bold text-[#172033] mb-2">
                   Non-Functional Requirements & Constraints
                 </h4>
                 <div className="space-y-2">
                   {(prd.non_functional_requirements || []).map((nfr, idx) => (
-                    <div key={idx} className="p-3 rounded-lg bg-[#1A202C] border border-[#E5EAF0] text-xs">
-                      <span className="font-bold text-blue-300 mr-2">{nfr.id}</span>
-                      <span className="font-semibold text-[#E7EDF7] mr-2">{nfr.title}:</span>
-                      <span className="text-[#A3B0C4]">{nfr.description}</span>
+                    <div key={idx} className="p-3 rounded-lg bg-white border border-[#E5EAF0] text-xs">
+                      <span className="font-bold text-blue-700 mr-2">{nfr.id}</span>
+                      <span className="font-semibold text-[#172033] mr-2">{nfr.title}:</span>
+                      <span className="text-[#657189]">{nfr.description}</span>
                     </div>
                   ))}
                 </div>
@@ -392,24 +380,24 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
           {activeTab === 'criteria' && (
             <div className="space-y-4">
               <div>
-                <h3 className="text-xs font-bold text-[#E7EDF7]">
+                <h3 className="text-xs font-bold text-[#172033]">
                   Acceptance Criteria
                 </h3>
-                <p className="text-[11px] text-[#A3B0C4]">
+                <p className="text-[11px] text-[#657189]">
                   Explicit validation standards that PIXEL's component proposal must satisfy.
                 </p>
               </div>
 
               <div className="space-y-3">
                 {(prd.acceptance_criteria || []).map((ac, idx) => (
-                  <div key={idx} className="p-4 rounded-xl border border-[#E5EAF0] bg-[#141A24] space-y-2">
-                    <span className="text-[10px] font-mono font-bold text-teal-300 bg-teal-500/10 px-2 py-0.5 rounded-md border border-teal-500/25">
+                  <div key={idx} className="p-4 rounded-xl border border-[#E5EAF0] bg-[#F8FAFC] space-y-2">
+                    <span className="text-[10px] font-mono font-bold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md border border-teal-200">
                       Criteria for {ac.req_id}
                     </span>
                     <ul className="space-y-1.5 mt-2">
                       {(ac.criteria || []).map((c, cIdx) => (
-                        <li key={cIdx} className="text-xs text-[#E7EDF7] flex items-start gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 mt-0.5 shrink-0" />
+                        <li key={cIdx} className="text-xs text-[#172033] flex items-start gap-2">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
                           <span>{c}</span>
                         </li>
                       ))}
@@ -423,13 +411,13 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
           {/* TAB 4: QUESTIONS FOR ALEX */}
           {activeTab === 'questions' && (
             <div className="space-y-4">
-              <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex items-center gap-3">
-                <HelpCircle className="w-5 h-5 text-amber-300 shrink-0" />
+              <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 flex items-center gap-3">
+                <HelpCircle className="w-5 h-5 text-amber-700 shrink-0" />
                 <div>
-                  <h4 className="text-xs font-bold text-amber-300">
+                  <h4 className="text-xs font-bold text-amber-900">
                     NOVA identified uncertainties & critical questions
                   </h4>
-                  <p className="text-[11px] text-amber-300 mt-0.5">
+                  <p className="text-[11px] text-amber-800 mt-0.5">
                     Clarify these assumptions so PIXEL builds the right prototype configuration.
                   </p>
                 </div>
@@ -437,19 +425,19 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
 
               <div className="space-y-3">
                 {(prd.missing_information || []).map((q, idx) => (
-                  <div key={idx} className="p-4 rounded-xl border border-[#E5EAF0] bg-[#1A202C] space-y-2">
+                  <div key={idx} className="p-4 rounded-xl border border-[#E5EAF0] bg-white space-y-2">
                     <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full bg-amber-500/10 text-amber-300 text-[10px] font-bold flex items-center justify-center">
+                      <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold flex items-center justify-center">
                         Q{idx + 1}
                       </span>
-                      <p className="text-xs font-bold text-[#E7EDF7]">{q}</p>
+                      <p className="text-xs font-bold text-[#172033]">{q}</p>
                     </div>
                     <input
                       type="text"
                       placeholder="Alex's answer / clarification..."
                       value={answers[q] || ''}
                       onChange={(e) => setAnswers({ ...answers, [q]: e.target.value })}
-                      className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs bg-[#141A24] focus:bg-[#1A202C] focus:outline-none focus:border-teal-500"
+                      className="w-full p-2.5 rounded-xl border border-[#E5EAF0] text-xs bg-[#F8FAFC] focus:bg-white focus:outline-none focus:border-teal-500"
                     />
                   </div>
                 ))}
@@ -459,17 +447,17 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
         </div>
 
         {/* Footer */}
-        <div className="p-4 bg-[#141A24] border-t border-[#E5EAF0] flex items-center justify-between">
+        <div className="p-4 bg-[#F8FAFC] border-t border-[#E5EAF0] flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleSaveEdits}
-              disabled={isSaving || prd.status === 'confirmed'}
-              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-[#E7EDF7] border border-[#E5EAF0] bg-[#1A202C] hover:bg-[#141A24] transition"
+              disabled={isSaving}
+              className="px-3.5 py-2 rounded-xl text-xs font-semibold text-[#172033] border border-[#E5EAF0] bg-white hover:bg-slate-50 transition"
             >
               {isSaving ? 'Saving...' : saveSuccess ? 'Saved ✓' : 'Save Draft Edits'}
             </button>
-            <span className="text-[11px] text-[#A3B0C4]">
+            <span className="text-[11px] text-[#657189]">
               Alex (Founder) sign-off required
             </span>
           </div>
@@ -478,7 +466,7 @@ const PRDReviewContent: React.FC<Omit<PRDReviewModalProps, 'isOpen' | 'prd'> & {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#A3B0C4] hover:bg-[#303D50] transition"
+              className="px-4 py-2 rounded-xl text-xs font-semibold text-[#657189] hover:bg-slate-200 transition"
             >
               Close
             </button>
