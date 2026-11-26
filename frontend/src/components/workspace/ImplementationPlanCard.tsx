@@ -22,23 +22,23 @@ export const ImplementationPlanCard: React.FC<ImplementationPlanCardProps> = ({
   if (!plan) return null;
 
   return (
-    <div className="bg-white border border-[#E5EAF0] rounded-2xl p-6 shadow-xs space-y-4">
+    <div className="bg-[#1A202C] border border-[#E5EAF0] rounded-2xl p-6 shadow-xs space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between pb-3 border-b border-[#F0F3F7]">
+      <div className="flex items-center justify-between pb-3 border-b border-[#293445]">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 text-teal-700 flex items-center justify-center font-bold text-xs">
+          <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/25 text-teal-300 flex items-center justify-center font-bold text-xs">
             P
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-xs font-bold text-[#172033]">
+              <h3 className="text-xs font-bold text-[#E7EDF7]">
                 {plan.title}
               </h3>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/25">
                 PIXEL · Prototype Engineer
               </span>
             </div>
-            <p className="text-[11px] text-[#657189] mt-0.5">
+            <p className="text-[11px] text-[#A3B0C4] mt-0.5">
               Demo implementation plan linked to the confirmed PRD
             </p>
           </div>
@@ -57,15 +57,15 @@ export const ImplementationPlanCard: React.FC<ImplementationPlanCardProps> = ({
 
       {/* Target Sections & Dependencies */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-        <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E5EAF0]">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#657189] block mb-1">
+        <div className="p-3 rounded-xl bg-[#141A24] border border-[#E5EAF0]">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#A3B0C4] block mb-1">
             Target Prototype Sections
           </span>
           <div className="flex flex-wrap gap-1.5">
             {plan.target_sections.map((sec) => (
               <span
                 key={sec}
-                className="px-2 py-0.5 rounded-md bg-white border border-[#E5EAF0] font-mono text-[11px] font-semibold text-teal-700"
+                className="px-2 py-0.5 rounded-md bg-[#1A202C] border border-[#E5EAF0] font-mono text-[11px] font-semibold text-teal-300"
               >
                 {sec}
               </span>
@@ -73,14 +73,14 @@ export const ImplementationPlanCard: React.FC<ImplementationPlanCardProps> = ({
           </div>
         </div>
 
-        <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E5EAF0]">
-          <span className="text-[10px] font-bold uppercase tracking-wider text-[#657189] block mb-1">
+        <div className="p-3 rounded-xl bg-[#141A24] border border-[#E5EAF0]">
+          <span className="text-[10px] font-bold uppercase tracking-wider text-[#A3B0C4] block mb-1">
             Expected UI Changes
           </span>
-          <ul className="space-y-1 text-[11px] text-[#172033]">
+          <ul className="space-y-1 text-[11px] text-[#E7EDF7]">
             {plan.expected_ui_changes.map((change, idx) => (
               <li key={idx} className="flex items-center gap-1.5">
-                <Check className="w-3 h-3 text-teal-600 shrink-0" />
+                <Check className="w-3 h-3 text-teal-400 shrink-0" />
                 <span className="truncate">{change}</span>
               </li>
             ))}
@@ -90,22 +90,22 @@ export const ImplementationPlanCard: React.FC<ImplementationPlanCardProps> = ({
 
       {/* Planned Tasks */}
       <div>
-        <span className="text-[10px] font-bold uppercase tracking-wider text-[#657189] block mb-2">
+        <span className="text-[10px] font-bold uppercase tracking-wider text-[#A3B0C4] block mb-2">
           Engineering Tasks ({plan.tasks.length})
         </span>
         <div className="space-y-2">
           {plan.tasks.map((task) => (
             <div
               key={task.id}
-              className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E5EAF0] flex items-center justify-between text-xs"
+              className="p-3 rounded-xl bg-[#141A24] border border-[#E5EAF0] flex items-center justify-between text-xs"
             >
               <div className="flex items-center gap-2.5">
-                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white border border-[#E5EAF0] text-slate-700">
+                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#1A202C] border border-[#E5EAF0] text-[#C6D2E4]">
                   {task.id}
                 </span>
-                <span className="font-medium text-[#172033]">{task.task}</span>
+                <span className="font-medium text-[#E7EDF7]">{task.task}</span>
               </div>
-              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-300 border border-emerald-500/25">
                 Planned
               </span>
             </div>

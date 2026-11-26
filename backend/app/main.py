@@ -98,6 +98,23 @@ async def health_check():
     }
 
 
+@app.get("/api/setup-status")
+async def setup_status():
+    from backend.app.db.database import DATABASE_URL, is_serverless
+    durable = not (is_serverless and DATABASE_URL.startswith("sqlite"))
+    ai_configured = bool(os.getenv("LLM_API_KEY") or os.getenv("GOOGLE_API_KEY"))
+    return {"checks": [
+        {"id": "storage", "title": "Saved workspace", "ready": durable,
+         "detail": "Persistent storage configured; connectivity must be verified." if durable else "Temporary serverless storage. Configure DATABASE_URL with PostgreSQL before storing real work."},
+        {"id": "ai", "title": "AI provider", "ready": ai_configured,
+         "detail": "Provider credentials configured; successful generation still needs verification." if ai_configured else "Add an AI provider key on the server to enable live responses."},
+        {"id": "github", "title": "Repository publishing", "ready": bool(os.getenv("GITHUB_TOKEN")),
+         "detail": "Repository credential configured; permissions need verification." if os.getenv("GITHUB_TOKEN") else "Configure a GitHub token on the server to publish reviewed contributions."},
+        {"id": "accounts", "title": "Member accounts", "ready": False,
+         "detail": "This workspace currently uses selectable demo roles, not authenticated member accounts."},
+    ]}
+
+
 @app.websocket("/ws/{project_id}/{identity_key}")
 async def websocket_endpoint(
     websocket: WebSocket,

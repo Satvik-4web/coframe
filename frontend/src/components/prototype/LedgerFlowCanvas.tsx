@@ -78,8 +78,8 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
   return (
     <div className="mx-auto max-w-[1400px] space-y-6 pb-10">
       <div className="flex flex-wrap items-end justify-between gap-3">
-        <div><p className="mb-1 text-xs font-bold uppercase tracking-[.16em] text-teal-700">Product canvas</p><h1 className="text-3xl font-semibold tracking-[-.04em] text-[#14213A] sm:text-4xl">LedgerFlow preview</h1><p className="mt-2 text-sm text-slate-500">Explore the product, its live expense workflow, and the strategy behind it.</p></div>
-        <span className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-600">Artifact v{artifactVersion}</span>
+        <div><p className="mb-1 text-xs font-bold uppercase tracking-[.16em] text-teal-300">Product canvas</p><h1 className="text-3xl font-semibold tracking-[-.04em] text-[#EDF2FA] sm:text-4xl">LedgerFlow preview</h1><p className="mt-2 text-sm text-[#96A6BE]">Explore the product, its live expense workflow, and the strategy behind it.</p></div>
+        <span className="rounded-full border border-[#303A4B] bg-[#1A202C] px-3 py-1.5 text-xs font-semibold text-[#ACBAD0]">Artifact v{artifactVersion}</span>
       </div>
       {/* Subheader Navigation Controls */}
       <div className="dashboard-card flex flex-col gap-4 rounded-[20px] p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
@@ -88,22 +88,22 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
             onClick={() => setActiveTab('prototype')}
             className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer flex items-center gap-2 ${
               activeTab === 'prototype'
-                ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-2xs'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
+                ? 'bg-teal-500/10 text-teal-300 border border-teal-500/25 shadow-2xs'
+                : 'text-[#A3B0C4] hover:text-[#E7EDF7] hover:bg-[#141A24]'
             }`}
           >
-            <Palette className="w-3.5 h-3.5 text-teal-600" />
+            <Palette className="w-3.5 h-3.5 text-teal-400" />
             <span>Prototype Preview (LedgerFlow)</span>
           </button>
           <button
             onClick={() => setActiveTab('brief')}
             className={`px-4 py-2.5 rounded-xl text-sm font-semibold transition cursor-pointer flex items-center gap-2 ${
               activeTab === 'brief'
-                ? 'bg-violet-50 text-violet-800 border border-violet-200 shadow-2xs'
-                : 'text-[#657189] hover:text-[#172033] hover:bg-[#F8FAFC]'
+                ? 'bg-violet-500/10 text-violet-300 border border-violet-500/25 shadow-2xs'
+                : 'text-[#A3B0C4] hover:text-[#E7EDF7] hover:bg-[#141A24]'
             }`}
           >
-            <Target className="w-3.5 h-3.5 text-violet-600" />
+            <Target className="w-3.5 h-3.5 text-violet-400" />
             <span>Product Brief & Strategy</span>
           </button>
         </div>
@@ -124,7 +124,7 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
 
               <button
                 onClick={() => setIsEditModalOpen(true)}
-                className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-700 border border-violet-200 text-xs font-semibold transition cursor-pointer shadow-2xs"
+                className="flex items-center space-x-1.5 px-4 py-2.5 rounded-xl bg-violet-500/10 hover:bg-violet-500/10 text-violet-300 border border-violet-500/25 text-xs font-semibold transition cursor-pointer shadow-2xs"
                 title="Manually edit the Hero section as Maya to demonstrate human-vs-agent conflict"
               >
                 <Edit3 className="w-3.5 h-3.5" />
@@ -137,24 +137,24 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
 
       {/* Tab 1: Live React Prototype Preview (LedgerFlow Canvas) */}
       {activeTab === 'prototype' && (
-        <div className="overflow-hidden rounded-[26px] border border-[#E2E8F0] bg-[#F9FBFD] p-3 shadow-[0_20px_55px_-36px_rgba(15,23,42,.35)] sm:p-6 space-y-6">
+        <div className="overflow-hidden rounded-[26px] border border-[#303A4B] bg-[#111822] p-3 shadow-[0_20px_55px_-36px_rgba(15,23,42,.35)] sm:p-6 space-y-6">
           {/* App Header simulation inside LedgerFlow */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#E7ECF2] bg-white px-5 py-4 shadow-xs">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#303A4B] bg-[#1A202C] px-5 py-4 shadow-xs">
             <div className="flex items-center space-x-3">
               <div className="w-9 h-9 rounded-xl bg-teal-700 flex items-center justify-center text-white font-bold text-xs shadow-xs">
                 LF
               </div>
               <div>
-                <span className="font-bold text-[#172033] text-sm tracking-tight">LedgerFlow</span>
-                <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 font-medium border border-teal-200">
+                <span className="font-bold text-[#E7EDF7] text-sm tracking-tight">LedgerFlow</span>
+                <span className="ml-2 text-[10px] px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 font-medium border border-teal-500/25">
                   Interactive demo
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 text-xs text-[#657189]">
+            <div className="flex items-center space-x-2 text-xs text-[#A3B0C4]">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] font-medium text-[#172033]">Live LedgerFlow Sandbox</span>
+              <span className="text-[11px] font-medium text-[#E7EDF7]">Live LedgerFlow Sandbox</span>
             </div>
           </div>
 
@@ -162,13 +162,13 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
           <LedgerFlowHero data={heroSection.data as any} version={heroSection.version} />
 
           {expenseMetrics && (
-            <section aria-label="Live expense totals" className="rounded-[22px] border border-teal-200 bg-[#F0FAF6] p-5 sm:p-6">
-              <div className="mb-4 flex items-center justify-between"><div><p className="text-[11px] font-bold uppercase tracking-[.14em] text-teal-700">Real data</p><h2 className="mt-1 text-lg font-semibold text-teal-950">Live expense workflow</h2></div><Receipt className="h-5 w-5 text-teal-700" /></div>
+            <section aria-label="Live expense totals" className="rounded-[22px] border border-teal-500/25 bg-[#142C2C] p-5 sm:p-6">
+              <div className="mb-4 flex items-center justify-between"><div><p className="text-[11px] font-bold uppercase tracking-[.14em] text-teal-300">Real data</p><h2 className="mt-1 text-lg font-semibold text-teal-300">Live expense workflow</h2></div><Receipt className="h-5 w-5 text-teal-300" /></div>
               <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
-                <div className="rounded-xl bg-white/75 p-3"><span className="block text-xs text-teal-800">Submitted</span><strong className="mt-1 block text-2xl text-teal-950">{expenseMetrics.total_submitted}</strong></div>
-                <div className="rounded-xl bg-white/75 p-3"><span className="block text-xs text-teal-800">Pending</span><strong className="mt-1 block text-2xl text-teal-950">{expenseMetrics.pending_count}</strong></div>
-                <div className="rounded-xl bg-white/75 p-3"><span className="block text-xs text-teal-800">Approved</span><strong className="mt-1 block text-2xl text-teal-950">{expenseMetrics.approved_count}</strong></div>
-                <div className="rounded-xl bg-white/75 p-3"><span className="block text-xs text-teal-800">Approved spend</span><strong className="mt-1 block text-xl text-teal-950">${expenseMetrics.total_approved_amount.toFixed(2)}</strong></div>
+                <div className="rounded-xl bg-[#1A202C]/75 p-3"><span className="block text-xs text-teal-300">Submitted</span><strong className="mt-1 block text-2xl text-teal-300">{expenseMetrics.total_submitted}</strong></div>
+                <div className="rounded-xl bg-[#1A202C]/75 p-3"><span className="block text-xs text-teal-300">Pending</span><strong className="mt-1 block text-2xl text-teal-300">{expenseMetrics.pending_count}</strong></div>
+                <div className="rounded-xl bg-[#1A202C]/75 p-3"><span className="block text-xs text-teal-300">Approved</span><strong className="mt-1 block text-2xl text-teal-300">{expenseMetrics.approved_count}</strong></div>
+                <div className="rounded-xl bg-[#1A202C]/75 p-3"><span className="block text-xs text-teal-300">Approved spend</span><strong className="mt-1 block text-xl text-teal-300">${expenseMetrics.total_approved_amount.toFixed(2)}</strong></div>
               </div>
             </section>
           )}
@@ -191,32 +191,32 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
       {/* Tab 2: Product Brief & Strategy */}
       {activeTab === 'brief' && (
         <div className="space-y-4">
-          <div className="bg-white border border-[#E7ECF2] rounded-2xl p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#E7ECF2]">
+          <div className="bg-[#1A202C] border border-[#303A4B] rounded-2xl p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-5 pb-3 border-b border-[#303A4B]">
               <div className="flex items-center space-x-2.5">
-                <div className="w-8 h-8 rounded-lg bg-violet-50 border border-violet-200 flex items-center justify-center">
-                  <Target className="w-4 h-4 text-violet-600" />
+                <div className="w-8 h-8 rounded-lg bg-violet-500/10 border border-violet-500/25 flex items-center justify-center">
+                  <Target className="w-4 h-4 text-violet-400" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-[#172033] text-sm">LedgerFlow Strategic Brief</h3>
-                  <p className="text-xs text-[#657189]">Core value propositions and audience definitions</p>
+                  <h3 className="font-bold text-[#E7EDF7] text-sm">LedgerFlow Strategic Brief</h3>
+                  <p className="text-xs text-[#A3B0C4]">Core value propositions and audience definitions</p>
                 </div>
               </div>
-              <span className="text-xs font-mono text-[#657189] bg-[#F8FAFC] px-2.5 py-1 rounded-lg border border-[#E7ECF2]">
+              <span className="text-xs font-mono text-[#A3B0C4] bg-[#141A24] px-2.5 py-1 rounded-lg border border-[#303A4B]">
                 Section v{briefSection.version}
               </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Target Audience */}
-              <div className="bg-[#F8FAFC] p-4 rounded-xl border border-[#E7ECF2]">
+              <div className="bg-[#141A24] p-4 rounded-xl border border-[#303A4B]">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-blue-700 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-blue-300 uppercase tracking-wider">
                     Target Audience (REQ_AUDIENCE)
                   </span>
                   <button
                     onClick={() => setEditingAudience(!editingAudience)}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition cursor-pointer"
+                    className="text-xs font-semibold text-blue-400 hover:text-blue-300 transition cursor-pointer"
                   >
                     {editingAudience ? 'Cancel' : 'Edit as Alex'}
                   </button>
@@ -228,7 +228,7 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
                       type="text"
                       value={newAudienceVal}
                       onChange={(e) => setNewAudienceVal(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg bg-white border border-blue-400 text-[#172033] text-xs focus:outline-none focus:ring-2 focus:ring-blue-100"
+                      className="w-full px-3 py-2 rounded-lg bg-[#1A202C] border border-blue-400 text-[#E7EDF7] text-xs focus:outline-none focus:ring-2 focus:ring-blue-100"
                       placeholder="e.g. Enterprise finance teams"
                     />
                     <div className="flex items-center justify-end space-x-2">
@@ -242,28 +242,28 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
                     </div>
                   </div>
                 ) : (
-                  <p className="text-xs text-[#172033] font-semibold mt-1">
+                  <p className="text-xs text-[#E7EDF7] font-semibold mt-1">
                     {briefSection.data?.target_audience || audienceReq?.value || 'Small businesses'}
                   </p>
                 )}
               </div>
 
               {/* Value Proposition */}
-              <div className="bg-[#F8FAFC] p-4 rounded-xl border border-[#E7ECF2]">
-                <span className="text-xs font-bold text-violet-700 uppercase tracking-wider block mb-2">
+              <div className="bg-[#141A24] p-4 rounded-xl border border-[#303A4B]">
+                <span className="text-xs font-bold text-violet-300 uppercase tracking-wider block mb-2">
                   Value Proposition
                 </span>
-                <p className="text-xs text-[#172033] font-semibold mt-1">
+                <p className="text-xs text-[#E7EDF7] font-semibold mt-1">
                   {briefSection.data?.value_proposition || 'A simpler way for small teams to track spend and close books faster'}
                 </p>
               </div>
 
               {/* Problem */}
-              <div className="bg-[#F8FAFC] p-4 rounded-xl border border-[#E7ECF2] md:col-span-2">
-                <span className="text-xs font-bold text-amber-700 uppercase tracking-wider block mb-2">
+              <div className="bg-[#141A24] p-4 rounded-xl border border-[#303A4B] md:col-span-2">
+                <span className="text-xs font-bold text-amber-300 uppercase tracking-wider block mb-2">
                   Core Problem Statement
                 </span>
-                <p className="text-xs text-[#657189] mt-1 leading-relaxed">
+                <p className="text-xs text-[#A3B0C4] mt-1 leading-relaxed">
                   {briefSection.data?.problem || 'Manual, slow expense filing and receipt tracking creates reconciliation bottlenecks.'}
                 </p>
               </div>

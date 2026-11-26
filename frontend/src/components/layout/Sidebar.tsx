@@ -11,10 +11,15 @@ import {
   ChevronRight,
   Sparkles,
   ArrowUpRight,
+  FolderOpen,
+  ShieldCheck,
+  GitBranch,
+  Settings,
 } from 'lucide-react';
 import { HumanIdentity } from '../../types';
 
 export type NavigationTab =
+  | 'settings'
   | 'chat'
   | 'overview'
   | 'preview'
@@ -101,6 +106,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Radio,
       shortcut: 'Ctrl+Shift+7',
     },
+    { id: 'settings', label: 'Workspace settings', description: 'Connections and setup', icon: Settings, shortcut: '' },
+    { id: 'resources', label: 'Files & knowledge', description: 'Shared project resources', icon: FolderOpen, shortcut: '' },
+    { id: 'governance', label: 'Approvals', description: 'Review team decisions', icon: ShieldCheck, shortcut: '' },
+    { id: 'github', label: 'Repository', description: 'Branches and pull requests', icon: GitBranch, shortcut: '' },
   ];
 
   return (
@@ -113,7 +122,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* ── Brand Header ─────────────────────────────────── */}
         <div className={`px-4 mb-7 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           <div className="flex items-center gap-2.5">
-            <div className="w-10 h-10 rounded-[13px] bg-gradient-to-br from-[#60A5FA] to-[#2563EB] flex items-center justify-center font-black text-white text-lg shadow-[0_8px_22px_rgba(37,99,235,.25)] shrink-0 ring-1 ring-white/15">
+            <div className="w-10 h-10 rounded-[13px] bg-gradient-to-br from-[#60A5FA] to-[#0E7490] flex items-center justify-center font-black text-white text-lg shadow-[0_8px_22px_rgba(37,99,235,.25)] shrink-0 ring-1 ring-white/15">
               C
             </div>
             {!isCollapsed && (
@@ -137,7 +146,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="px-3 mb-7">
             <button type="button"
               onClick={() => onSelectTab('preview')}
-              className="w-full text-left p-4 rounded-2xl bg-gradient-to-br from-[#213854] to-[#1A2B42] hover:from-[#284466] hover:to-[#203652] border border-[#37506C] transition-colors duration-150 cursor-pointer group flex items-center justify-between shadow-[0_12px_28px_-18px_#000]"
+              className="w-full text-left p-4 rounded-2xl bg-gradient-to-br from-[#202C3D] to-[#182331] hover:from-[#284466] hover:to-[#203652] border border-[#37506C] transition-colors duration-150 cursor-pointer group flex items-center justify-between shadow-[0_12px_28px_-18px_#000]"
               title="Current project: LedgerFlow (click to open canvas)"
             >
               <div className="min-w-0 pr-1.5">
@@ -167,7 +176,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title="LedgerFlow (Spend Governance)"
             >
               <span className="text-[11px] font-bold text-white">LF</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 absolute -top-0.5 -right-0.5 ring-2 ring-[#111B2A]" />
+              <span className="w-2 h-2 rounded-full bg-emerald-400 absolute -top-0.5 -right-0.5 ring-2 ring-[#111720]" />
             </button>
           </div>
         )}
@@ -191,13 +200,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => onSelectTab(item.id as NavigationTab)}
-                title={isCollapsed ? `${item.label} (${item.shortcut})` : undefined}
+                aria-current={isActive ? 'page' : undefined}
+                title={item.description}
                 className={`w-full flex items-center rounded-xl text-sm transition-all duration-150 cursor-pointer group relative ${
                   isCollapsed ? 'justify-center p-3' : 'justify-between px-3 py-3'
                 } ${
                   isActive
                     ? 'bg-gradient-to-r from-[#24476d] to-[#203c5c] text-white font-semibold shadow-[inset_3px_0_0_#67a5ff,0_5px_16px_rgba(3,12,25,.18)] ring-1 ring-white/[.06]'
-                    : 'text-[#A7B7CB] hover:text-white hover:bg-white/[.055]'
+                    : 'text-[#A7B7CB] hover:text-white hover:bg-[#1A202C]/[.055]'
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0">
@@ -232,7 +242,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {/* Collapsed dot badge */}
                 {isCollapsed && 'badge' in item && item.badge !== undefined && item.badge > 0 && (
                   <span
-                    className={`w-2 h-2 rounded-full absolute top-1 right-1 ring-2 ring-[#111B2A] ${
+                    className={`w-2 h-2 rounded-full absolute top-1 right-1 ring-2 ring-[#111720] ${
                       item.badgeConflict ? 'bg-rose-500' : 'bg-blue-500'
                     }`}
                   />

@@ -72,20 +72,20 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
   }
 
   // Theme styling based on active stage
-  let themeBadge = 'bg-violet-50 text-violet-700 border-violet-200';
-  let borderCard = 'border-[#E8EAF2] bg-white';
+  let themeBadge = 'bg-violet-500/10 text-violet-300 border-violet-500/25';
+  let borderCard = 'border-[#E8EAF2] bg-[#1A202C]';
   if (currentStage === 'prd_awaiting_confirmation') {
-    themeBadge = 'bg-amber-50 text-amber-800 border-amber-300';
-    borderCard = 'border-amber-200 bg-amber-50/15';
+    themeBadge = 'bg-amber-500/10 text-amber-300 border-amber-300';
+    borderCard = 'border-amber-500/25 bg-amber-500/10';
   } else if (currentStage === 'implementation_in_progress' || currentStage === 'execution_environment_selected') {
-    themeBadge = 'bg-teal-50 text-teal-700 border-teal-200';
-    borderCard = 'border-teal-200 bg-teal-50/15';
+    themeBadge = 'bg-teal-500/10 text-teal-300 border-teal-500/25';
+    borderCard = 'border-teal-500/25 bg-teal-500/10';
   } else if (currentStage === 'implementation_awaiting_approval') {
-    themeBadge = 'bg-blue-50 text-blue-800 border-blue-300';
-    borderCard = 'border-blue-200 bg-blue-50/15';
+    themeBadge = 'bg-blue-500/10 text-blue-300 border-blue-300';
+    borderCard = 'border-blue-500/25 bg-blue-500/10';
   } else if (currentStage === 'implementation_applied') {
-    themeBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-    borderCard = 'border-emerald-200 bg-emerald-50/15';
+    themeBadge = 'bg-emerald-500/10 text-emerald-300 border-emerald-500/25';
+    borderCard = 'border-emerald-500/25 bg-emerald-500/10';
   }
 
   return (
@@ -98,7 +98,7 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
             <span>{stageInfo.display_label || stageInfo.stage_label || 'Sequential Lifecycle'}</span>
           </span>
 
-          <p className="text-xs text-[#172033] font-medium truncate">
+          <p className="text-xs text-[#E7EDF7] font-medium truncate">
             {stageInfo.description ||
               (currentStage === 'prd_awaiting_confirmation'
                 ? 'NOVA submitted PRD proposal · Waiting for Alex to confirm requirements'
@@ -133,7 +133,7 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
 
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 rounded-lg text-[#657189] hover:text-[#172033] hover:bg-slate-100 transition cursor-pointer"
+            className="p-1 rounded-lg text-[#A3B0C4] hover:text-[#E7EDF7] hover:bg-[#1D2633] transition cursor-pointer"
             title={isCollapsed ? 'Expand workflow timeline' : 'Collapse workflow timeline'}
           >
             {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
@@ -155,10 +155,10 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
                   key={step.id}
                   className={`flex flex-col items-center text-center p-2 rounded-xl transition border ${
                     isCurrent
-                      ? 'bg-violet-50/80 border-violet-300 shadow-2xs'
+                      ? 'bg-violet-500/10 border-violet-300 shadow-2xs'
                       : isCompleted
-                      ? 'bg-emerald-50/50 border-emerald-200/80 text-emerald-900'
-                      : 'bg-[#F8FAFC] border-transparent text-[#94A3B8]'
+                      ? 'bg-emerald-500/10 border-emerald-500/25 text-emerald-300'
+                      : 'bg-[#141A24] border-transparent text-[#94A3B8]'
                   }`}
                 >
                   <div className="flex items-center justify-center mb-1">
@@ -171,7 +171,7 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
                         {step.number}
                       </div>
                     ) : (
-                      <div className="w-5 h-5 rounded-full bg-slate-200 text-slate-500 font-bold text-[10px] flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full bg-[#303D50] text-[#96A6BE] font-bold text-[10px] flex items-center justify-center">
                         {step.number}
                       </div>
                     )}
@@ -180,9 +180,9 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
                   <span
                     className={`text-[11px] font-semibold truncate w-full ${
                       isCurrent
-                        ? 'text-violet-900 font-bold'
+                        ? 'text-violet-300 font-bold'
                         : isCompleted
-                        ? 'text-emerald-900 font-semibold'
+                        ? 'text-emerald-300 font-semibold'
                         : 'text-[#94A3B8]'
                     }`}
                   >
@@ -191,11 +191,11 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
 
                   <span className="text-[9px] uppercase tracking-wider font-mono mt-0.5">
                     {isCurrent ? (
-                      <span className="text-violet-700 font-bold">Active</span>
+                      <span className="text-violet-300 font-bold">Active</span>
                     ) : isCompleted ? (
-                      <span className="text-emerald-700 font-medium">Done</span>
+                      <span className="text-emerald-300 font-medium">Done</span>
                     ) : (
-                      <span className="text-slate-400">Wait</span>
+                      <span className="text-[#8495AD]">Wait</span>
                     )}
                   </span>
                 </div>
@@ -204,19 +204,19 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
           </div>
 
           {/* Agent Readiness Footnote */}
-          <div className="mt-2.5 flex flex-wrap items-center justify-between text-[11px] text-[#657189] px-1">
+          <div className="mt-2.5 flex flex-wrap items-center justify-between text-[11px] text-[#A3B0C4] px-1">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-violet-600" />
-                <span>NOVA: <strong className="text-[#172033]">{stageInfo.nova_status || 'Analyzing strategy'}</strong></span>
+                <span>NOVA: <strong className="text-[#E7EDF7]">{stageInfo.nova_status || 'Analyzing strategy'}</strong></span>
               </span>
               <span>•</span>
               <span className="flex items-center gap-1.5">
                 <span className="w-2 h-2 rounded-full bg-teal-600" />
-                <span>PIXEL: <strong className="text-[#172033]">{stageInfo.pixel_status || 'Waiting for confirmed requirements'}</strong></span>
+                <span>PIXEL: <strong className="text-[#E7EDF7]">{stageInfo.pixel_status || 'Waiting for confirmed requirements'}</strong></span>
               </span>
             </div>
-            <span className="text-[10px] text-slate-400">Sequential Execution Boundary Enforced</span>
+            <span className="text-[10px] text-[#8495AD]">Sequential Execution Boundary Enforced</span>
           </div>
         </div>
       )}

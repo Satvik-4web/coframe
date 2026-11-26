@@ -65,6 +65,10 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
   const [showNewModal, setShowNewModal] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [showRightPanel, setShowRightPanel] = useState(true);
+  const [chatError, setChatError] = useState('');
+  const activeConversationRef = useRef(activeConversationId);
+  activeConversationRef.current = activeConversationId;
+  const messageRequest = useRef(0);
   const [stageInfo, setStageInfo] = useState<WorkflowStageInfo | null>(null);
 
   const loadWorkflowStage = async () => {
@@ -99,9 +103,11 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
   // Load messages whenever active conversation changes
   const loadMessages = async (convId: string) => {
+    const request = ++messageRequest.current;
     setIsLoadingMessages(true);
     try {
       const msgs = await fetchConversationMessages(projectId, convId, 100);
+      if (request !== messageRequest.current || convId !== activeConversationRef.current) return;
       setMessages(msgs);
       if (identity) {
         markConversationRead(projectId, convId, identity).catch(() => {});
@@ -109,7 +115,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
     } catch (err) {
       console.error('Failed to load conversation messages:', err);
     } finally {
-      setIsLoadingMessages(false);
+      if (request === messageRequest.current) setIsLoadingMessages(false);
     }
   };
 
@@ -171,6 +177,8 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
     if (!text || isSending || !activeConversationId) return;
 
     const targetRecipient = recipientOverride || recipient;
+    const sendingConversation = activeConversationId;
+    setChatError('');
     const sender = identity || 'alex';
 
     // Optimistically show user's message
@@ -212,6 +220,11 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
       });
 
       // Replace optimistic message and append agent responses without duplication
+      if (sendingConversation !== activeConversationRef.current) {
+        loadConversations();
+        onRefresh?.();
+        return;
+      }
       setMessages((prev) => {
         const filtered = prev.filter((m) => m.id !== tempId);
         const existingIds = new Set(filtered.map((m) => m.id));
@@ -234,6 +247,8 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
       if (onRefresh) onRefresh();
     } catch (err) {
       console.error('Failed to send chat message:', err);
+      setChatError(err instanceof Error ? err.message : 'Message could not be sent.');
+      if (sendingConversation === activeConversationRef.current) setInputText(text);
       // Mark optimistic message as failed
       setMessages((prev) =>
         prev.map((m) => (m.id === tempId ? { ...m, status: 'failed' } : m))
@@ -245,7 +260,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault();
       handleSendMessage();
     }
@@ -268,6 +283,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
       setActiveConversationId(conv.id);
     } catch (err) {
       console.error('Failed to create conversation room:', err);
+      setChatError('Could not create the conversation. Please try again.');
     }
   };
 
@@ -277,22 +293,22 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
   );
 
   return (
-    <div className="flex h-full w-full bg-[#FAFBFD] overflow-hidden select-text">
-      {/* 1. LEFT COLUMN: Conversations Sidebar */}
-      <div className="w-72 border-r border-[#E7ECF2] bg-white flex flex-col h-full shrink-0">
+    <div className="flex flex-col md:flex-row h-full w-full bg-[#FAFBFD] overflow-hidden select-text">
+      {chatError && <div role="alert" className="absolute bottom-28 left-4 right-4 z-20 rounded-xl border border-red-500/25 bg-red-500/10 p-3 text-sm text-red-300 shadow-lg">{chatError}<button onClick={() => setChatError('')} className="ml-3 font-semibold underline">Dismiss</button></div>}{/* 1. LEFT COLUMN: Conversations Sidebar */}
+      <div className="w-full md:w-56 lg:w-64 border-r border-[#303A4B] bg-[#1A202C] flex flex-col max-h-48 md:max-h-none md:h-full shrink-0">
         {/* Header */}
-        <div className="p-4 border-b border-[#E7ECF2] flex items-center justify-between">
+        <div className="p-4 border-b border-[#303A4B] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="p-1 rounded-lg bg-teal-50 border border-teal-200">
-              <MessageSquare className="w-4 h-4 text-teal-700" />
+            <span className="p-1 rounded-lg bg-teal-500/10 border border-teal-500/25">
+              <MessageSquare className="w-4 h-4 text-teal-300" />
             </span>
-            <h2 className="text-xs font-bold text-[#172033] uppercase tracking-wider">
+            <h2 className="text-xs font-bold text-[#E7EDF7] uppercase tracking-wider">
               Conversations
             </h2>
           </div>
           <button
             onClick={() => setShowNewModal(true)}
-            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
+            className="p-1.5 rounded-lg bg-[#1D2633] hover:bg-[#303D50] text-[#C6D2E4] transition cursor-pointer"
             title="Create new conversation room"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -300,7 +316,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
         </div>
 
         {/* Search */}
-        <div className="p-3 border-b border-[#F0F3F7]">
+        <div className="p-3 border-b border-[#293445]">
           <div className="relative">
             <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#94A3B8]" />
             <input
@@ -308,7 +324,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations..."
-              className="w-full pl-8 pr-3 py-1.5 bg-[#F8FAFC] border border-[#E7ECF2] rounded-xl text-xs text-[#172033] placeholder-[#94A3B8] focus:bg-white focus:border-teal-500 outline-hidden transition"
+              className="w-full pl-8 pr-3 py-1.5 bg-[#141A24] border border-[#303A4B] rounded-xl text-xs text-[#E7EDF7] placeholder-[#94A3B8] focus:bg-[#1A202C] focus:border-teal-500 outline-hidden transition"
             />
           </div>
         </div>
@@ -328,14 +344,14 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 onClick={() => setActiveConversationId(conv.id)}
                 className={`w-full text-left p-3 rounded-xl transition cursor-pointer flex flex-col gap-1 border ${
                   isActive
-                    ? 'bg-teal-50/60 border-teal-200 text-[#172033] shadow-2xs'
-                    : 'bg-transparent border-transparent hover:bg-[#F8FAFC] text-[#657189]'
+                    ? 'bg-teal-500/10 border-teal-500/25 text-[#E7EDF7] shadow-2xs'
+                    : 'bg-transparent border-transparent hover:bg-[#141A24] text-[#A3B0C4]'
                 }`}
               >
                 <div className="flex items-center justify-between w-full">
                   <span
                     className={`text-xs font-semibold truncate ${
-                      isActive ? 'text-teal-950 font-bold' : 'text-[#172033]'
+                      isActive ? 'text-teal-300 font-bold' : 'text-[#E7EDF7]'
                     }`}
                   >
                     {conv.title}
@@ -348,7 +364,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 </div>
 
                 {lastMsg && (
-                  <p className="text-[11px] text-[#657189] line-clamp-1 break-words">
+                  <p className="text-[11px] text-[#A3B0C4] line-clamp-1 break-words">
                     <span className="font-semibold text-[#475569]">
                       {lastMsg.sender_name}:
                     </span>{' '}
@@ -357,11 +373,11 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 )}
 
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-[#1D2633] text-[#ACBAD0] font-medium">
                     {conv.message_count} msgs
                   </span>
                   {conv.conversation_type === 'team_shared' && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium border border-emerald-200">
+                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-300 font-medium border border-emerald-500/25">
                       Team Room
                     </span>
                   )}
@@ -379,19 +395,19 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
       </div>
 
       {/* 2. CENTRE COLUMN: Active Chat Stream */}
-      <div className="flex-1 flex flex-col h-full bg-[#FAFBFD] overflow-hidden">
+      <div className="flex-1 min-w-0 min-h-0 flex flex-col md:h-full bg-[#FAFBFD] overflow-hidden">
         {/* Stream Top Header */}
-        <div className="h-14 px-6 border-b border-[#E7ECF2] bg-white flex items-center justify-between shrink-0 shadow-2xs">
+        <div className="h-14 px-6 border-b border-[#303A4B] bg-[#1A202C] flex items-center justify-between shrink-0 shadow-2xs">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-sm font-bold text-[#172033]">
+              <h1 className="text-sm font-bold text-[#E7EDF7]">
                 {activeConv?.title || 'LedgerFlow Workspace Chat'}
               </h1>
-              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
+              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/25">
                 Shared Space
               </span>
             </div>
-            <p className="text-[10px] text-[#657189] mt-0.5">
+            <p className="text-[10px] text-[#A3B0C4] mt-0.5">
               Humans (Alex, Maya) + AI Collaborators (NOVA, PIXEL)
             </p>
           </div>
@@ -400,7 +416,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
             {/* Active Participant Avatars */}
             <div className="flex items-center -space-x-1.5">
               <div
-                className="w-7 h-7 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
+                className="w-7 h-7 rounded-full bg-[#0E7490] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
                 title="Alex (Founder / Decision Owner)"
               >
                 A
@@ -428,7 +444,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
             {/* Context Panel Toggle */}
             <button
               onClick={() => setShowRightPanel(!showRightPanel)}
-              className="p-1.5 rounded-lg border border-[#E7ECF2] hover:bg-[#F8FAFC] text-[#657189] hover:text-[#172033] transition cursor-pointer"
+              className="p-1.5 rounded-lg border border-[#303A4B] hover:bg-[#141A24] text-[#A3B0C4] hover:text-[#E7EDF7] transition cursor-pointer"
               title={showRightPanel ? 'Hide context panel' : 'Show context panel'}
             >
               {showRightPanel ? (
@@ -448,7 +464,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
         />
 
         {/* Scrollable Messages Stream */}
-        <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-6 space-y-5">
           {isLoadingMessages ? (
             <div className="flex items-center justify-center h-48 text-xs text-[#94A3B8]">
               <span className="w-4 h-4 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mr-2" />
@@ -464,7 +480,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
               if (isSystem) {
                 return (
                   <div key={msg.id} className="flex justify-center my-3">
-                    <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-600 text-[10px] font-medium border border-slate-200">
+                    <span className="px-3 py-1 rounded-full bg-[#1D2633] text-[#ACBAD0] text-[10px] font-medium border border-[#303A4B]">
                       {msg.message_content || msg.content}
                     </span>
                   </div>
@@ -478,7 +494,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 ? 'bg-[#0D9488] text-white'
                 : msg.sender_id === 'maya'
                 ? 'bg-[#D946A1] text-white'
-                : 'bg-[#2563EB] text-white';
+                : 'bg-[#0E7490] text-white';
 
               const roleLabel =
                 msg.sender_role ||
@@ -491,12 +507,12 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                   : 'Product Designer');
 
               const cardBorder = isNova
-                ? 'border-violet-200/90 bg-white ring-1 ring-violet-100/50'
+                ? 'border-violet-500/25 bg-[#1A202C] ring-1 ring-violet-100/50'
                 : isPixel
-                ? 'border-teal-200/90 bg-white ring-1 ring-teal-100/50'
+                ? 'border-teal-500/25 bg-[#1A202C] ring-1 ring-teal-100/50'
                 : msg.sender_id === 'maya'
-                ? 'border-pink-200/90 bg-white ring-1 ring-pink-100/50'
-                : 'border-blue-200/90 bg-white ring-1 ring-blue-100/50';
+                ? 'border-pink-500/25 bg-[#1A202C] ring-1 ring-pink-100/50'
+                : 'border-blue-500/25 bg-[#1A202C] ring-1 ring-blue-100/50';
 
               const timeStr = msg.created_at
                 ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -522,20 +538,20 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                     className={`flex-1 border ${cardBorder} rounded-2xl p-4 shadow-xs space-y-2`}
                   >
                     {/* Header */}
-                    <div className="flex items-center justify-between pb-1.5 border-b border-[#F0F3F7]">
+                    <div className="flex items-center justify-between pb-1.5 border-b border-[#293445]">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[#172033]">
+                        <span className="text-xs font-bold text-[#E7EDF7]">
                           {msg.sender_name}
                         </span>
-                        <span className="text-[10px] text-[#657189] font-medium">
+                        <span className="text-[10px] text-[#A3B0C4] font-medium">
                           {roleLabel}
                         </span>
                         {!isHuman && (
                           <span
                             className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider ${
                               isNova
-                                ? 'bg-violet-50 text-violet-700 border border-violet-200'
-                                : 'bg-teal-50 text-teal-700 border border-teal-200'
+                                ? 'bg-violet-500/10 text-violet-300 border border-violet-500/25'
+                                : 'bg-teal-500/10 text-teal-300 border border-teal-500/25'
                             }`}
                           >
                             AI Agent
@@ -550,7 +566,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
                     {/* Delivery Status & Retry */}
                     {msg.status === 'failed' && (
-                      <div className="mt-2 p-2.5 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-between text-xs text-rose-700">
+                      <div className="mt-2 p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/25 flex items-center justify-between text-xs text-rose-300">
                         <span className="font-medium">
                           Failed to deliver message to agent. Check network or model quota.
                         </span>
@@ -565,7 +581,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                     )}
 
                     {msg.status === 'sending' && (
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium italic pt-1">
+                      <div className="flex items-center gap-1.5 text-[10px] text-[#8495AD] font-medium italic pt-1">
                         <span className="w-2.5 h-2.5 rounded-full border border-slate-400 border-t-transparent animate-spin" />
                         <span>Sending message...</span>
                       </div>
@@ -573,31 +589,31 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
                     {/* Embedded Linked Proposal Card if attached */}
                     {(msg.related_proposal_id || msg.related_proposal) && (
-                      <div className="mt-3 p-4 rounded-2xl bg-gradient-to-r from-violet-50/70 via-white to-teal-50/50 border border-violet-200/90 shadow-xs space-y-2.5">
+                      <div className="mt-3 p-4 rounded-2xl bg-gradient-to-r from-violet-50/70 via-[#19232E] to-teal-50/50 border border-violet-500/25 shadow-xs space-y-2.5">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="p-1 rounded-lg bg-violet-100 text-violet-700">
+                            <span className="p-1 rounded-lg bg-violet-500/10 text-violet-300">
                               <Sparkles className="w-3.5 h-3.5" />
                             </span>
-                            <span className="text-xs font-bold text-[#172033] tracking-wide uppercase">
+                            <span className="text-xs font-bold text-[#E7EDF7] tracking-wide uppercase">
                               {msg.related_proposal?.proposal_type === 'prd_requirement'
                                 ? 'Formal Product Requirements Document (PRD)'
                                 : 'Actionable Engineering Proposal'}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-300">
                             {msg.related_proposal?.status ? msg.related_proposal.status.toUpperCase() : 'AWAITING CONFIRMATION'}
                           </span>
                         </div>
 
-                        <p className="text-xs text-[#172033] font-semibold leading-relaxed">
+                        <p className="text-xs text-[#E7EDF7] font-semibold leading-relaxed">
                           {msg.related_proposal?.summary ||
                             `Proposal #${(msg.related_proposal_id || '').slice(-6)}`}
                         </p>
 
                         <div className="flex items-center justify-between pt-2 border-t border-[#E8EAF2]">
-                          <span className="text-[11px] text-[#657189]">
-                            Author: <strong className="text-[#172033]">{msg.related_proposal?.author || msg.sender_name}</strong>
+                          <span className="text-[11px] text-[#A3B0C4]">
+                            Author: <strong className="text-[#E7EDF7]">{msg.related_proposal?.author || msg.sender_name}</strong>
                           </span>
                           <button
                             onClick={() =>
@@ -619,7 +635,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
           {/* Typing Indicator */}
           {isTyping && (
-            <div className="flex items-center gap-3 text-xs text-[#657189] italic pl-2 py-2">
+            <div className="flex items-center gap-3 text-xs text-[#A3B0C4] italic pl-2 py-2">
               <span className="w-2 h-2 rounded-full bg-teal-600 animate-ping" />
               <span>{isTyping}</span>
             </div>
@@ -629,11 +645,11 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
         </div>
 
         {/* Message Composer Area */}
-        <div className="p-4 bg-white border-t border-[#E7ECF2] shadow-sm shrink-0 space-y-3">
+        <div className="p-4 bg-[#1A202C] border-t border-[#303A4B] shadow-sm shrink-0 space-y-3">
           {/* Recipient Selector Toggle */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 p-1 bg-[#F8FAFC] border border-[#E7ECF2] rounded-xl shadow-2xs">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#657189] px-2">
+            <div className="flex items-center gap-1.5 p-1 bg-[#141A24] border border-[#303A4B] rounded-xl shadow-2xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#A3B0C4] px-2">
                 Send to:
               </span>
               <button
@@ -642,7 +658,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                   recipient === 'team'
                     ? 'bg-slate-900 text-white font-semibold shadow-2xs'
-                    : 'text-[#657189] hover:text-[#172033] hover:bg-white'
+                    : 'text-[#A3B0C4] hover:text-[#E7EDF7] hover:bg-[#1A202C]'
                 }`}
               >
                 <Users className="w-3 h-3" />
@@ -654,7 +670,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                   recipient === 'nova'
                     ? 'bg-violet-600 text-white font-semibold shadow-2xs'
-                    : 'text-[#657189] hover:text-[#172033] hover:bg-white'
+                    : 'text-[#A3B0C4] hover:text-[#E7EDF7] hover:bg-[#1A202C]'
                 }`}
               >
                 <Bot className="w-3 h-3 text-violet-300" />
@@ -666,7 +682,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                   recipient === 'pixel'
                     ? 'bg-teal-600 text-white font-semibold shadow-2xs'
-                    : 'text-[#657189] hover:text-[#172033] hover:bg-white'
+                    : 'text-[#A3B0C4] hover:text-[#E7EDF7] hover:bg-[#1A202C]'
                 }`}
               >
                 <Code className="w-3 h-3 text-teal-300" />
@@ -675,12 +691,12 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
             </div>
 
             <div className="text-[11px] text-[#94A3B8] hidden sm:block">
-              Posting as <strong className="text-[#172033]">{identity === 'alex' ? 'Alex' : 'Maya'}</strong>
+              Posting as <strong className="text-[#E7EDF7]">{identity === 'alex' ? 'Alex' : 'Maya'}</strong>
             </div>
           </div>
 
           {/* Textarea Composer */}
-          <div className="relative bg-[#F8FAFC] border border-[#D9E1EC] focus-within:border-teal-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-100 rounded-xl transition shadow-2xs p-3">
+          <div className="relative bg-[#141A24] border border-[#D9E1EC] focus-within:border-teal-500 focus-within:bg-[#1A202C] focus-within:ring-2 focus-within:ring-teal-100 rounded-xl transition shadow-2xs p-3">
             <textarea
               ref={textareaRef}
               rows={2}
@@ -694,12 +710,12 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                   ? 'Message PIXEL: "Please update the hero headline and add spend trends to dashboard"'
                   : 'Message entire team: "How should we adjust manager approval thresholds?"'
               }
-              className="w-full text-xs text-[#172033] placeholder-[#94A3B8] resize-none outline-hidden bg-transparent"
+              className="w-full text-xs text-[#E7EDF7] placeholder-[#94A3B8] resize-none outline-hidden bg-transparent"
             />
 
-            <div className="flex items-center justify-between pt-2 border-t border-[#E7ECF2] mt-2">
+            <div className="flex items-center justify-between pt-2 border-t border-[#303A4B] mt-2">
               <span className="text-[11px] text-[#94A3B8]">
-                Press <kbd className="px-1 py-0.5 rounded bg-slate-200/70 border border-slate-300 text-[10px] font-mono">Enter</kbd> to send, <kbd className="px-1 py-0.5 rounded bg-slate-200/70 border border-slate-300 text-[10px] font-mono">Shift+Enter</kbd> for newline
+                Press <kbd className="px-1 py-0.5 rounded bg-[#303D50]/70 border border-[#303A4B] text-[10px] font-mono">Enter</kbd> to send, <kbd className="px-1 py-0.5 rounded bg-[#303D50]/70 border border-[#303A4B] text-[10px] font-mono">Shift+Enter</kbd> for newline
               </span>
 
               <button
@@ -708,7 +724,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 onClick={() => handleSendMessage()}
                 className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold shadow-2xs transition cursor-pointer ${
                   !inputText.trim() || isSending
-                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    ? 'bg-[#303D50] text-[#8495AD] cursor-not-allowed'
                     : recipient === 'nova'
                     ? 'bg-violet-600 hover:bg-violet-700 text-white'
                     : recipient === 'pixel'
@@ -735,14 +751,14 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
       {/* 3. RIGHT COLUMN: Live Collaboration Context Panel */}
       {showRightPanel && (
-        <div className="w-80 border-l border-[#E7ECF2] bg-white flex flex-col h-full shrink-0 overflow-y-auto p-4 space-y-5 shadow-2xs">
+        <div className="hidden xl:flex w-72 border-l border-[#303A4B] bg-[#1A202C] flex flex-col h-full shrink-0 overflow-y-auto p-4 space-y-5 shadow-2xs">
           {/* Header */}
-          <div className="flex items-center justify-between pb-3 border-b border-[#F0F3F7]">
+          <div className="flex items-center justify-between pb-3 border-b border-[#293445]">
             <div className="flex items-center gap-2">
-              <span className="p-1 rounded-lg bg-teal-50 border border-teal-200">
-                <Info className="w-4 h-4 text-teal-700" />
+              <span className="p-1 rounded-lg bg-teal-500/10 border border-teal-500/25">
+                <Info className="w-4 h-4 text-teal-300" />
               </span>
-              <h3 className="text-xs font-bold uppercase tracking-wider text-[#172033]">
+              <h3 className="text-xs font-bold uppercase tracking-wider text-[#E7EDF7]">
                 Collaboration Context
               </h3>
             </div>
@@ -750,63 +766,63 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
           {/* Active Collaborators Status */}
           <div className="space-y-2.5">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[#657189]">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#A3B0C4]">
               Team Presence
             </p>
 
             <div className="space-y-2">
-              <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] flex items-center justify-between">
+              <div className="p-2.5 rounded-xl bg-[#141A24] border border-[#303A4B] flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
                     A
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#172033]">Alex</p>
-                    <p className="text-[10px] text-[#657189]">Founder / Decision Owner</p>
+                    <p className="text-xs font-bold text-[#E7EDF7]">Alex</p>
+                    <p className="text-[10px] text-[#A3B0C4]">Founder / Decision Owner</p>
                   </div>
                 </div>
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Active" />
               </div>
 
-              <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] flex items-center justify-between">
+              <div className="p-2.5 rounded-xl bg-[#141A24] border border-[#303A4B] flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-6 h-6 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs">
                     M
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#172033]">Maya</p>
-                    <p className="text-[10px] text-[#657189]">Product Designer</p>
+                    <p className="text-xs font-bold text-[#E7EDF7]">Maya</p>
+                    <p className="text-[10px] text-[#A3B0C4]">Product Designer</p>
                   </div>
                 </div>
                 <span className="w-2 h-2 rounded-full bg-emerald-500" title="Active" />
               </div>
 
-              <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] flex items-center justify-between">
+              <div className="p-2.5 rounded-xl bg-[#141A24] border border-[#303A4B] flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-6 h-6 rounded-lg bg-violet-600 text-white flex items-center justify-center font-bold text-xs">
                     <Bot className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#172033]">NOVA</p>
-                    <p className="text-[10px] text-[#657189]">AI Product Strategist</p>
+                    <p className="text-xs font-bold text-[#E7EDF7]">NOVA</p>
+                    <p className="text-[10px] text-[#A3B0C4]">AI Product Strategist</p>
                   </div>
                 </div>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-violet-50 text-violet-700 font-semibold border border-violet-200">
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-violet-500/10 text-violet-300 font-semibold border border-violet-500/25">
                   Ready
                 </span>
               </div>
 
-              <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2] flex items-center justify-between">
+              <div className="p-2.5 rounded-xl bg-[#141A24] border border-[#303A4B] flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
                   <div className="w-6 h-6 rounded-lg bg-teal-600 text-white flex items-center justify-center font-bold text-xs">
                     <Code className="w-3.5 h-3.5" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-[#172033]">PIXEL</p>
-                    <p className="text-[10px] text-[#657189]">AI Software Engineer</p>
+                    <p className="text-xs font-bold text-[#E7EDF7]">PIXEL</p>
+                    <p className="text-[10px] text-[#A3B0C4]">AI Software Engineer</p>
                   </div>
                 </div>
-                <span className="text-[9px] px-1.5 py-0.5 rounded bg-teal-50 text-teal-700 font-semibold border border-teal-200">
+                <span className="text-[9px] px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-300 font-semibold border border-teal-500/25">
                   Ready
                 </span>
               </div>
@@ -815,7 +831,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
           {/* Quick Actions */}
           <div className="space-y-2">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[#657189]">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-[#A3B0C4]">
               Quick Prompts
             </p>
             <div className="space-y-1.5">
@@ -826,10 +842,10 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                   setInputText('NOVA, how should we structure the international travel expense approval policy?');
                   textareaRef.current?.focus();
                 }}
-                className="w-full text-left p-2.5 rounded-xl bg-[#F8FAFC] hover:bg-slate-100 border border-[#E7ECF2] text-xs text-[#334155] transition cursor-pointer flex items-center justify-between group"
+                className="w-full text-left p-2.5 rounded-xl bg-[#141A24] hover:bg-[#1D2633] border border-[#303A4B] text-xs text-[#334155] transition cursor-pointer flex items-center justify-between group"
               >
                 <span>Define Travel Policy</span>
-                <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-teal-600" />
+                <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-teal-400" />
               </button>
 
               <button
@@ -839,10 +855,10 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                   setInputText('PIXEL, please update the metrics cards to include multi-currency tracking.');
                   textareaRef.current?.focus();
                 }}
-                className="w-full text-left p-2.5 rounded-xl bg-[#F8FAFC] hover:bg-slate-100 border border-[#E7ECF2] text-xs text-[#334155] transition cursor-pointer flex items-center justify-between group"
+                className="w-full text-left p-2.5 rounded-xl bg-[#141A24] hover:bg-[#1D2633] border border-[#303A4B] text-xs text-[#334155] transition cursor-pointer flex items-center justify-between group"
               >
                 <span>Add Multi-Currency Cards</span>
-                <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-teal-600" />
+                <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-teal-400" />
               </button>
 
               <button
@@ -852,10 +868,10 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                   setInputText('Team, how should we handle automatic receipts OCR extraction?');
                   textareaRef.current?.focus();
                 }}
-                className="w-full text-left p-2.5 rounded-xl bg-[#F8FAFC] hover:bg-slate-100 border border-[#E7ECF2] text-xs text-[#334155] transition cursor-pointer flex items-center justify-between group"
+                className="w-full text-left p-2.5 rounded-xl bg-[#141A24] hover:bg-[#1D2633] border border-[#303A4B] text-xs text-[#334155] transition cursor-pointer flex items-center justify-between group"
               >
                 <span>Receipt OCR Flow</span>
-                <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-teal-600" />
+                <ChevronRight className="w-3.5 h-3.5 text-[#94A3B8] group-hover:text-teal-400" />
               </button>
             </div>
           </div>
@@ -863,12 +879,12 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
           {/* Recent Proposals */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-[#657189]">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-[#A3B0C4]">
                 Recent Proposals
               </p>
               <button
                 onClick={() => onNavigateTab('proposals')}
-                className="text-[10px] font-semibold text-teal-700 hover:underline cursor-pointer"
+                className="text-[10px] font-semibold text-teal-300 hover:underline cursor-pointer"
               >
                 View all ({proposals.length})
               </button>
@@ -879,17 +895,17 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 <button
                   key={p.proposal_id}
                   onClick={() => onNavigateTab('proposals', p.proposal_id)}
-                  className="w-full text-left p-2.5 rounded-xl bg-[#F8FAFC] hover:bg-teal-50/50 border border-[#E7ECF2] hover:border-teal-200 transition cursor-pointer space-y-1 block"
+                  className="w-full text-left p-2.5 rounded-xl bg-[#141A24] hover:bg-teal-500/10 border border-[#303A4B] hover:border-teal-500/25 transition cursor-pointer space-y-1 block"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-bold text-[#172033] line-clamp-1">
+                    <span className="text-[10px] font-bold text-[#E7EDF7] line-clamp-1">
                       {p.summary}
                     </span>
-                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-slate-200 text-slate-700">
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-[#303D50] text-[#C6D2E4]">
                       {p.status}
                     </span>
                   </div>
-                  <p className="text-[10px] text-[#657189]">
+                  <p className="text-[10px] text-[#A3B0C4]">
                     Author: {p.created_by || p.agent_id || 'System'}
                   </p>
                 </button>
@@ -902,17 +918,17 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
       {/* New Conversation Room Modal */}
       {showNewModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs p-4">
-          <div className="bg-white rounded-2xl border border-[#E7ECF2] shadow-xl w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between pb-3 border-b border-[#F0F3F7]">
+          <div className="bg-[#1A202C] rounded-2xl border border-[#303A4B] shadow-xl w-full max-w-md p-6 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#293445]">
               <div className="flex items-center gap-2">
-                <span className="p-1 rounded-lg bg-teal-50 border border-teal-200">
-                  <MessageSquare className="w-4 h-4 text-teal-700" />
+                <span className="p-1 rounded-lg bg-teal-500/10 border border-teal-500/25">
+                  <MessageSquare className="w-4 h-4 text-teal-300" />
                 </span>
-                <h3 className="text-sm font-bold text-[#172033]">New Conversation Room</h3>
+                <h3 className="text-sm font-bold text-[#E7EDF7]">New Conversation Room</h3>
               </div>
               <button
                 onClick={() => setShowNewModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold cursor-pointer"
+                className="text-[#8495AD] hover:text-[#ACBAD0] text-sm font-bold cursor-pointer"
               >
                 ✕
               </button>
@@ -920,7 +936,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
             <form onSubmit={handleCreateRoom} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-[#172033] mb-1">
+                <label className="block text-xs font-bold text-[#E7EDF7] mb-1">
                   Room Title
                 </label>
                 <input
@@ -929,39 +945,39 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                   value={newTitle}
                   onChange={(e) => setNewTitle(e.target.value)}
                   placeholder="e.g. Audit Logging Policy, Currency Conversion"
-                  className="w-full px-3 py-2 border border-[#D9E1EC] rounded-xl text-xs text-[#172033] focus:border-teal-500 outline-hidden"
+                  className="w-full px-3 py-2 border border-[#D9E1EC] rounded-xl text-xs text-[#E7EDF7] focus:border-teal-500 outline-hidden"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-[#172033] mb-1">
+                <label className="block text-xs font-bold text-[#E7EDF7] mb-1">
                   Default Room Members
                 </label>
                 <div className="grid grid-cols-2 gap-2 text-xs text-[#475569]">
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-[#141A24] border border-[#303A4B]">
                     <span className="w-2 h-2 rounded-full bg-blue-500" />
                     <span>Alex (Decision Owner)</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-[#141A24] border border-[#303A4B]">
                     <span className="w-2 h-2 rounded-full bg-indigo-500" />
                     <span>Maya (Designer)</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-[#141A24] border border-[#303A4B]">
                     <span className="w-2 h-2 rounded-full bg-violet-500" />
                     <span>NOVA (AI Strategist)</span>
                   </div>
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-[#141A24] border border-[#303A4B]">
                     <span className="w-2 h-2 rounded-full bg-teal-500" />
                     <span>PIXEL (AI Engineer)</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#F0F3F7]">
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#293445]">
                 <button
                   type="button"
                   onClick={() => setShowNewModal(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#657189] hover:bg-[#F8FAFC] transition cursor-pointer"
+                  className="px-4 py-2 rounded-xl text-xs font-semibold text-[#A3B0C4] hover:bg-[#141A24] transition cursor-pointer"
                 >
                   Cancel
                 </button>

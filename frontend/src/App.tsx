@@ -8,6 +8,7 @@ import { IdentityPicker } from './components/identity/IdentityPicker';
 import { WorkspaceView } from './components/workspace/WorkspaceView';
 import { DemoGuide } from './components/demo-stepper/DemoGuide';
 import { resetDemo, restartAgent } from './lib/api';
+import { WorkspaceSetup } from './components/workspace/WorkspaceSetup';
 
 const LedgerFlowCanvas = lazy(() => import('./components/prototype/LedgerFlowCanvas').then((m) => ({ default: m.LedgerFlowCanvas })));
 const ProposalList = lazy(() => import('./components/proposals/ProposalList').then((m) => ({ default: m.ProposalList })));
@@ -31,7 +32,27 @@ export function App() {
     refresh,
   } = useRealtimeState();
 
-  const [currentTab, setCurrentTab] = useState<NavigationTab>('overview');
+  const [currentTab, setCurrentTab] = useState<NavigationTab>(() => { const tab = window.location.hash.slice(1); return ['chat','overview','preview','proposals','agents','activity','context','resources','governance','github','settings'].includes(tab) ? tab as NavigationTab : 'overview'; });
+  const [focusedProposalId, setFocusedProposalId] = useState<string>();
+  const navigate = (tab: NavigationTab, proposalId?: string) => {
+    setFocusedProposalId(proposalId);
+    setCurrentTab(tab);
+  };
+  useEffect(() => {
+    if (window.location.hash !== '#' + currentTab) window.history.pushState(null, '', '#' + currentTab);
+  }, [currentTab]);
+  useEffect(() => {
+    const onHistory = () => {
+      const tab = window.location.hash.slice(1);
+      if (['chat','overview','preview','proposals','agents','activity','context','resources','governance','github','settings'].includes(tab)) {
+        setCurrentTab(tab as NavigationTab);
+        setFocusedProposalId(undefined);
+      }
+    };
+    window.addEventListener('popstate', onHistory);
+    window.addEventListener('hashchange', onHistory);
+    return () => { window.removeEventListener('popstate', onHistory); window.removeEventListener('hashchange', onHistory); };
+  }, []);
   const [demoStep, setDemoStep] = useState(1);
   const [isResetting, setIsResetting] = useState(false);
   const [isDemoGuideOpen, setIsDemoGuideOpen] = useState(false);
@@ -87,8 +108,8 @@ export function App() {
 
   if (loading && !state) {
     return (
-      <div className="min-h-screen bg-[#f3f6fb] flex flex-col items-center justify-center gap-4 text-slate-600 font-medium text-sm">
-        <span className="h-9 w-9 animate-spin rounded-full border-[3px] border-blue-100 border-t-blue-600" />
+      <div className="min-h-screen bg-[#101318] flex flex-col items-center justify-center gap-4 text-[#ACBAD0] font-medium text-sm">
+        <span className="h-9 w-9 animate-spin rounded-full border-[3px] border-blue-500/25 border-t-blue-600" />
         <span>Connecting to your workspace…</span>
       </div>
     );
@@ -96,11 +117,11 @@ export function App() {
 
   if (error && !state) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center p-6">
-        <div role="alert" className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-lg">
-          <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-amber-50 text-amber-700 font-bold">!</div>
-          <h1 className="text-lg font-semibold text-slate-900">Workspace unavailable</h1>
-          <p className="mt-2 text-sm text-slate-600">{error}. Check that the backend is running, then try again.</p>
+      <div className="min-h-screen bg-[#141A24] flex items-center justify-center p-6">
+        <div role="alert" className="w-full max-w-md rounded-2xl border border-[#303A4B] bg-[#1A202C] p-8 text-center shadow-lg">
+          <div className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500/10 text-amber-300 font-bold">!</div>
+          <h1 className="text-lg font-semibold text-[#EDF2FA]">Workspace unavailable</h1>
+          <p className="mt-2 text-sm text-[#ACBAD0]">{error}. Check that the backend is running, then try again.</p>
           <button type="button" onClick={refresh} className="mt-6 rounded-lg bg-slate-900 px-5 py-2.5 text-sm font-medium text-white hover:bg-slate-700">Retry connection</button>
         </div>
       </div>
@@ -114,7 +135,7 @@ export function App() {
   ).length;
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-[#f3f6fb] text-[#142238] font-sans antialiased selection:bg-blue-200 selection:text-[#172033]">
+    <div className="h-screen flex flex-col overflow-hidden bg-[#101318] text-[#E7EDF7] font-sans antialiased selection:bg-blue-200 selection:text-[#E7EDF7]">
       {/* 1. Global Top Navigation */}
       <TopBar
         project={state?.project}
@@ -136,7 +157,7 @@ export function App() {
       {/* 2. Observer Summary Banner */}
       <ObserverSummaryBanner summary={state?.observer_summary} />
 
-      {error && <div role="status" className="border-b border-amber-200 bg-amber-50 px-5 py-2 text-center text-xs text-amber-900">Updates are temporarily unavailable. Showing the last loaded state. <button onClick={refresh} className="ml-2 font-semibold underline">Retry</button></div>}
+      {error && <div role="status" className="border-b border-amber-500/25 bg-amber-500/10 px-5 py-2 text-center text-xs text-amber-300">Updates are temporarily unavailable. Showing the last loaded state. <button onClick={refresh} className="ml-2 font-semibold underline">Retry</button></div>}
 
       {/* 3. Main Workspace Body (Sidebar + Content Area + Right Panel) */}
       <div className="flex-1 flex overflow-hidden relative">
@@ -154,12 +175,13 @@ export function App() {
 
         {/* Central Content Panel */}
         <main className={`flex-1 min-w-0 relative ${currentTab === 'chat' ? 'overflow-hidden p-0' : 'overflow-y-auto p-4 sm:p-6 lg:p-8 xl:p-9 max-w-[1600px] mx-auto w-full'}`}>
-          <Suspense fallback={<div role="status" className="p-8 text-center text-sm text-slate-500">Loading workspace view…</div>}>
+          <Suspense fallback={<div role="status" className="p-8 text-center text-sm text-[#96A6BE]">Loading workspace view…</div>}>
+          {currentTab === 'settings' && <WorkspaceSetup />}
           {currentTab === 'chat' && state && (
             <WorkspaceChatView
               projectId={projectId}
               identity={identity}
-              onNavigateTab={(tab) => setCurrentTab(tab)}
+              onNavigateTab={navigate}
               proposals={state.proposals}
               onRefresh={refresh}
             />
@@ -171,7 +193,7 @@ export function App() {
             identity={identity}
             proposals={proposals}
             onRefresh={refresh}
-            onNavigateTab={setCurrentTab}
+            onNavigateTab={navigate}
             isOpen={isDemoGuideOpen}
             onClose={() => setIsDemoGuideOpen(false)}
           />
@@ -182,7 +204,7 @@ export function App() {
               state={state}
               identity={identity}
               onRefresh={refresh}
-              onNavigateTab={setCurrentTab}
+              onNavigateTab={navigate}
             />
           )}
 
@@ -197,7 +219,7 @@ export function App() {
           )}
 
           {currentTab === 'proposals' && state && (
-            <ProposalList
+            <ProposalList focusedProposalId={focusedProposalId}
               proposals={state.proposals}
               sections={state.sections}
               identity={identity}
@@ -211,7 +233,7 @@ export function App() {
               delegations={state.delegations || []}
               identity={identity}
               onRefresh={refresh}
-              onNavigateTab={setCurrentTab}
+              onNavigateTab={navigate}
             />
           )}
 
@@ -224,7 +246,7 @@ export function App() {
               agentRuns={state.agent_runs}
               identity={identity}
               onRefresh={refresh}
-              onNavigateTab={setCurrentTab}
+              onNavigateTab={navigate}
             />
           )}
 

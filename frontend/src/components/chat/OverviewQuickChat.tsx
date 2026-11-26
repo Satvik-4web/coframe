@@ -77,26 +77,26 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
       {/* Header with Title and Recipient Selector */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
         <div className="flex items-center gap-3">
-          <div className="w-11 h-11 rounded-2xl bg-blue-50 border border-blue-100 flex items-center justify-center text-blue-600">
+          <div className="w-11 h-11 rounded-2xl bg-blue-500/10 border border-blue-500/25 flex items-center justify-center text-blue-400">
             <Sparkles className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold text-[#14213A] tracking-tight">Start a conversation</h2>
-            <p className="text-xs sm:text-sm text-slate-500">
+            <h2 className="text-xl font-semibold text-[#EDF2FA] tracking-tight">Start a conversation</h2>
+            <p className="text-xs sm:text-sm text-[#96A6BE]">
               Share a product idea with NOVA, PIXEL, or the whole team.
             </p>
           </div>
         </div>
 
         {/* Recipient Selector Tabs */}
-        <div className="flex items-center gap-1 p-1 bg-[#F1F3F8] rounded-xl self-start sm:self-auto border border-slate-200/50">
+        <div className="flex items-center gap-1 p-1 bg-[#121923] rounded-xl self-start sm:self-auto border border-[#303A4B]/50">
           <button
             type="button"
             onClick={() => setRecipient('nova')}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
               recipient === 'nova'
-                ? 'bg-white text-blue-700 font-semibold shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-[#1A202C] text-blue-300 font-semibold shadow-xs'
+                : 'text-[#ACBAD0] hover:text-[#EDF2FA]'
             }`}
           >
             <Bot className="w-3 h-3 text-blue-500" />
@@ -107,11 +107,11 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
             onClick={() => setRecipient('pixel')}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
               recipient === 'pixel'
-                ? 'bg-white text-sky-700 font-semibold shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-[#1A202C] text-sky-300 font-semibold shadow-xs'
+                : 'text-[#ACBAD0] hover:text-[#EDF2FA]'
             }`}
           >
-            <Code2 className="w-3 h-3 text-sky-600" />
+            <Code2 className="w-3 h-3 text-sky-400" />
             <span>PIXEL</span>
           </button>
           <button
@@ -119,32 +119,32 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
             onClick={() => setRecipient('team')}
             className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
               recipient === 'team'
-                ? 'bg-white text-slate-900 font-semibold shadow-xs'
-                : 'text-slate-600 hover:text-slate-900'
+                ? 'bg-[#1A202C] text-[#EDF2FA] font-semibold shadow-xs'
+                : 'text-[#ACBAD0] hover:text-[#EDF2FA]'
             }`}
           >
-            <Users className="w-3 h-3 text-slate-400" />
+            <Users className="w-3 h-3 text-[#8495AD]" />
             <span>Team</span>
           </button>
         </div>
       </div>
 
       {/* Input Composer Box */}
-      {sendError && <p role="alert" className="mb-3 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">{sendError}</p>}
-      <div className="relative bg-[#F7F9FC] border border-[#E2E8F0] focus-within:border-blue-400 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-100 rounded-2xl transition p-4">
+      {sendError && <p role="alert" className="mb-3 rounded-xl border border-rose-500/25 bg-rose-500/10 p-3 text-sm text-rose-300">{sendError}</p>}
+      <div className="relative bg-[#141A24] border border-[#303A4B] focus-within:border-blue-400 focus-within:bg-[#1A202C] focus-within:ring-4 focus-within:ring-blue-100 rounded-2xl transition p-4">
         <textarea
           rows={3}
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="What should the team work on next?"
-          className="w-full text-sm leading-6 text-slate-900 placeholder-slate-400 resize-none outline-none bg-transparent"
+          className="w-full text-sm leading-6 text-[#EDF2FA] placeholder-slate-400 resize-none outline-none bg-transparent"
         />
 
-        <div className="flex items-center justify-between pt-3 border-t border-slate-200/60 mt-1">
-          <span className="text-[10px] text-slate-400 flex items-center gap-1">
+        <div className="flex items-center justify-between pt-3 border-t border-[#303A4B]/60 mt-1">
+          <span className="text-[10px] text-[#8495AD] flex items-center gap-1">
             <span>Press</span>
-            <kbd className="px-1 py-0.5 rounded bg-slate-200/70 text-slate-600 font-mono text-[9px]">Enter ↵</kbd>
+            <kbd className="px-1 py-0.5 rounded bg-[#303D50]/70 text-[#ACBAD0] font-mono text-[9px]">Enter ↵</kbd>
             <span>to collaborate</span>
           </span>
 
@@ -155,7 +155,7 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
             className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer ${
               message.trim() && !isSending
                 ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-600/20'
-                : 'bg-slate-200/70 text-slate-400 cursor-not-allowed'
+                : 'bg-[#303D50]/70 text-[#8495AD] cursor-not-allowed'
             }`}
           >
             <span>{isSending ? 'Dispatching...' : 'Dispatch'}</span>
@@ -165,9 +165,9 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
       </div>
 
       {/* Suggested Prompts */}
-      <div className="mt-5 pt-4 border-t border-slate-100">
+      <div className="mt-5 pt-4 border-t border-[#303A4B]">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+          <span className="text-[10px] font-semibold text-[#8495AD] uppercase tracking-wider">
             Quick Prompts
           </span>
         </div>
@@ -178,7 +178,7 @@ export const OverviewQuickChat: React.FC<OverviewQuickChatProps> = ({
               type="button"
               onClick={() => handleSend(item.text, item.recipient)}
               title={item.text}
-              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-600 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+              className="inline-flex items-center gap-2 rounded-full border border-[#303A4B] bg-[#1A202C] px-3.5 py-2 text-xs font-semibold text-[#ACBAD0] transition hover:border-blue-300 hover:bg-blue-500/10 hover:text-blue-300"
             >
               <span>{item.label}</span><ArrowRight className="h-3 w-3" />
             </button>

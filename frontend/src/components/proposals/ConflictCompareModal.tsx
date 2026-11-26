@@ -117,51 +117,51 @@ export const ConflictCompareModal: React.FC<ConflictCompareModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-50 flex items-center justify-center p-4">
-      <div className="bg-white border border-[#E5EAF0] rounded-3xl max-w-4xl w-full p-6 shadow-2xl relative max-h-[92vh] flex flex-col animate-in fade-in-50 duration-200">
+      <div className="bg-[#1A202C] border border-[#E5EAF0] rounded-3xl max-w-4xl w-full p-6 shadow-2xl relative max-h-[92vh] flex flex-col animate-in fade-in-50 duration-200">
         {/* Header */}
         <div className="flex items-center justify-between pb-4 border-b border-[#E5EAF0]">
           <div className="flex items-center space-x-3.5">
-            <div className="w-10 h-10 rounded-2xl bg-red-50 text-red-600 border border-red-200 flex items-center justify-center font-bold shadow-xs">
+            <div className="w-10 h-10 rounded-2xl bg-red-500/10 text-red-400 border border-red-500/25 flex items-center justify-center font-bold shadow-xs">
               <ShieldAlert className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-base font-bold text-[#172033]">Conflict Resolution Center</h2>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-800 uppercase tracking-wider">
+                <h2 className="text-base font-bold text-[#E7EDF7]">Conflict Resolution Center</h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-500/10 text-red-300 uppercase tracking-wider">
                   Approval Blocked
                 </span>
-                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+                <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#1D2633] text-[#C6D2E4]">
                   section: '{secKey}'
                 </span>
               </div>
-              <p className="text-xs text-[#657189] mt-0.5">
+              <p className="text-xs text-[#A3B0C4] mt-0.5">
                 Human canonical change (v{humanVersion}) conflicts with PIXEL's older baseline (v{pixelBaseVersion}).
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-[#657189] hover:text-[#172033] p-2 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+            className="text-[#A3B0C4] hover:text-[#E7EDF7] p-2 rounded-xl hover:bg-[#1D2633] transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {errorMsg && (
-          <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-200 text-red-800 text-xs font-medium flex items-center justify-between">
+          <div className="mt-3 p-3 rounded-xl bg-red-500/10 border border-red-500/25 text-red-300 text-xs font-medium flex items-center justify-between">
             <span>{errorMsg}</span>
-            <button onClick={() => setErrorMsg(null)} className="text-red-700 font-bold hover:underline cursor-pointer">
+            <button onClick={() => setErrorMsg(null)} className="text-red-300 font-bold hover:underline cursor-pointer">
               Dismiss
             </button>
           </div>
         )}
 
         {/* Conflict Explanation Banner */}
-        <div className="my-4 p-4 rounded-2xl bg-red-50/70 border border-red-200 text-xs text-red-900 flex items-start space-x-3">
-          <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+        <div className="my-4 p-4 rounded-2xl bg-red-500/10 border border-red-500/25 text-xs text-red-300 flex items-start space-x-3">
+          <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
           <div className="space-y-1">
-            <p className="font-bold text-red-900">Why was proposal approval strictly blocked?</p>
-            <p className="leading-relaxed text-red-800">
+            <p className="font-bold text-red-300">Why was proposal approval strictly blocked?</p>
+            <p className="leading-relaxed text-red-300">
               {conflictDetail?.conflict_reason ||
                 proposal.conflict_reason ||
                 `${humanAuthorName} updated the '${secKey}' section in the canonical prototype after PIXEL formulated this proposal based on version ${pixelBaseVersion}. COFRAME's atomic safety engine blocks automatic overwrite to preserve human decisions.`}
@@ -172,21 +172,21 @@ export const ConflictCompareModal: React.FC<ConflictCompareModalProps> = ({
         {/* Side-by-Side Comparison Container */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-1 overflow-y-auto my-2 pr-1">
           {/* Left Column: Human Version */}
-          <div className="rounded-2xl border border-violet-200 bg-violet-50/20 p-5 flex flex-col justify-between shadow-2xs">
+          <div className="rounded-2xl border border-violet-500/25 bg-violet-500/10 p-5 flex flex-col justify-between shadow-2xs">
             <div>
-              <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-violet-100">
+              <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-violet-500/25">
                 <div className="flex items-center space-x-2.5">
                   <div className="w-7 h-7 rounded-full bg-violet-600 text-white text-xs font-bold flex items-center justify-center shadow-xs">
                     {humanAuthorName.charAt(0)}
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-[#172033] block">
+                    <span className="text-xs font-bold text-[#E7EDF7] block">
                       {humanAuthorName}'s Live Changes
                     </span>
-                    <span className="text-[10px] text-violet-700 font-medium">Authoritative Canonical Prototype</span>
+                    <span className="text-[10px] text-violet-300 font-medium">Authoritative Canonical Prototype</span>
                   </div>
                 </div>
-                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-violet-100 text-violet-800 border border-violet-200">
+                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-violet-500/10 text-violet-300 border border-violet-500/25">
                   v{humanVersion} · Active
                 </span>
               </div>
@@ -194,11 +194,11 @@ export const ConflictCompareModal: React.FC<ConflictCompareModalProps> = ({
               <div className="space-y-3 text-xs">
                 {Object.keys(currentData).length > 0 ? (
                   Object.entries(currentData).map(([key, val]) => (
-                    <div key={key} className="p-2.5 rounded-xl bg-white border border-violet-100">
-                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5 font-mono">
+                    <div key={key} className="p-2.5 rounded-xl bg-[#1A202C] border border-violet-500/25">
+                      <span className="text-[10px] uppercase font-bold text-[#A3B0C4] block mb-0.5 font-mono">
                         {key}
                       </span>
-                      <p className="font-medium text-[#172033] text-xs">
+                      <p className="font-medium text-[#E7EDF7] text-xs">
                         {typeof val === 'object' ? JSON.stringify(val) : String(val)}
                       </p>
                     </div>
@@ -206,20 +206,20 @@ export const ConflictCompareModal: React.FC<ConflictCompareModalProps> = ({
                 ) : (
                   <div className="space-y-3.5">
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Headline</span>
-                      <p className="font-semibold text-[#172033]">
+                      <span className="text-[10px] uppercase font-bold text-[#A3B0C4] block mb-0.5">Headline</span>
+                      <p className="font-semibold text-[#E7EDF7]">
                         {currentData.headline || 'Take control of company spending'}
                       </p>
                     </div>
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Subheadline</span>
-                      <p className="text-[#657189] leading-relaxed">
+                      <span className="text-[10px] uppercase font-bold text-[#A3B0C4] block mb-0.5">Subheadline</span>
+                      <p className="text-[#A3B0C4] leading-relaxed">
                         {currentData.subheadline || 'Real-time expense management for high-velocity teams'}
                       </p>
                     </div>
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Primary CTA</span>
-                      <p className="text-teal-700 font-semibold">
+                      <span className="text-[10px] uppercase font-bold text-[#A3B0C4] block mb-0.5">Primary CTA</span>
+                      <p className="text-teal-300 font-semibold">
                         {currentData.cta_text || 'Start Free Trial'}
                       </p>
                     </div>
@@ -228,28 +228,28 @@ export const ConflictCompareModal: React.FC<ConflictCompareModalProps> = ({
               </div>
             </div>
 
-            <div className="mt-5 pt-3 border-t border-violet-100 flex items-center text-xs text-violet-700 font-semibold">
-              <CheckCircle2 className="w-4 h-4 mr-1.5 text-violet-600" />
+            <div className="mt-5 pt-3 border-t border-violet-500/25 flex items-center text-xs text-violet-300 font-semibold">
+              <CheckCircle2 className="w-4 h-4 mr-1.5 text-violet-400" />
               <span>Preserves human creative discretion</span>
             </div>
           </div>
 
           {/* Right Column: Agent Proposal */}
-          <div className="rounded-2xl border border-teal-200 bg-teal-50/20 p-5 flex flex-col justify-between shadow-2xs">
+          <div className="rounded-2xl border border-teal-500/25 bg-teal-500/10 p-5 flex flex-col justify-between shadow-2xs">
             <div>
-              <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-teal-100">
+              <div className="flex items-center justify-between mb-4 pb-2.5 border-b border-teal-500/25">
                 <div className="flex items-center space-x-2.5">
                   <div className="w-7 h-7 rounded-full bg-teal-600 text-white text-xs font-bold flex items-center justify-center shadow-xs">
                     P
                   </div>
                   <div>
-                    <span className="text-xs font-bold text-[#172033] block">
+                    <span className="text-xs font-bold text-[#E7EDF7] block">
                       PIXEL's Proposed Version
                     </span>
-                    <span className="text-[10px] text-teal-700 font-medium">Engineering Contribution</span>
+                    <span className="text-[10px] text-teal-300 font-medium">Engineering Contribution</span>
                   </div>
                 </div>
-                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                <span className="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-300 border border-amber-500/25">
                   Based on v{pixelBaseVersion} · Outdated
                 </span>
               </div>
@@ -257,11 +257,11 @@ export const ConflictCompareModal: React.FC<ConflictCompareModalProps> = ({
               <div className="space-y-3 text-xs">
                 {Object.keys(proposedFields).length > 0 ? (
                   Object.entries(proposedFields).map(([key, val]) => (
-                    <div key={key} className="p-2.5 rounded-xl bg-white border border-teal-100">
-                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5 font-mono">
+                    <div key={key} className="p-2.5 rounded-xl bg-[#1A202C] border border-teal-500/25">
+                      <span className="text-[10px] uppercase font-bold text-[#A3B0C4] block mb-0.5 font-mono">
                         {key}
                       </span>
-                      <p className="font-semibold text-teal-900 text-xs">
+                      <p className="font-semibold text-teal-300 text-xs">
                         {typeof val === 'object' ? JSON.stringify(val) : String(val)}
                       </p>
                     </div>
@@ -269,20 +269,20 @@ export const ConflictCompareModal: React.FC<ConflictCompareModalProps> = ({
                 ) : (
                   <div className="space-y-3.5">
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Headline</span>
-                      <p className="font-semibold text-teal-800">
+                      <span className="text-[10px] uppercase font-bold text-[#A3B0C4] block mb-0.5">Headline</span>
+                      <p className="font-semibold text-teal-300">
                         {proposedFields.headline || 'Modern Expense Control, Zero Friction'}
                       </p>
                     </div>
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Subheadline</span>
-                      <p className="text-[#657189] leading-relaxed">
+                      <span className="text-[10px] uppercase font-bold text-[#A3B0C4] block mb-0.5">Subheadline</span>
+                      <p className="text-[#A3B0C4] leading-relaxed">
                         {proposedFields.subheadline || 'Empower your team to submit receipts in seconds...'}
                       </p>
                     </div>
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Primary CTA</span>
-                      <p className="text-teal-700 font-semibold">
+                      <span className="text-[10px] uppercase font-bold text-[#A3B0C4] block mb-0.5">Primary CTA</span>
+                      <p className="text-teal-300 font-semibold">
                         {proposedFields.cta_text || 'Start Free 14-Day Trial'}
                       </p>
                     </div>
@@ -291,7 +291,7 @@ export const ConflictCompareModal: React.FC<ConflictCompareModalProps> = ({
               </div>
             </div>
 
-            <div className="mt-5 pt-3 border-t border-teal-100 flex items-center text-xs text-teal-700 font-semibold">
+            <div className="mt-5 pt-3 border-t border-teal-500/25 flex items-center text-xs text-teal-300 font-semibold">
               <span className="mr-1.5">🤖</span>
               <span>Based on original confirmed requirements</span>
             </div>
@@ -302,8 +302,8 @@ export const ConflictCompareModal: React.FC<ConflictCompareModalProps> = ({
         <div className="pt-4 border-t border-[#E5EAF0] mt-3 space-y-3">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <h4 className="text-xs font-bold text-[#172033]">Choose Resolution Path:</h4>
-              <p className="text-[11px] text-[#657189]">
+              <h4 className="text-xs font-bold text-[#E7EDF7]">Choose Resolution Path:</h4>
+              <p className="text-[11px] text-[#A3B0C4]">
                 Select how you wish to resolve this conflict before continuing.
               </p>
             </div>
@@ -314,10 +314,10 @@ export const ConflictCompareModal: React.FC<ConflictCompareModalProps> = ({
                 type="button"
                 disabled={isProcessing}
                 onClick={handleActionKeepHuman}
-                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#172033] text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-[#1D2633] hover:bg-[#303D50] text-[#E7EDF7] text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 title={`Keep ${humanAuthorName}'s version and dismiss PIXEL's proposal`}
               >
-                <UserCheck className="w-3.5 h-3.5 text-slate-700" />
+                <UserCheck className="w-3.5 h-3.5 text-[#C6D2E4]" />
                 <span>Keep {humanAuthorName}'s Version</span>
               </button>
 
@@ -329,10 +329,10 @@ export const ConflictCompareModal: React.FC<ConflictCompareModalProps> = ({
                   onClose();
                   onRedirectAgent();
                 }}
-                className="px-4 py-2 rounded-xl bg-violet-50 hover:bg-violet-100 text-violet-800 border border-violet-200 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-violet-500/10 hover:bg-violet-500/10 text-violet-300 border border-violet-500/25 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
                 title="Direct PIXEL with custom instruction"
               >
-                <CornerDownRight className="w-3.5 h-3.5 text-violet-600" />
+                <CornerDownRight className="w-3.5 h-3.5 text-violet-400" />
                 <span>Manual / Custom Direct</span>
               </button>
 
