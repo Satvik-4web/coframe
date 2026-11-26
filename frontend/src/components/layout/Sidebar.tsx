@@ -2,14 +2,13 @@ import React, { useState } from 'react';
 import {
   MessageSquare,
   LayoutDashboard,
-  Palette,
+  Layers,
   GitPullRequest,
-  Bot,
+  Cpu,
   History,
   Radio,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
   ArrowUpRight,
 } from 'lucide-react';
 import { HumanIdentity } from '../../types';
@@ -37,6 +36,15 @@ interface SidebarProps {
   identity: HumanIdentity;
 }
 
+interface NavItem {
+  id: NavigationTab;
+  label: string;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+  shortcut: string;
+  badge?: number;
+  badgeConflict?: boolean;
+}
+
 export const Sidebar: React.FC<SidebarProps> = ({
   currentTab,
   onSelectTab,
@@ -47,229 +55,200 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const totalDecisionCount = pendingProposalsCount + conflictedProposalsCount;
 
-  const mainNavItems = [
-    {
-      id: 'chat',
-      label: 'Chat',
-      description: 'Workspace conversation',
-      icon: MessageSquare,
-      shortcut: '⌘1',
-    },
-    {
-      id: 'overview',
-      label: 'Overview',
-      description: 'Product command centre',
-      icon: LayoutDashboard,
-      shortcut: '⌘2',
-    },
-    {
-      id: 'preview',
-      label: 'Product Preview',
-      description: 'LedgerFlow live canvas',
-      icon: Palette,
-      shortcut: '⌘3',
-    },
+  const workspaceItems: NavItem[] = [
+    { id: 'chat', label: 'Chat', icon: MessageSquare, shortcut: '⌘1' },
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard, shortcut: '⌘2' },
+    { id: 'preview', label: 'Product Preview', icon: Layers, shortcut: '⌘3' },
     {
       id: 'proposals',
       label: 'Proposals',
-      description: 'Requirements & code reviews',
       icon: GitPullRequest,
       badge: totalDecisionCount,
       badgeConflict: conflictedProposalsCount > 0,
       shortcut: '⌘4',
     },
-    {
-      id: 'agents',
-      label: 'AI Team',
-      description: 'NOVA & PIXEL management',
-      icon: Bot,
-      shortcut: '⌘5',
-    },
-    {
-      id: 'activity',
-      label: 'Activity & History',
-      description: 'Event audit trail',
-      icon: History,
-      shortcut: '⌘6',
-    },
-    {
-      id: 'context',
-      label: 'Context Inspector',
-      description: 'Immutable context pack',
-      icon: Radio,
-      shortcut: '⌘7',
-    },
   ];
+
+  const systemItems: NavItem[] = [
+    { id: 'agents', label: 'AI Team', icon: Cpu, shortcut: '⌘5' },
+    { id: 'activity', label: 'Activity & History', icon: History, shortcut: '⌘6' },
+    { id: 'context', label: 'Context Inspector', icon: Radio, shortcut: '⌘7' },
+  ];
+
+  const renderNavItem = (item: NavItem) => {
+    const Icon = item.icon;
+    const isActive =
+      currentTab === item.id ||
+      (item.id === 'overview' && currentTab === 'workspace') ||
+      (item.id === 'preview' && currentTab === 'canvas');
+
+    return (
+      <button
+        key={item.id}
+        type="button"
+        onClick={() => onSelectTab(item.id)}
+        aria-current={isActive ? 'page' : undefined}
+        title={isCollapsed ? `${item.label} (${item.shortcut})` : undefined}
+        className={`w-full flex items-center rounded-lg text-[13px] transition-all duration-150 cursor-pointer group relative ${
+          isCollapsed ? 'justify-center h-8 px-0' : 'justify-between h-8 px-2.5'
+        } ${
+          isActive
+            ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06),0_0_0_1px_rgba(15,23,42,0.06)]'
+            : 'text-slate-600 hover:text-slate-900 hover:bg-white/65'
+        }`}
+      >
+        <div className="flex items-center gap-2.5 min-w-0">
+          <Icon
+            strokeWidth={1.75}
+            className={`w-4 h-4 shrink-0 transition-colors ${
+              isActive ? 'text-[#2563EB]' : 'text-slate-400 group-hover:text-slate-700'
+            }`}
+          />
+          {!isCollapsed && <span className="truncate">{item.label}</span>}
+        </div>
+
+        {!isCollapsed && (
+          <div className="flex items-center gap-1.5 shrink-0">
+            {item.badge !== undefined && item.badge > 0 && (
+              <span
+                className={`text-[11px] font-mono font-medium px-1.5 py-0.2 rounded-md ${
+                  item.badgeConflict
+                    ? 'bg-rose-50 text-rose-700 ring-1 ring-rose-600/20'
+                    : isActive
+                    ? 'bg-blue-50 text-blue-700 ring-1 ring-blue-600/15'
+                    : 'bg-slate-200/70 text-slate-700'
+                }`}
+              >
+                {item.badge}
+              </span>
+            )}
+            <span
+              className={`text-[10px] font-mono transition-opacity ${
+                isActive ? 'text-slate-400' : 'text-slate-400 opacity-0 group-hover:opacity-100'
+              }`}
+            >
+              {item.shortcut}
+            </span>
+          </div>
+        )}
+
+        {isCollapsed && item.badge !== undefined && item.badge > 0 && (
+          <span
+            className={`w-2 h-2 rounded-full absolute top-1.5 right-1.5 ring-2 ring-[#F1F4F8] ${
+              item.badgeConflict ? 'bg-rose-500' : 'bg-[#2563EB]'
+            }`}
+          />
+        )}
+      </button>
+    );
+  };
 
   return (
     <aside
-      className={`relative flex flex-col justify-between select-none shrink-0 transition-all duration-200 ease-out h-full overflow-hidden bg-[#0C1021] border-r border-[#1A223D] ${
-        isCollapsed ? 'w-16 py-3' : 'w-60 py-4'
+      className={`relative flex flex-col justify-between select-none shrink-0 transition-all duration-200 ease-out h-full overflow-hidden glass-sidebar border-r border-slate-900/[0.075] ${
+        isCollapsed ? 'w-16 py-3' : 'w-60 py-3.5'
       }`}
     >
       <div className="flex flex-col h-full overflow-hidden">
-        {/* ── Brand Header ─────────────────────────────────── */}
-        <div className={`px-3.5 mb-4 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
+        {/* Brand Wordmark */}
+        <div className={`px-3.5 mb-3 flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white text-xs shadow-md shrink-0 ring-1 ring-white/10">
-              C
+            <div className="w-7 h-7 rounded-lg bg-[#0F172A] flex items-center justify-center shrink-0 shadow-[inset_0_1px_0_rgba(255,255,255,0.16),0_1px_2px_rgba(15,23,42,0.18)]">
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <rect x="2" y="2" width="5" height="5" rx="1.2" fill="#FFFFFF" />
+                <rect x="9" y="2" width="5" height="5" rx="1.2" fill="#93C5FD" />
+                <rect x="2" y="9" width="5" height="5" rx="1.2" fill="#93C5FD" />
+                <rect x="9" y="9" width="5" height="5" rx="1.2" fill="#FFFFFF" fillOpacity="0.45" />
+              </svg>
             </div>
             {!isCollapsed && (
               <div className="flex flex-col min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-xs text-white tracking-tight">COFRAME</span>
-                  <span className="text-[9px] font-semibold px-1.5 py-0.2 rounded bg-[#1C2442] text-indigo-300 border border-[#2B365F]">
-                    2.0
-                  </span>
-                </div>
-                <span className="text-[10px] text-[#7888AB] truncate">
-                  Collaborative Dev Workspace
+                <span className="font-semibold text-[13px] text-slate-900 tracking-[-0.015em] leading-none">
+                  COFRAME
+                </span>
+                <span className="text-[11px] text-slate-500 truncate mt-1 leading-none">
+                  Product workspace
                 </span>
               </div>
             )}
           </div>
         </div>
 
-        {/* ── Active Project Card ──────────────────────────── */}
+        {/* Active Project Selector Pill */}
         {!isCollapsed ? (
-          <div className="px-2.5 mb-4">
-            <div
+          <div className="px-3 mb-3.5">
+            <button
+              type="button"
               onClick={() => onSelectTab('preview')}
-              className="p-3 rounded-xl bg-[#141A33] hover:bg-[#19213F] border border-[#222C52] transition-colors duration-150 cursor-pointer group flex items-center justify-between"
-              title="Current project: LedgerFlow (click to open canvas)"
+              className="w-full text-left px-2.5 py-2 rounded-xl bg-white/90 hover:bg-white border border-slate-900/[0.08] shadow-[0_1px_2px_rgba(15,23,42,0.03)] transition-all duration-150 cursor-pointer group flex items-center justify-between"
+              title="Open LedgerFlow canvas"
             >
-              <div className="min-w-0 pr-1.5">
+              <div className="min-w-0 pr-2">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-emerald-400">
-                    ACTIVE PROJECT
-                  </span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  <span className="text-[11px] font-medium text-slate-500">LedgerFlow</span>
                 </div>
-                <h3 className="text-xs font-bold text-white truncate mt-1">
-                  LedgerFlow
-                </h3>
-                <p className="text-[10px] text-[#8695B7] truncate mt-0.5">
-                  Enterprise Spend Governance
-                </p>
+                <div className="text-[11px] text-slate-500 truncate mt-0.5">Spend Governance</div>
               </div>
-              <div className="w-6 h-6 rounded-md bg-[#1F284B] flex items-center justify-center text-[#8695B7] group-hover:text-white transition shrink-0">
+              <div className="w-6 h-6 rounded-md bg-slate-50 group-hover:bg-slate-100 border border-slate-900/[0.06] flex items-center justify-center text-slate-400 group-hover:text-slate-700 transition shrink-0">
                 <ArrowUpRight className="w-3.5 h-3.5" />
               </div>
-            </div>
+            </button>
           </div>
         ) : (
           <div className="px-2 mb-3 flex justify-center">
-            <div
+            <button
+              type="button"
               onClick={() => onSelectTab('preview')}
-              className="w-9 h-9 rounded-lg bg-[#141A33] border border-[#222C52] flex items-center justify-center relative cursor-pointer hover:bg-[#19213F] transition"
+              className="w-9 h-9 rounded-xl bg-white border border-slate-900/[0.08] flex items-center justify-center relative cursor-pointer shadow-2xs hover:border-slate-900/15 transition"
               title="LedgerFlow (Spend Governance)"
             >
-              <span className="text-[11px] font-bold text-white">LF</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 absolute -top-0.5 -right-0.5 ring-2 ring-[#0C1021]" />
-            </div>
+              <span className="text-[11px] font-semibold text-slate-900">LF</span>
+              <span className="w-2 h-2 rounded-full bg-emerald-500 absolute -top-0.5 -right-0.5 ring-2 ring-[#F1F4F8]" />
+            </button>
           </div>
         )}
 
-        {/* ── Navigation List ──────────────────────────────── */}
-        <div className="flex-1 overflow-y-auto px-2 space-y-0.5 dark-scroll">
-          {!isCollapsed && (
-            <div className="px-2 pt-1 pb-1.5 text-[9px] font-bold uppercase tracking-wider text-[#57688F]">
-              Workspace
-            </div>
-          )}
+        {/* Navigation Groups */}
+        <div className="flex-1 overflow-y-auto px-3 sidebar-scroll space-y-3.5">
+          <div>
+            {!isCollapsed && (
+              <div className="px-2.5 mb-1 text-[11px] font-medium text-slate-400">
+                Workspace
+              </div>
+            )}
+            <div className="space-y-0.5">{workspaceItems.map(renderNavItem)}</div>
+          </div>
 
-          {mainNavItems.map((item) => {
-            const Icon = item.icon;
-            const isActive =
-              currentTab === item.id ||
-              (item.id === 'overview' && currentTab === 'workspace') ||
-              (item.id === 'preview' && currentTab === 'canvas');
-
-            return (
-              <button
-                key={item.id}
-                onClick={() => onSelectTab(item.id as NavigationTab)}
-                title={isCollapsed ? `${item.label} (${item.shortcut})` : undefined}
-                className={`w-full flex items-center rounded-lg text-xs transition-colors duration-150 cursor-pointer group relative ${
-                  isCollapsed ? 'justify-center p-2' : 'justify-between px-2.5 py-2'
-                } ${
-                  isActive
-                    ? 'bg-gradient-to-r from-indigo-600/35 to-blue-600/15 text-white font-medium border-l-2 border-indigo-400 shadow-sm'
-                    : 'text-[#8C9BBF] hover:text-white hover:bg-[#141A33]'
-                }`}
-              >
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <Icon
-                    className={`w-4 h-4 shrink-0 transition-colors ${
-                      isActive ? 'text-indigo-400' : 'text-[#62739B] group-hover:text-slate-200'
-                    }`}
-                  />
-                  {!isCollapsed && (
-                    <span className="truncate text-xs">{item.label}</span>
-                  )}
-                </div>
-
-                {!isCollapsed && (
-                  <div className="flex items-center gap-1.5 shrink-0">
-                    {'badge' in item && item.badge !== undefined && item.badge > 0 && (
-                      <span
-                        className={`text-[10px] font-semibold px-1.5 py-0.2 rounded-full ${
-                          isActive
-                            ? 'bg-indigo-500 text-white'
-                            : item.badgeConflict
-                            ? 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-                            : 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                        }`}
-                      >
-                        {item.badge}
-                      </span>
-                    )}
-                    <span
-                      className={`text-[10px] font-mono transition-opacity ${
-                        isActive ? 'text-white/40' : 'text-[#506085] opacity-0 group-hover:opacity-100'
-                      }`}
-                    >
-                      {item.shortcut}
-                    </span>
-                  </div>
-                )}
-
-                {/* Collapsed dot badge */}
-                {isCollapsed && 'badge' in item && item.badge !== undefined && item.badge > 0 && (
-                  <span
-                    className={`w-2 h-2 rounded-full absolute top-1 right-1 ring-2 ring-[#0C1021] ${
-                      item.badgeConflict ? 'bg-rose-500' : 'bg-indigo-500'
-                    }`}
-                  />
-                )}
-              </button>
-            );
-          })}
+          <div>
+            {!isCollapsed && (
+              <div className="px-2.5 mb-1 text-[11px] font-medium text-slate-400">
+                Agents & State
+              </div>
+            )}
+            <div className="space-y-0.5">{systemItems.map(renderNavItem)}</div>
+          </div>
         </div>
 
-        {/* ── Footer / Collapse ───────────────────────────── */}
-        <div className="pt-2 px-2 mt-auto border-t border-[#1A223D]">
+        {/* Footer */}
+        <div className="pt-2 px-3 mt-auto border-t border-slate-900/[0.06] flex flex-col gap-1">
           {!isCollapsed && (
-            <div className="p-2.5 mb-2 rounded-xl bg-[#141A33] border border-[#222C52]">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-white">
-                <Sparkles className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
-                <span>HUMAN + AI</span>
-              </div>
-              <p className="text-[10px] text-[#7888AB] mt-0.5 leading-snug">
-                Sequential Product Lifecycle · NOVA + PIXEL
-              </p>
+            <div className="px-2 py-1 text-[11px] text-slate-500 flex items-center justify-between">
+              <span>NOVA · PIXEL</span>
+              <span className="font-mono text-[10px] text-slate-400">sequential</span>
             </div>
           )}
 
           <button
+            type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="w-full flex items-center justify-center p-1.5 rounded-lg text-[#62739B] hover:text-white hover:bg-[#141A33] transition cursor-pointer text-xs"
+            className="w-full flex items-center justify-center h-8 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-white/70 transition cursor-pointer text-xs"
             title={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isCollapsed ? (
               <ChevronRight className="w-4 h-4" />
             ) : (
-              <div className="flex items-center gap-1.5 text-[11px] font-medium text-[#7888AB]">
+              <div className="flex items-center gap-1.5 text-[11px] font-medium">
                 <ChevronLeft className="w-3.5 h-3.5" />
                 <span>Collapse</span>
               </div>

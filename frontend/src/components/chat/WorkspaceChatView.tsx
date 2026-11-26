@@ -277,38 +277,37 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
   );
 
   return (
-    <div className="flex h-full w-full bg-[#FAFBFD] overflow-hidden select-text">
+    <div className="flex h-full w-full bg-[#F6F8FB] overflow-hidden select-text">
       {/* 1. LEFT COLUMN: Conversations Sidebar */}
-      <div className="w-72 border-r border-[#E7ECF2] bg-white flex flex-col h-full shrink-0">
+      <div className="w-72 border-r border-slate-900/[0.075] bg-white/80 backdrop-blur-md flex flex-col h-full shrink-0">
         {/* Header */}
-        <div className="p-4 border-b border-[#E7ECF2] flex items-center justify-between">
+        <div className="h-14 px-4 border-b border-slate-900/[0.06] flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="p-1 rounded-lg bg-teal-50 border border-teal-200">
-              <MessageSquare className="w-4 h-4 text-teal-700" />
-            </span>
-            <h2 className="text-xs font-bold text-[#172033] uppercase tracking-wider">
+            <MessageSquare className="w-4 h-4 text-[#2563EB]" strokeWidth={1.75} />
+            <h2 className="text-xs font-semibold text-slate-900">
               Conversations
             </h2>
           </div>
           <button
+            type="button"
             onClick={() => setShowNewModal(true)}
-            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
-            title="Create new conversation room"
+            className="w-7 h-7 rounded-lg btn-apple-secondary flex items-center justify-center text-slate-600 cursor-pointer"
+            title="Create new room"
           >
             <Plus className="w-3.5 h-3.5" />
           </button>
         </div>
 
         {/* Search */}
-        <div className="p-3 border-b border-[#F0F3F7]">
+        <div className="p-3 border-b border-slate-900/[0.05]">
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-[#94A3B8]" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations..."
-              className="w-full pl-8 pr-3 py-1.5 bg-[#F8FAFC] border border-[#E7ECF2] rounded-xl text-xs text-[#172033] placeholder-[#94A3B8] focus:bg-white focus:border-teal-500 outline-hidden transition"
+              className="w-full pl-8 pr-3 py-1.5 bg-[#F8FAFC] border border-slate-900/[0.08] rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#2563EB]/40 focus:ring-2 focus:ring-[#2563EB]/10 outline-hidden transition"
             />
           </div>
         </div>
@@ -324,32 +323,33 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
             return (
               <button
+                type="button"
                 key={conv.id}
                 onClick={() => setActiveConversationId(conv.id)}
                 className={`w-full text-left p-3 rounded-xl transition cursor-pointer flex flex-col gap-1 border ${
                   isActive
-                    ? 'bg-teal-50/60 border-teal-200 text-[#172033] shadow-2xs'
-                    : 'bg-transparent border-transparent hover:bg-[#F8FAFC] text-[#657189]'
+                    ? 'bg-white border-slate-900/[0.09] text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.05)]'
+                    : 'bg-transparent border-transparent hover:bg-white/60 text-slate-600'
                 }`}
               >
                 <div className="flex items-center justify-between w-full">
                   <span
-                    className={`text-xs font-semibold truncate ${
-                      isActive ? 'text-teal-950 font-bold' : 'text-[#172033]'
+                    className={`text-xs truncate ${
+                      isActive ? 'text-slate-900 font-semibold' : 'text-slate-800 font-medium'
                     }`}
                   >
                     {conv.title}
                   </span>
                   {timeStr && (
-                    <span className="text-[10px] text-[#94A3B8] font-mono shrink-0 ml-1">
+                    <span className="text-[10px] text-slate-400 font-mono shrink-0 ml-1">
                       {timeStr}
                     </span>
                   )}
                 </div>
 
                 {lastMsg && (
-                  <p className="text-[11px] text-[#657189] line-clamp-1 break-words">
-                    <span className="font-semibold text-[#475569]">
+                  <p className="text-[11px] text-slate-500 line-clamp-1 break-words">
+                    <span className="font-medium text-slate-700">
                       {lastMsg.sender_name}:
                     </span>{' '}
                     {lastMsg.message_content || lastMsg.content}
@@ -357,12 +357,12 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 )}
 
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-[9px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
+                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
                     {conv.message_count} msgs
                   </span>
                   {conv.conversation_type === 'team_shared' && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-700 font-medium border border-emerald-200">
-                      Team Room
+                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-50 text-[#2563EB] font-medium border border-blue-200/60">
+                      Team room
                     </span>
                   )}
                 </div>
@@ -371,7 +371,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
           })}
 
           {filteredConversations.length === 0 && (
-            <div className="p-6 text-center text-xs text-[#94A3B8]">
+            <div className="p-6 text-center text-xs text-slate-400">
               No conversations found.
             </div>
           )}
@@ -379,20 +379,20 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
       </div>
 
       {/* 2. CENTRE COLUMN: Active Chat Stream */}
-      <div className="flex-1 flex flex-col h-full bg-[#FAFBFD] overflow-hidden">
+      <div className="flex-1 flex flex-col h-full bg-[#F6F8FB] overflow-hidden">
         {/* Stream Top Header */}
-        <div className="h-14 px-6 border-b border-[#E7ECF2] bg-white flex items-center justify-between shrink-0 shadow-2xs">
+        <div className="h-14 px-6 border-b border-slate-900/[0.075] bg-white/85 backdrop-blur-md flex items-center justify-between shrink-0">
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-sm font-bold text-[#172033]">
+              <h1 className="text-sm font-semibold text-slate-900 tracking-tight">
                 {activeConv?.title || 'LedgerFlow Workspace Chat'}
               </h1>
-              <span className="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
-                Shared Space
+              <span className="text-[11px] font-medium px-2 py-0.2 rounded-full bg-slate-100 text-slate-600 border border-slate-900/[0.06]">
+                Shared space
               </span>
             </div>
-            <p className="text-[10px] text-[#657189] mt-0.5">
-              Humans (Alex, Maya) + AI Collaborators (NOVA, PIXEL)
+            <p className="text-[11px] text-slate-500 mt-0.5">
+              Alex, Maya, NOVA & PIXEL
             </p>
           </div>
 
@@ -400,26 +400,26 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
             {/* Active Participant Avatars */}
             <div className="flex items-center -space-x-1.5">
               <div
-                className="w-7 h-7 rounded-full bg-[#2563EB] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
-                title="Alex (Founder / Decision Owner)"
+                className="w-6 h-6 rounded-full bg-blue-50 border border-blue-200 text-[#2563EB] flex items-center justify-center font-semibold text-[10px] ring-2 ring-white"
+                title="Alex (Decision Owner)"
               >
                 A
               </div>
               <div
-                className="w-7 h-7 rounded-full bg-[#D946A1] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
+                className="w-6 h-6 rounded-full bg-pink-50 border border-pink-200 text-[#BE185D] flex items-center justify-center font-semibold text-[10px] ring-2 ring-white"
                 title="Maya (Product Designer)"
               >
                 M
               </div>
               <div
-                className="w-7 h-7 rounded-full bg-[#7C3AED] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
-                title="NOVA (AI Product Strategist)"
+                className="w-6 h-6 rounded-full bg-violet-50 border border-violet-200 text-[#6D28D9] flex items-center justify-center font-semibold text-[10px] ring-2 ring-white"
+                title="NOVA (AI Strategist)"
               >
                 N
               </div>
               <div
-                className="w-7 h-7 rounded-full bg-[#0D9488] text-white flex items-center justify-center font-bold text-xs ring-2 ring-white shadow-2xs"
-                title="PIXEL (AI Software Engineer)"
+                className="w-6 h-6 rounded-full bg-teal-50 border border-teal-200 text-[#0F766E] flex items-center justify-center font-semibold text-[10px] ring-2 ring-white"
+                title="PIXEL (AI Engineer)"
               >
                 P
               </div>
@@ -427,14 +427,15 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
             {/* Context Panel Toggle */}
             <button
+              type="button"
               onClick={() => setShowRightPanel(!showRightPanel)}
-              className="p-1.5 rounded-lg border border-[#E7ECF2] hover:bg-[#F8FAFC] text-[#657189] hover:text-[#172033] transition cursor-pointer"
+              className="w-8 h-8 rounded-lg btn-apple-secondary flex items-center justify-center text-slate-500 cursor-pointer"
               title={showRightPanel ? 'Hide context panel' : 'Show context panel'}
             >
               {showRightPanel ? (
-                <PanelRightClose className="w-4 h-4" />
+                <PanelRightClose className="w-4 h-4" strokeWidth={1.75} />
               ) : (
-                <PanelRightOpen className="w-4 h-4" />
+                <PanelRightOpen className="w-4 h-4" strokeWidth={1.75} />
               )}
             </button>
           </div>
@@ -629,58 +630,58 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
         </div>
 
         {/* Message Composer Area */}
-        <div className="p-4 bg-white border-t border-[#E7ECF2] shadow-sm shrink-0 space-y-3">
+        <div className="p-4 bg-white/90 backdrop-blur-md border-t border-slate-900/[0.075] shrink-0 space-y-3">
           {/* Recipient Selector Toggle */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-1.5 p-1 bg-[#F8FAFC] border border-[#E7ECF2] rounded-xl shadow-2xs">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#657189] px-2">
-                Send to:
+            <div className="flex items-center gap-0.5 p-1 bg-[#F1F4F8] border border-slate-900/[0.06] rounded-xl">
+              <span className="text-[11px] font-medium text-slate-500 px-2.5">
+                To:
               </span>
               <button
                 type="button"
                 onClick={() => setRecipient('team')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs transition cursor-pointer ${
                   recipient === 'team'
-                    ? 'bg-slate-900 text-white font-semibold shadow-2xs'
-                    : 'text-[#657189] hover:text-[#172033] hover:bg-white'
+                    ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Users className="w-3 h-3" />
+                <Users className="w-3.5 h-3.5 text-[#2563EB]" strokeWidth={1.75} />
                 <span>Entire Team</span>
               </button>
               <button
                 type="button"
                 onClick={() => setRecipient('nova')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs transition cursor-pointer ${
                   recipient === 'nova'
-                    ? 'bg-violet-600 text-white font-semibold shadow-2xs'
-                    : 'text-[#657189] hover:text-[#172033] hover:bg-white'
+                    ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Bot className="w-3 h-3 text-violet-300" />
+                <Bot className="w-3.5 h-3.5 text-[#6D28D9]" strokeWidth={1.75} />
                 <span>NOVA</span>
               </button>
               <button
                 type="button"
                 onClick={() => setRecipient('pixel')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
+                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs transition cursor-pointer ${
                   recipient === 'pixel'
-                    ? 'bg-teal-600 text-white font-semibold shadow-2xs'
-                    : 'text-[#657189] hover:text-[#172033] hover:bg-white'
+                    ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
+                    : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                <Code className="w-3 h-3 text-teal-300" />
+                <Code className="w-3.5 h-3.5 text-[#0F766E]" strokeWidth={1.75} />
                 <span>PIXEL</span>
               </button>
             </div>
 
-            <div className="text-[11px] text-[#94A3B8] hidden sm:block">
-              Posting as <strong className="text-[#172033]">{identity === 'alex' ? 'Alex' : 'Maya'}</strong>
+            <div className="text-[11px] text-slate-500 hidden sm:block">
+              Posting as <strong className="font-medium text-slate-900">{identity === 'alex' ? 'Alex' : 'Maya'}</strong>
             </div>
           </div>
 
           {/* Textarea Composer */}
-          <div className="relative bg-[#F8FAFC] border border-[#D9E1EC] focus-within:border-teal-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-100 rounded-xl transition shadow-2xs p-3">
+          <div className="relative bg-[#F8FAFC] border border-slate-900/[0.08] focus-within:border-[#2563EB]/40 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#2563EB]/[0.07] rounded-xl transition p-3.5">
             <textarea
               ref={textareaRef}
               rows={2}
@@ -694,37 +695,33 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                   ? 'Message PIXEL: "Please update the hero headline and add spend trends to dashboard"'
                   : 'Message entire team: "How should we adjust manager approval thresholds?"'
               }
-              className="w-full text-xs text-[#172033] placeholder-[#94A3B8] resize-none outline-hidden bg-transparent"
+              className="w-full text-[13px] text-slate-900 placeholder-slate-400 resize-none outline-hidden bg-transparent leading-relaxed"
             />
 
-            <div className="flex items-center justify-between pt-2 border-t border-[#E7ECF2] mt-2">
-              <span className="text-[11px] text-[#94A3B8]">
-                Press <kbd className="px-1 py-0.5 rounded bg-slate-200/70 border border-slate-300 text-[10px] font-mono">Enter</kbd> to send, <kbd className="px-1 py-0.5 rounded bg-slate-200/70 border border-slate-300 text-[10px] font-mono">Shift+Enter</kbd> for newline
+            <div className="flex items-center justify-between pt-2.5 border-t border-slate-900/[0.06] mt-2">
+              <span className="text-[11px] text-slate-500">
+                Press <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-900/[0.08] text-[10px] font-mono shadow-2xs">Enter</kbd> to send · <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-900/[0.08] text-[10px] font-mono shadow-2xs">Shift+Enter</kbd> for newline
               </span>
 
               <button
                 type="button"
                 disabled={!inputText.trim() || isSending}
                 onClick={() => handleSendMessage()}
-                className={`flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold shadow-2xs transition cursor-pointer ${
+                className={`flex items-center gap-1.5 h-8 px-4 rounded-lg text-xs font-medium transition cursor-pointer ${
                   !inputText.trim() || isSending
                     ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                    : recipient === 'nova'
-                    ? 'bg-violet-600 hover:bg-violet-700 text-white'
-                    : recipient === 'pixel'
-                    ? 'bg-teal-600 hover:bg-teal-700 text-white'
-                    : 'bg-slate-900 hover:bg-slate-800 text-white'
+                    : 'btn-obsidian'
                 }`}
               >
                 {isSending ? (
                   <>
                     <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Processing...</span>
+                    <span>Sending...</span>
                   </>
                 ) : (
                   <>
                     <Send className="w-3 h-3" />
-                    <span>Send Message</span>
+                    <span>Send message</span>
                   </>
                 )}
               </button>

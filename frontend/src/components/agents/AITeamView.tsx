@@ -87,121 +87,122 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
   const pack = packData?.context_pack || {};
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner & Header */}
-      <div className="bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center space-x-3.5">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-violet-600 via-teal-600 to-emerald-600 flex items-center justify-center text-white shadow-xs">
-            <Bot className="w-5 h-5" />
+    <div className="space-y-6 max-w-6xl mx-auto pb-8">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pt-1">
+        <div>
+          <div className="flex items-center gap-2 text-xs text-slate-500 mb-1.5">
+            <span>Workspace</span>
+            <span className="text-slate-300">/</span>
+            <span className="text-slate-700 font-medium">AI Team</span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-base font-bold text-[#172033] tracking-tight">
-                AI Collaborator Team
-              </h1>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
-                2 Agents Active
-              </span>
-            </div>
-            <p className="text-xs text-[#657189] mt-0.5">
-              Specialized autonomous AI partners collaborating with Alex & Maya on LedgerFlow
-            </p>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-[26px] font-semibold text-slate-900 tracking-[-0.025em] leading-tight">
+              AI Collaborators
+            </h1>
+            <span className="text-xs font-medium px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/70">
+              2 active
+            </span>
           </div>
+          <p className="text-sm text-slate-500 mt-1">
+            Inspect active AI run context packs, delegation history, and tool execution.
+          </p>
         </div>
 
-        {/* Global Agent Control Buttons */}
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 shrink-0">
           {onNavigateTab && (
             <button
+              type="button"
               onClick={() => onNavigateTab('context')}
-              className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100/70 border border-teal-200 text-xs font-semibold text-teal-900 shadow-xs transition cursor-pointer"
+              className="h-9 px-3.5 rounded-lg btn-apple-secondary text-xs font-medium flex items-center gap-1.5 cursor-pointer"
             >
-              <Radio className="w-3.5 h-3.5 text-teal-700" />
-              <span>Full Context Inspector</span>
-              <ExternalLink className="w-3 h-3 text-teal-600 ml-0.5" />
+              <Radio className="w-3.5 h-3.5 text-[#2563EB]" strokeWidth={1.75} />
+              <span>Context Inspector</span>
+              <ExternalLink className="w-3 h-3 text-slate-400" />
             </button>
           )}
 
           <button
+            type="button"
             onClick={() => handleRestart(selectedAgent)}
             disabled={restarting}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-[#E7ECF2] text-xs font-semibold text-[#172033] shadow-xs transition cursor-pointer disabled:opacity-50"
-            title="Demonstrate Step 5: Restart this agent and recover fresh Context Pack from persisted state"
+            className="h-9 px-3.5 rounded-lg btn-obsidian text-xs font-medium flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+            title="Restart agent and reconstruct context pack from persisted state"
           >
-            <RotateCcw className={`w-3.5 h-3.5 text-amber-600 ${restarting ? 'animate-spin' : ''}`} />
-            <span>Restart & Recover Context</span>
+            <RotateCcw className={`w-3.5 h-3.5 ${restarting ? 'animate-spin' : ''}`} />
+            <span>Restart & recover</span>
           </button>
         </div>
       </div>
 
-      {/* Dual Agent Overview Cards */}
+      {/* Dual Agent Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* NOVA Card */}
         <div
           onClick={() => setSelectedAgent('nova')}
-          className={`p-5 rounded-3xl border transition-all cursor-pointer ${
+          className={`coframe-card p-5 cursor-pointer transition-all ${
             selectedAgent === 'nova'
-              ? 'bg-white border-violet-400 ring-2 ring-violet-100 shadow-md'
-              : 'bg-white border-[#E7ECF2] hover:border-violet-200 hover:shadow-xs'
+              ? 'ring-2 ring-[#2563EB]/25 border-[#2563EB]/50'
+              : ''
           }`}
         >
           <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#7C3AED] text-white flex items-center justify-center font-black text-sm shadow-2xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-200/80 text-[#6D28D9] flex items-center justify-center font-semibold text-sm">
                 N
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm font-bold text-[#172033]">NOVA</h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200">
+                  <h3 className="text-sm font-semibold text-slate-900">NOVA</h3>
+                  <span className="text-[11px] font-medium px-2 py-0.2 rounded-md bg-violet-50 text-[#6D28D9] border border-violet-200/60">
                     Product Strategist
                   </span>
-                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                    gemini-2.5-flash
+                  <span className="text-[11px] font-mono px-2 py-0.2 rounded-md bg-slate-100 text-slate-600">
+                    gemini-2.5
                   </span>
                 </div>
-                <p className="text-[11px] text-[#657189] mt-0.5">
-                  Idea discovery, requirements formulation & PRD authoring
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Idea discovery, requirements formulation & PRDs
                 </p>
               </div>
             </div>
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border shadow-2xs ${
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${
               novaRun?.status === 'working'
-                ? 'bg-violet-50 text-violet-700 border-violet-200'
+                ? 'bg-violet-50 text-[#6D28D9] border-violet-200/70'
                 : novaRun?.status === 'waiting_for_review'
-                ? 'bg-amber-50 text-amber-700 border-amber-200'
-                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                ? 'bg-amber-50 text-amber-800 border-amber-200/70'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200/70'
             }`}>
-              <span className={`w-2 h-2 rounded-full ${
-                novaRun?.status === 'working' ? 'bg-violet-500 animate-ping' : 'bg-emerald-500'
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                novaRun?.status === 'working' ? 'bg-[#6D28D9]' : novaRun?.status === 'waiting_for_review' ? 'bg-amber-500' : 'bg-emerald-500'
               }`} />
               <span>
                 {novaRun?.status === 'working'
                   ? 'Creating PRD'
                   : novaRun?.status === 'waiting_for_review'
-                  ? 'Waiting for Approval'
-                  : 'Idle (Ready)'}
+                  ? 'Waiting review'
+                  : 'Ready'}
               </span>
             </span>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#F0F3F7] grid grid-cols-3 gap-2 text-xs">
-            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
-              <span className="text-[10px] text-[#657189] block font-medium">Context Base</span>
-              <span className="font-mono font-bold text-blue-700">v{novaRun?.base_context_version || 1}</span>
+          <div className="mt-4 pt-3.5 border-t border-slate-900/[0.06] grid grid-cols-3 gap-2.5 text-xs">
+            <div className="bg-slate-50/80 p-2.5 rounded-lg border border-slate-900/[0.05]">
+              <span className="text-[11px] text-slate-500 block">Context</span>
+              <span className="font-mono font-semibold text-slate-900 mt-0.5 block">v{novaRun?.base_context_version || 1}</span>
             </div>
-            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
-              <span className="text-[10px] text-[#657189] block font-medium">Artifact Base</span>
-              <span className="font-mono font-bold text-emerald-700">v{novaRun?.base_artifact_version || 1}</span>
+            <div className="bg-slate-50/80 p-2.5 rounded-lg border border-slate-900/[0.05]">
+              <span className="text-[11px] text-slate-500 block">Artifact</span>
+              <span className="font-mono font-semibold text-slate-900 mt-0.5 block">v{novaRun?.base_artifact_version || 1}</span>
             </div>
-            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
-              <span className="text-[10px] text-[#657189] block font-medium">Model Engine</span>
-              <span className="font-bold text-violet-700 truncate block">Gemini 2.5</span>
+            <div className="bg-slate-50/80 p-2.5 rounded-lg border border-slate-900/[0.05]">
+              <span className="text-[11px] text-slate-500 block">Engine</span>
+              <span className="font-medium text-slate-900 truncate mt-0.5 block">Gemini 2.5</span>
             </div>
           </div>
 
-          <p className="mt-3 text-xs text-[#657189] line-clamp-2 leading-relaxed">
-            <strong className="text-[#172033]">Current Task: </strong>
+          <p className="mt-3 text-xs text-slate-600 line-clamp-2 leading-relaxed">
+            <strong className="font-medium text-slate-900">Focus: </strong>
             {novaRun?.current_task || novaRun?.task_description || 'Synthesizing market requirements & audience fit'}
           </p>
         </div>
@@ -209,110 +210,113 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
         {/* PIXEL Card */}
         <div
           onClick={() => setSelectedAgent('pixel')}
-          className={`p-5 rounded-3xl border transition-all cursor-pointer ${
+          className={`coframe-card p-5 cursor-pointer transition-all ${
             selectedAgent === 'pixel'
-              ? 'bg-white border-teal-400 ring-2 ring-teal-100 shadow-md'
-              : 'bg-white border-[#E7ECF2] hover:border-teal-200 hover:shadow-xs'
+              ? 'ring-2 ring-[#2563EB]/25 border-[#2563EB]/50'
+              : ''
           }`}
         >
           <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-2xl bg-[#0D9488] text-white flex items-center justify-center font-black text-sm shadow-2xs">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-teal-50 border border-teal-200/80 text-[#0F766E] flex items-center justify-center font-semibold text-sm">
                 P
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-sm font-bold text-[#172033]">PIXEL</h3>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
-                    AI Software Engineer
+                  <h3 className="text-sm font-semibold text-slate-900">PIXEL</h3>
+                  <span className="text-[11px] font-medium px-2 py-0.2 rounded-md bg-teal-50 text-[#0F766E] border border-teal-200/60">
+                    Software Engineer
                   </span>
-                  <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                    gemini-2.5-flash
+                  <span className="text-[11px] font-mono px-2 py-0.2 rounded-md bg-slate-100 text-slate-600">
+                    gemini-2.5
                   </span>
                 </div>
-                <p className="text-[11px] text-[#657189] mt-0.5">
-                  Implementation plans, schema mutations & automated tests
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Implementation plans, UI updates & tests
                 </p>
               </div>
             </div>
-            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border shadow-2xs ${
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${
               pixelRun?.status === 'working'
-                ? 'bg-teal-50 text-teal-700 border-teal-200'
+                ? 'bg-teal-50 text-[#0F766E] border-teal-200/70'
                 : pixelRun?.status === 'waiting_for_review'
-                ? 'bg-amber-50 text-amber-700 border-amber-200'
-                : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                ? 'bg-amber-50 text-amber-800 border-amber-200/70'
+                : 'bg-emerald-50 text-emerald-700 border-emerald-200/70'
             }`}>
-              <span className={`w-2 h-2 rounded-full ${
-                pixelRun?.status === 'working' ? 'bg-teal-500 animate-ping' : 'bg-emerald-500'
+              <span className={`w-1.5 h-1.5 rounded-full ${
+                pixelRun?.status === 'working' ? 'bg-[#0F766E]' : pixelRun?.status === 'waiting_for_review' ? 'bg-amber-500' : 'bg-emerald-500'
               }`} />
               <span>
                 {pixelRun?.status === 'working'
                   ? 'Implementing'
                   : pixelRun?.status === 'waiting_for_review'
-                  ? 'Waiting for Review'
-                  : 'Idle (Ready)'}
+                  ? 'Waiting review'
+                  : 'Ready'}
               </span>
             </span>
           </div>
 
-          <div className="mt-4 pt-3 border-t border-[#F0F3F7] grid grid-cols-3 gap-2 text-xs">
-            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
-              <span className="text-[10px] text-[#657189] block font-medium">Context Base</span>
-              <span className="font-mono font-bold text-blue-700">v{pixelRun?.base_context_version || 1}</span>
+          <div className="mt-4 pt-3.5 border-t border-slate-900/[0.06] grid grid-cols-3 gap-2.5 text-xs">
+            <div className="bg-slate-50/80 p-2.5 rounded-lg border border-slate-900/[0.05]">
+              <span className="text-[11px] text-slate-500 block">Context</span>
+              <span className="font-mono font-semibold text-slate-900 mt-0.5 block">v{pixelRun?.base_context_version || 1}</span>
             </div>
-            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
-              <span className="text-[10px] text-[#657189] block font-medium">Artifact Base</span>
-              <span className="font-mono font-bold text-emerald-700">v{pixelRun?.base_artifact_version || 1}</span>
+            <div className="bg-slate-50/80 p-2.5 rounded-lg border border-slate-900/[0.05]">
+              <span className="text-[11px] text-slate-500 block">Artifact</span>
+              <span className="font-mono font-semibold text-slate-900 mt-0.5 block">v{pixelRun?.base_artifact_version || 1}</span>
             </div>
-            <div className="bg-[#F8FAFC] p-2.5 rounded-xl border border-[#E7ECF2]">
-              <span className="text-[10px] text-[#657189] block font-medium">Model Engine</span>
-              <span className="font-bold text-teal-700 truncate block">Gemini 2.5</span>
+            <div className="bg-slate-50/80 p-2.5 rounded-lg border border-slate-900/[0.05]">
+              <span className="text-[11px] text-slate-500 block">Engine</span>
+              <span className="font-medium text-slate-900 truncate mt-0.5 block">Gemini 2.5</span>
             </div>
           </div>
 
-          <p className="mt-3 text-xs text-[#657189] line-clamp-2 leading-relaxed">
-            <strong className="text-[#172033]">Current Task: </strong>
+          <p className="mt-3 text-xs text-slate-600 line-clamp-2 leading-relaxed">
+            <strong className="font-medium text-slate-900">Focus: </strong>
             {pixelRun?.current_task || pixelRun?.task_description || 'Implementing LedgerFlow hero and approval policy sections'}
           </p>
         </div>
       </div>
 
-      {/* Sub-tab Navigation */}
-      <div className="flex items-center space-x-2 border-b border-[#E7ECF2] pb-2">
+      {/* Apple Segmented Sub-tabs */}
+      <div className="inline-flex items-center gap-1 p-1 bg-[#F1F4F8] border border-slate-900/[0.06] rounded-xl">
         <button
+          type="button"
           onClick={() => setActiveSubTab('context')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-2 ${
+          className={`px-3.5 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-2 ${
             activeSubTab === 'context'
-              ? 'bg-white text-teal-800 border border-[#E7ECF2] shadow-2xs'
-              : 'text-[#657189] hover:text-[#172033]'
+              ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Cpu className="w-3.5 h-3.5 text-violet-600" />
-          <span>Context Pack & Recovery Inspector ({selectedAgent.toUpperCase()})</span>
+          <Cpu className="w-3.5 h-3.5 text-[#6D28D9]" strokeWidth={1.75} />
+          <span>Context Pack ({selectedAgent.toUpperCase()})</span>
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveSubTab('delegation')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-2 ${
+          className={`px-3.5 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-2 ${
             activeSubTab === 'delegation'
-              ? 'bg-white text-teal-800 border border-[#E7ECF2] shadow-2xs'
-              : 'text-[#657189] hover:text-[#172033]'
+              ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-          <span>Agent-to-Agent Delegation ({delegations.length})</span>
+          <ArrowRight className="w-3.5 h-3.5 text-[#0F766E]" strokeWidth={1.75} />
+          <span>Delegations ({delegations.length})</span>
         </button>
 
         <button
+          type="button"
           onClick={() => setActiveSubTab('mcp')}
-          className={`px-4 py-2 rounded-xl text-xs font-semibold transition cursor-pointer flex items-center gap-2 ${
+          className={`px-3.5 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-2 ${
             activeSubTab === 'mcp'
-              ? 'bg-white text-teal-800 border border-[#E7ECF2] shadow-2xs'
-              : 'text-[#657189] hover:text-[#172033]'
+              ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
+              : 'text-slate-600 hover:text-slate-900'
           }`}
         >
-          <Code2 className="w-3.5 h-3.5 text-blue-600" />
-          <span>MCP Tool Explorer</span>
+          <Code2 className="w-3.5 h-3.5 text-[#2563EB]" strokeWidth={1.75} />
+          <span>MCP Tools</span>
         </button>
       </div>
 
@@ -320,137 +324,138 @@ export const AITeamView: React.FC<AITeamViewProps> = ({
       {activeSubTab === 'context' && (
         <div className="space-y-5">
           {loading ? (
-            <div className="text-center py-16 text-xs text-[#657189] bg-white rounded-2xl border border-[#E7ECF2] shadow-sm">
+            <div className="text-center py-16 text-xs text-slate-500 coframe-card">
               Loading authoritative Context Pack...
             </div>
           ) : !packData ? (
-            <div className="text-center py-16 text-xs text-[#657189] bg-white rounded-2xl border border-[#E7ECF2] shadow-sm">
-              No active runs found for {selectedAgent.toUpperCase()}. Start collaboration first or click Restart.
+            <div className="text-center py-16 text-xs text-slate-500 coframe-card">
+              No active runs found for {selectedAgent.toUpperCase()}. Start collaboration or click Restart.
             </div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              {/* Left 2 Cols: Pack Structure Breakdown */}
+              {/* Left 2 Cols */}
               <div className="lg:col-span-2 space-y-4">
-                {/* Version Metadata Summary */}
-                <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                <div className="coframe-card p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#657189]">
-                      Run Context Metadata
+                    <span className="text-xs font-semibold text-slate-900">
+                      Run context metadata
                     </span>
                     {onNavigateTab && (
                       <button
+                        type="button"
                         onClick={() => onNavigateTab('context')}
-                        className="text-[11px] font-semibold text-teal-700 hover:text-teal-900 flex items-center gap-1 cursor-pointer"
+                        className="text-xs font-medium text-[#2563EB] hover:text-[#1D4ED8] flex items-center gap-1 cursor-pointer"
                       >
-                        <span>Open in Context Inspector</span>
+                        <span>Open in Inspector</span>
                         <ArrowRight className="w-3 h-3" />
                       </button>
                     )}
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                    <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
-                      <span className="text-[11px] text-[#657189] block mb-0.5 font-medium">Run ID</span>
-                      <span className="font-mono text-teal-700 font-semibold">{packData.run_id}</span>
+                    <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-900/[0.06]">
+                      <span className="text-[11px] text-slate-500 block mb-0.5">Run ID</span>
+                      <span className="font-mono text-slate-900 font-medium truncate block">{packData.run_id}</span>
                     </div>
-                    <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
-                      <span className="text-[11px] text-[#657189] block mb-0.5 font-medium">Context Version</span>
-                      <span className="font-mono text-blue-700 font-semibold">v{pack.context_version}</span>
+                    <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-900/[0.06]">
+                      <span className="text-[11px] text-slate-500 block mb-0.5">Context</span>
+                      <span className="font-mono text-[#2563EB] font-medium">v{pack.context_version ?? packData.base_context_version ?? 1}</span>
                     </div>
-                    <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
-                      <span className="text-[11px] text-[#657189] block mb-0.5 font-medium">Artifact Version</span>
-                      <span className="font-mono text-emerald-700 font-semibold">v{pack.artifact_version}</span>
+                    <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-900/[0.06]">
+                      <span className="text-[11px] text-slate-500 block mb-0.5">Artifact</span>
+                      <span className="font-mono text-[#0F766E] font-medium">v{pack.artifact_version ?? packData.base_artifact_version ?? 1}</span>
                     </div>
-                    <div className="bg-[#F8FAFC] p-3 rounded-xl border border-[#E7ECF2]">
-                      <span className="text-[11px] text-[#657189] block mb-0.5 font-medium">Data Source</span>
-                      <span className="font-mono text-violet-700 font-semibold">{packData.source}</span>
+                    <div className="bg-slate-50/80 p-3 rounded-xl border border-slate-900/[0.06]">
+                      <span className="text-[11px] text-slate-500 block mb-0.5">Source</span>
+                      <span className="font-mono text-slate-900 font-medium truncate block">{packData.source}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Verified Requirements Pack */}
-                <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
-                  <span className="text-xs font-bold uppercase tracking-wider text-[#657189] block mb-3">
-                    Supplied Requirements ({pack.requirements?.length || 0})
+                <div className="coframe-card p-5">
+                  <span className="text-xs font-semibold text-slate-900 block mb-3">
+                    Supplied requirements ({pack.requirements?.length || 0})
                   </span>
                   <div className="space-y-2 text-xs">
                     {pack.requirements?.map((req: any) => (
                       <div
                         key={req.id || req.key}
-                        className="flex items-center justify-between p-3 rounded-xl bg-[#F8FAFC] border border-[#E7ECF2]"
+                        className="flex items-center justify-between p-3 rounded-xl bg-slate-50/80 border border-slate-900/[0.06]"
                       >
                         <div>
-                          <div className="flex items-center space-x-2">
-                            <span className="font-mono text-blue-700 font-bold">{req.key}</span>
-                            <span className="text-[11px] font-medium text-[#657189] bg-white px-1.5 py-0.5 rounded border border-[#E7ECF2]">
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-[#2563EB] font-medium">{req.key}</span>
+                            <span className="text-[11px] font-mono text-slate-500 bg-white px-1.5 py-0.2 rounded border border-slate-900/[0.08]">
                               v{req.version}
                             </span>
                           </div>
-                          <span className="text-xs text-[#172033] mt-1 block font-medium">{req.value}</span>
+                          <span className="text-xs text-slate-700 mt-1 block">{req.value}</span>
                         </div>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* Raw JSON Context Viewer (Targeted by Playwright) */}
-                <div className="bg-white border border-[#E7ECF2] rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
+                {/* Raw JSON Context Viewer */}
+                <div className="coframe-card p-5">
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#657189]">
-                      Authoritative Immutable JSON
+                    <span className="text-xs font-semibold text-slate-900">
+                      Authoritative JSON payload
                     </span>
                     <button
+                      type="button"
                       onClick={handleCopyJson}
-                      className="flex items-center space-x-1.5 text-xs text-teal-600 hover:text-teal-800 font-semibold cursor-pointer"
+                      className="flex items-center gap-1.5 text-xs text-[#2563EB] hover:text-[#1D4ED8] font-medium cursor-pointer"
                     >
                       <Copy className="w-3.5 h-3.5" />
-                      <span>{copied ? 'Copied!' : 'Copy JSON'}</span>
+                      <span>{copied ? 'Copied' : 'Copy JSON'}</span>
                     </button>
                   </div>
-                  <pre className="bg-[#0B1020] border border-[#263244] p-4 rounded-xl font-mono text-[11px] text-teal-300 overflow-x-auto max-h-80">
+                  <pre className="bg-[#0F172A] p-4 rounded-xl font-mono text-[11px] text-slate-200 overflow-x-auto max-h-80">
                     {JSON.stringify(pack, null, 2)}
                   </pre>
                 </div>
               </div>
 
-              {/* Right Col: Recovery Summary & Agent Task (Targeted by Playwright) */}
+              {/* Right Col: Recovery Summary */}
               <div className="space-y-4">
-                <div className="bg-violet-50/50 border border-violet-200 rounded-2xl p-5 shadow-xs">
-                  <div className="flex items-center space-x-2 mb-3 text-violet-700">
-                    <Sparkles className="w-4 h-4" />
-                    <h3 className="font-bold text-xs uppercase tracking-wider text-violet-900">
-                      Context Recovery Summary
+                <div className="coframe-card p-5">
+                  <div className="flex items-center gap-2 mb-3.5 text-slate-900">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" strokeWidth={1.75} />
+                    <h3 className="font-semibold text-xs">
+                      Context recovery summary
                     </h3>
                   </div>
 
-                  <div className="space-y-3.5 text-xs">
+                  <div className="space-y-4 text-xs">
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Status</span>
-                      <p className="text-emerald-700 font-semibold flex items-center space-x-1">
-                        <CheckCircle2 className="w-4 h-4 inline mr-1 text-emerald-600" />
-                        <span>State Reconstructed from Database</span>
+                      <span className="text-[11px] text-slate-500 block mb-0.5">Status</span>
+                      <p className="text-emerald-700 font-medium flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Reconstructed from database</span>
                       </p>
                     </div>
 
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Agent Task</span>
-                      <p className="text-[#172033] font-medium leading-relaxed">
+                      <span className="text-[11px] text-slate-500 block mb-0.5">Agent task</span>
+                      <p className="text-slate-800 leading-relaxed">
                         {pack.agent_task?.description || 'Active background strategy and prototype execution'}
                       </p>
                     </div>
 
                     <div>
-                      <span className="text-[10px] uppercase font-bold text-[#657189] block mb-0.5">Offline Changes</span>
-                      <p className="text-[#657189] leading-relaxed">
+                      <span className="text-[11px] text-slate-500 block mb-0.5">Offline delta</span>
+                      <p className="text-slate-600 leading-relaxed">
                         {pack.offline_changes?.length > 0
                           ? `${pack.offline_changes.length} event(s) logged while offline`
-                          : 'Pack incorporates all latest requirement version updates'}
+                          : 'Up to date with all requirement updates'}
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-white border border-[#E7ECF2] text-xs text-[#657189] leading-relaxed shadow-xs">
-                  💡 <strong className="text-[#172033]">Deterministic Recovery:</strong> When an agent restarts, COFRAME does not rely on transient chat logs. The backend reconstitutes an authoritative Context Pack consisting of verified requirement versions, artifact section versions, and unapplied changes.
+                <div className="p-4 rounded-xl bg-slate-50/90 border border-slate-900/[0.07] text-xs text-slate-600 leading-relaxed">
+                  <strong className="font-medium text-slate-900">Deterministic recovery:</strong> When an agent restarts, COFRAME reconstructs a fresh Context Pack directly from persisted requirement and artifact versions rather than transient chat memory.
                 </div>
               </div>
             </div>

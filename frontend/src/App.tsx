@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useRealtimeState } from './hooks/useRealtimeState';
 import { TopBar } from './components/layout/TopBar';
 import { Sidebar, NavigationTab } from './components/layout/Sidebar';
@@ -18,6 +18,27 @@ import { SharedCreationShelf } from './components/resources/SharedCreationShelf'
 import { resetDemo, restartAgent } from './lib/api';
 import { WorkspaceChatView } from './components/chat/WorkspaceChatView';
 
+const ROUTE_TABS: NavigationTab[] = ['chat', 'overview', 'preview', 'proposals', 'agents', 'activity', 'context'];
+
+const TAB_LABELS: Record<string, string> = {
+  chat: 'Chat',
+  overview: 'Overview',
+  preview: 'Product Preview',
+  proposals: 'Proposals',
+  agents: 'AI Team',
+  activity: 'Activity',
+  context: 'Context Inspector',
+};
+
+function getInitialTab(): NavigationTab {
+  if (typeof window === 'undefined') return 'overview';
+  const seg = window.location.pathname.replace(/^\//, '').split('/')[0] as NavigationTab;
+  if (ROUTE_TABS.includes(seg)) return seg;
+  const hash = window.location.hash.replace('#', '') as NavigationTab;
+  if (ROUTE_TABS.includes(hash)) return hash;
+  return 'overview';
+}
+
 export function App() {
   const {
     projectId,
@@ -30,12 +51,32 @@ export function App() {
     refresh,
   } = useRealtimeState();
 
-  const [currentTab, setCurrentTab] = useState<NavigationTab>('overview');
+  const [currentTab, setCurrentTab] = useState<NavigationTab>(getInitialTab);
   const [demoStep, setDemoStep] = useState(1);
   const [isResetting, setIsResetting] = useState(false);
   const [isDemoGuideOpen, setIsDemoGuideOpen] = useState(false);
   const [isCollaboratorsPanelOpen, setIsCollaboratorsPanelOpen] = useState(false);
   const [restartingAgent, setRestartingAgent] = useState<string | null>(null);
+
+  useEffect(() => {
+    const label = TAB_LABELS[currentTab] || 'Workspace';
+    document.title = `LedgerFlow · ${label} · COFRAME`;
+  }, [currentTab]);
+
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey) return;
+      const num = Number(event.key);
+      if (Number.isInteger(num) && num >= 1 && num <= ROUTE_TABS.length) {
+        const target = event.target as HTMLElement | null;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
+        event.preventDefault();
+        setCurrentTab(ROUTE_TABS[num - 1]);
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
 
   const handleReset = async () => {
     if (window.confirm('Reset demo project and LedgerFlow artifact to baseline seed state?')) {
@@ -71,8 +112,9 @@ export function App() {
 
   if (loading && !state) {
     return (
-      <div className="min-h-screen bg-[#F8FAFC] flex items-center justify-center text-teal-600 font-medium text-sm">
-        Initializing COFRAME Multiplayer Engine...
+      <div className="min-h-screen bg-[#F6F8FB] flex flex-col items-center justify-center gap-3 text-slate-600 font-medium text-xs">
+        <span className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-[#2563EB]" />
+        <span>Loading LedgerFlow workspace...</span>
       </div>
     );
   }
@@ -84,7 +126,7 @@ export function App() {
   ).length;
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-[#F8FAFC] text-[#172033] font-sans antialiased selection:bg-teal-500 selection:text-white">
+    <div className="h-screen flex flex-col overflow-hidden bg-[#F6F8FB] text-[#0F172A] font-sans antialiased selection:bg-[#2563EB] selection:text-white">
       {/* 1. Global Top Navigation */}
       <TopBar
         project={state?.project}
@@ -104,6 +146,15 @@ export function App() {
 
       {/* 2. Observer Summary Banner */}
       <ObserverSummaryBanner summary={state?.observer_summary} />
+
+      {error && (
+        <div role="status" className="border-b border-amber-200 bg-amber-50 px-4 py-1.5 text-center text-xs text-amber-900">
+          Live sync temporarily interrupted.{' '}
+          <button type="button" onClick={refresh} className="font-semibold underline cursor-pointer ml-1">
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* 3. Main Workspace Body (Sidebar + Content Area + Right Panel) */}
       <div className="flex-1 flex overflow-hidden relative">

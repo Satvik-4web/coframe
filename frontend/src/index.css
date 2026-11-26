@@ -2,98 +2,145 @@
 
 @layer base {
   :root {
-    /* Brand Theme Colors */
-    --sidebar-bg: #FFFFFF;
-    --sidebar-surface: #F8FAFC;
-    --sidebar-border: #E2E8F0;
+    /* Stripe / Apple Modern Clean Light Tokens */
+    --sidebar-bg: #F1F4F8;
+    --sidebar-surface: #FFFFFF;
+    --sidebar-border: rgba(15, 23, 42, 0.075);
     --sidebar-text: #0F172A;
     --sidebar-text-muted: #64748B;
 
-    --bg-main: #F8FAFC;
+    --bg-main: #F6F8FB;
     --bg-card: #FFFFFF;
-    --border-neutral: #E2E8F0;
-    --border-subtle: #F1F5F9;
+    --bg-raised: #F1F5F9;
+    --border-neutral: rgba(15, 23, 42, 0.08);
+    --border-subtle: rgba(15, 23, 42, 0.05);
     --text-primary: #0F172A;
     --text-secondary: #475569;
-    --text-muted: #94A3B8;
+    --text-muted: #64748B;
 
-    /* Distinct Actor & Agent Identities */
-    --identity-nova: #7C3AED;
+    /* Deliberate Brand & Agent Identity Accents */
+    --accent-primary: #2563EB;
+    --identity-nova: #6D28D9;
     --identity-nova-light: #F5F3FF;
-    --identity-pixel: #0D9488;
+    --identity-pixel: #0F766E;
     --identity-pixel-light: #F0FDFA;
     --identity-alex: #2563EB;
     --identity-alex-light: #EFF6FF;
-    --identity-maya: #D946A1;
+    --identity-maya: #BE185D;
     --identity-maya-light: #FDF2F8;
 
-    /* Statuses */
-    --status-success: #10B981;
-    --status-warning: #F59E0B;
-    --status-error: #EF4444;
+    --status-success: #059669;
+    --status-warning: #D97706;
+    --status-error: #DC2626;
   }
 
   * {
-    border-color: #E2E8F0;
+    border-color: rgba(15, 23, 42, 0.08);
+  }
+
+  html {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
   body {
     background-color: var(--bg-main);
+    background-image: radial-gradient(ellipse 80% 50% at 50% -15%, rgba(255, 255, 255, 0.9), transparent);
     color: var(--text-primary);
-    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
     margin: 0;
     padding: 0;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
+
+  .font-mono,
+  code,
+  pre,
+  kbd {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 /* Custom subtle scrollbars */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: #CBD5E1;
+  background: rgba(15, 23, 42, 0.14);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #94A3B8;
+  background: rgba(15, 23, 42, 0.25);
 }
 
-/* Dark scrollbars for sidebar */
-.dark-scroll::-webkit-scrollbar-track {
-  background: #F8FAFC;
+.sidebar-scroll::-webkit-scrollbar-track {
+  background: transparent;
 }
-.dark-scroll::-webkit-scrollbar-thumb {
-  background: #E2E8F0;
+.sidebar-scroll::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.12);
   border-radius: 9999px;
 }
-.dark-scroll::-webkit-scrollbar-thumb:hover {
-  background: #CBD5E1;
+
+/* Apple / Stripe Frosted Glass & Card Primitives */
+.glass-header {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
 }
 
-/* Glassmorphism & Surface Helpers */
-.glass-header {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+.glass-sidebar {
+  background: rgba(241, 244, 248, 0.88);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
 }
 
 .coframe-card {
   background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 0.75rem;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 12px -2px rgba(15, 23, 42, 0.03);
+  transition: border-color 0.15s ease-out, box-shadow 0.15s ease-out, background-color 0.15s ease-out;
 }
 
 .coframe-card:hover {
-  border-color: #CBD5E1;
-  box-shadow: 0 3px 8px -1px rgba(15, 23, 42, 0.06), 0 1px 3px -1px rgba(15, 23, 42, 0.04);
+  border-color: rgba(15, 23, 42, 0.14);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05), 0 8px 20px -4px rgba(15, 23, 42, 0.05);
+}
+
+.btn-obsidian {
+  background: #0F172A;
+  color: #FFFFFF;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), 0 1px 2px rgba(15, 23, 42, 0.12);
+  transition: background-color 0.15s ease-out, transform 0.1s ease-out, box-shadow 0.15s ease-out;
+}
+
+.btn-obsidian:hover {
+  background: #1E293B;
+}
+
+.btn-obsidian:active {
+  transform: scale(0.985);
+}
+
+.btn-apple-secondary {
+  background: #FFFFFF;
+  color: #0F172A;
+  border: 1px solid rgba(15, 23, 42, 0.11);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  transition: background-color 0.15s ease-out, border-color 0.15s ease-out, transform 0.1s ease-out;
+}
+
+.btn-apple-secondary:hover {
+  background: #F8FAFC;
+  border-color: rgba(15, 23, 42, 0.18);
+}
+
+.btn-apple-secondary:active {
+  transform: scale(0.985);
 }

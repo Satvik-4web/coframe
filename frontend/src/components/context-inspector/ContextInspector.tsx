@@ -219,71 +219,74 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
   const hasInterrupted = interruptedTask?.has_interrupted_task || false;
 
   return (
-    <div className="space-y-6">
-      {/* Top Header Card */}
-      <div className="bg-white border border-[#E7ECF2] p-5 rounded-2xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="flex items-center space-x-3.5">
-          <div className="w-10 h-10 rounded-xl bg-violet-50 border border-violet-200 flex items-center justify-center text-violet-700 shadow-xs">
-            <Cpu className="w-5 h-5" />
+    <div className="space-y-6 max-w-6xl mx-auto pb-8">
+      {/* Top Header */}
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 pt-1">
+        <div>
+          <div className="flex items-center gap-2 text-xs text-slate-500 mb-1.5">
+            <span>Workspace</span>
+            <span className="text-slate-300">/</span>
+            <span className="text-slate-700 font-medium">Context Inspector</span>
           </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="text-base font-bold text-[#172033] tracking-tight">
-                Context Pack &amp; Recovery Inspector
-              </h1>
-              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                Authoritative Persisted State
-              </span>
-            </div>
-            <p className="text-xs text-[#657189] mt-0.5">
-              Deterministic, typed context packs with semantic versioning, offline checkpoint replay, and genuine task resumption.
-            </p>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-[26px] font-semibold text-slate-900 tracking-[-0.025em] leading-tight">
+              Context Pack &amp; Recovery
+            </h1>
+            <span className="px-2 py-0.5 rounded-md text-[11px] font-mono font-medium bg-slate-100 text-slate-600 border border-slate-900/[0.06]">
+              Persisted State
+            </span>
           </div>
+          <p className="text-sm text-slate-500 mt-1">
+            Typed context packs with semantic versioning, offline replay, and task resumption.
+          </p>
         </div>
 
         {/* Action Controls */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2">
           {onNavigateTab && (
             <button
+              type="button"
               onClick={() => onNavigateTab('agents')}
-              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-violet-50 hover:bg-violet-100 border border-violet-200 text-xs font-semibold text-violet-800 shadow-xs transition cursor-pointer"
+              className="h-9 px-3 rounded-lg btn-apple-secondary flex items-center gap-1.5 text-xs font-medium cursor-pointer"
             >
-              <Cpu className="w-3.5 h-3.5 text-violet-600" />
-              <span>Back to AI Team</span>
+              <Cpu className="w-3.5 h-3.5 text-[#6D28D9]" strokeWidth={1.75} />
+              <span>AI Team</span>
             </button>
           )}
-          {/* Agent Picker Pill */}
-          <div className="flex items-center bg-[#F8FAFC] p-1 rounded-xl border border-[#E7ECF2]">
+          {/* Apple Segmented Agent Picker */}
+          <div className="flex items-center bg-[#F1F4F8] p-1 rounded-xl border border-slate-900/[0.06]">
             <button
+              type="button"
               onClick={() => setSelectedAgent('nova')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+              className={`px-3 py-1 rounded-lg text-xs transition cursor-pointer ${
                 selectedAgent === 'nova'
-                  ? 'bg-violet-600 text-white shadow-xs'
-                  : 'text-[#657189] hover:text-[#172033]'
+                  ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              NOVA (Strategist)
+              NOVA
             </button>
             <button
+              type="button"
               onClick={() => setSelectedAgent('pixel')}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer ${
+              className={`px-3 py-1 rounded-lg text-xs transition cursor-pointer ${
                 selectedAgent === 'pixel'
-                  ? 'bg-teal-600 text-white shadow-xs'
-                  : 'text-[#657189] hover:text-[#172033]'
+                  ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              PIXEL (Engineer)
+              PIXEL
             </button>
           </div>
 
           {/* Run Picker Dropdown */}
-          <div className="flex items-center bg-white px-2.5 py-1.5 rounded-xl border border-[#E7ECF2] shadow-xs">
-            <span className="text-[11px] font-bold text-[#657189] mr-2">Run:</span>
+          <div className="h-9 flex items-center bg-white px-3 rounded-lg border border-slate-900/[0.1] shadow-2xs">
+            <span className="text-[11px] font-medium text-slate-500 mr-2">Run:</span>
             <select
               value={selectedRunId}
               onChange={(e) => handleSelectRun(e.target.value)}
               disabled={loading || runs.length === 0}
-              className="text-xs font-mono font-medium text-[#172033] bg-transparent outline-none cursor-pointer pr-1"
+              className="text-xs font-mono font-medium text-slate-900 bg-transparent outline-none cursor-pointer pr-1"
             >
               {runs.map((r, idx) => (
                 <option key={r.id} value={r.id}>
@@ -295,12 +298,13 @@ export const ContextInspector: React.FC<ContextInspectorProps> = ({ identity, on
 
           {/* Operation A: Inspect Context */}
           <button
+            type="button"
             onClick={handleInspect}
             disabled={operating === 'inspect' || !selectedRunId}
-            className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white hover:bg-slate-50 border border-[#E7ECF2] text-xs font-semibold text-[#172033] shadow-xs transition cursor-pointer disabled:opacity-50"
-            title="Inspect the exact Context Pack from the selected persisted agent run"
+            className="h-9 px-3 rounded-lg btn-apple-secondary flex items-center gap-1.5 text-xs font-medium cursor-pointer disabled:opacity-50"
+            title="Inspect Context Pack for selected persisted agent run"
           >
-            <Eye className={`w-3.5 h-3.5 text-blue-600 ${operating === 'inspect' ? 'animate-spin' : ''}`} />
+            <Eye className={`w-3.5 h-3.5 text-[#2563EB] ${operating === 'inspect' ? 'animate-spin' : ''}`} strokeWidth={1.75} />
             <span>Inspect</span>
           </button>
 
