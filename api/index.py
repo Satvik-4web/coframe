@@ -39,24 +39,22 @@ class VercelASGIApp:
 
     async def __call__(self, scope, receive, send):
         if scope.get("type") == "http":
+            # Extract headers
+            headers = dict(scope.get("headers", []))
+            matched_path = headers.get(b"x-matched-path", b"").decode("latin1", "ignore")
+            
             qs = scope.get("query_string", b"").decode("latin1", "ignore")
             params = urllib.parse.parse_qs(qs)
-            
             subpath = params.get("_subpath", [None])[0] or params.get("path", [None])[0]
+
             if subpath is not None:
                 subpath_clean = subpath.lstrip("/")
-                if subpath_clean.startswith("assets/") or subpath_clean in ("favicon.svg", "favicon.png", "icons.svg"):
+                if subpath_clean.startswith("api/"):
                     scope["path"] = f"/{subpath_clean}"
-                elif subpath_clean.startswith("api/"):
-                    scope["path"] = f"/{subpath_clean}"
-                elif scope.get("path") in ("/api/index", "/api/index.py", "/api"):
-                    # Check if query parameter came from /api rewrite rule
-                    if subpath_clean:
-                        scope["path"] = f"/api/{subpath_clean}"
-                    else:
-                        scope["path"] = "/api"
                 else:
-                    scope["path"] = f"/{subpath_clean}"
+                    scope["path"] = f"/api/{subpath_clean}"
+            elif scope.get("path") in ("/api/index", "/api/index.py", "/api") and matched_path:
+                scope["path"] = matched_path
 
         await self.inner(scope, receive, send)
 
