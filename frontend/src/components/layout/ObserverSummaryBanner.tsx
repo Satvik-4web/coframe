@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ObserverSummary } from '../../types';
-import { ChevronDown, ChevronUp, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, X, Sparkles } from 'lucide-react';
 
 interface ObserverSummaryBannerProps {
   summary?: ObserverSummary;
@@ -16,17 +16,32 @@ export const ObserverSummaryBanner: React.FC<ObserverSummaryBannerProps> = ({
   if (!summary || isDismissed) return null;
 
   return (
-    <div className="bg-slate-50/70 border-b border-slate-900/[0.06] px-5 text-xs select-none">
-      <div className="max-w-7xl mx-auto py-1.5">
+    <div
+      className="px-5 text-xs select-none transition-colors border-b"
+      style={{
+        background: 'rgba(129, 140, 248, 0.04)',
+        borderColor: 'rgba(255, 255, 255, 0.06)',
+      }}
+    >
+      <div className="max-w-7xl mx-auto py-2">
         {/* Compact Strip */}
         <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] shrink-0" />
-            <span className="text-[11px] font-medium text-slate-500 shrink-0">
-              Latest
-            </span>
-            <span className="text-slate-300 shrink-0">·</span>
-            <p className="text-xs text-slate-700 font-medium truncate">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span
+              className="w-2 h-2 rounded-full shrink-0"
+              style={{
+                background: '#818CF8',
+                boxShadow: '0 0 8px rgba(129, 140, 248, 0.8)',
+              }}
+            />
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="text-[11px] font-mono font-semibold text-indigo-300 uppercase tracking-wider">
+                Live State
+              </span>
+            </div>
+            <span className="text-slate-600 shrink-0">·</span>
+            <p className="text-xs text-slate-300 font-medium truncate">
               {summary.what_changed || 'Collaboration update available'}
             </p>
           </div>
@@ -35,50 +50,66 @@ export const ObserverSummaryBanner: React.FC<ObserverSummaryBannerProps> = ({
             <button
               type="button"
               onClick={() => setIsExpanded(!isExpanded)}
-              className="flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium text-slate-500 hover:text-slate-900 hover:bg-slate-900/[0.05] transition cursor-pointer"
+              className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium text-slate-400 hover:text-slate-200 transition cursor-pointer"
+              style={{ background: 'rgba(255, 255, 255, 0.04)' }}
             >
-              <span>{isExpanded ? 'Hide details' : 'Details'}</span>
+              <span>{isExpanded ? 'Hide details' : 'Context'}</span>
               {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
             </button>
 
             <button
               type="button"
               onClick={() => setIsDismissed(true)}
-              className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-900/[0.05] transition cursor-pointer"
+              className="p-1 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-white/[0.05] transition cursor-pointer"
               title="Dismiss update"
               aria-label="Dismiss update"
             >
-              <X className="w-3 h-3" />
+              <X className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
         {/* Expandable 3-Column Context Panel */}
         {isExpanded && (
-          <div className="mt-2 pt-2.5 border-t border-slate-900/[0.06] grid grid-cols-1 md:grid-cols-3 gap-4 pb-1">
-            <div className="space-y-1">
-              <span className="text-[11px] font-medium text-slate-400 block">
+          <div
+            className="mt-2.5 pt-3 border-t grid grid-cols-1 md:grid-cols-3 gap-4 pb-1"
+            style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}
+          >
+            <div
+              className="p-3 rounded-xl"
+              style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.04)' }}
+            >
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-400 block mb-1">
                 What changed
               </span>
-              <p className="text-xs text-slate-800 leading-relaxed">
+              <p className="text-xs text-slate-200 leading-relaxed font-medium">
                 {summary.what_changed}
               </p>
             </div>
 
-            <div className="space-y-1">
-              <span className="text-[11px] font-medium text-slate-400 block">
+            <div
+              className="p-3 rounded-xl"
+              style={{ background: 'rgba(255, 255, 255, 0.02)', border: '1px solid rgba(255, 255, 255, 0.04)' }}
+            >
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-slate-400 block mb-1">
                 Why it matters
               </span>
-              <p className="text-xs text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-300 leading-relaxed">
                 {summary.why || 'Maintains requirement provenance and contract alignment.'}
               </p>
             </div>
 
-            <div className="space-y-1">
-              <span className="text-[11px] font-medium text-slate-400 block">
+            <div
+              className="p-3 rounded-xl"
+              style={{
+                background: 'rgba(129, 140, 248, 0.06)',
+                border: '1px solid rgba(129, 140, 248, 0.15)',
+              }}
+            >
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-indigo-400 block mb-1">
                 Next step
               </span>
-              <p className="text-xs text-[#2563EB] font-medium leading-relaxed">
+              <p className="text-xs text-indigo-200 font-medium leading-relaxed">
                 {summary.what_happens_next || 'Review active specifications in Proposals.'}
               </p>
             </div>

@@ -1,19 +1,11 @@
 import React, { useState } from 'react';
 import {
-  Sparkles,
   ArrowRight,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Code2,
-  FileText,
   ChevronDown,
   ChevronUp,
   ExternalLink,
   Layers,
   Check,
-  Play,
-  ShieldCheck,
 } from 'lucide-react';
 import { WorkflowStageInfo } from '../../types';
 
@@ -71,28 +63,31 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
     activeStepIndex = 7; // 8. Integration
   }
 
-  let badgeStyle = 'bg-slate-100 text-slate-700 border-slate-900/[0.08]';
-  if (currentStage === 'prd_awaiting_confirmation') {
-    badgeStyle = 'bg-amber-50 text-amber-800 border-amber-200/70';
-  } else if (currentStage === 'implementation_in_progress' || currentStage === 'execution_environment_selected') {
-    badgeStyle = 'bg-teal-50 text-[#0F766E] border-teal-200/70';
-  } else if (currentStage === 'implementation_awaiting_approval') {
-    badgeStyle = 'bg-blue-50 text-[#2563EB] border-blue-200/70';
-  } else if (currentStage === 'implementation_applied') {
-    badgeStyle = 'bg-emerald-50 text-emerald-700 border-emerald-200/70';
-  }
-
   return (
-    <div className="mx-6 mt-3 px-4 py-3 coframe-card transition-all duration-150 shrink-0">
+    <div
+      className="mx-6 mt-3 px-4 py-3 rounded-2xl border transition-all duration-150 shrink-0"
+      style={{
+        background: 'rgba(255, 255, 255, 0.03)',
+        borderColor: 'rgba(255, 255, 255, 0.08)',
+        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+      }}
+    >
       {/* 1. Top Bar: Stage Badge, Description & Action */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-medium border ${badgeStyle} shrink-0`}>
+          <span
+            className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border shrink-0"
+            style={{
+              background: 'rgba(129, 140, 248, 0.15)',
+              borderColor: 'rgba(129, 140, 248, 0.3)',
+              color: '#A78BFA',
+            }}
+          >
             <Layers className="w-3 h-3" strokeWidth={1.75} />
             <span>{stageInfo.display_label || stageInfo.stage_label || 'Sequential lifecycle'}</span>
           </span>
 
-          <p className="text-xs text-slate-700 font-medium truncate">
+          <p className="text-xs text-slate-300 font-medium truncate">
             {stageInfo.description ||
               (currentStage === 'prd_awaiting_confirmation'
                 ? 'NOVA submitted PRD proposal · Waiting for Alex to confirm requirements'
@@ -109,7 +104,11 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
             <button
               type="button"
               onClick={() => onNavigateTab('proposals', stageInfo.active_prd_id || undefined)}
-              className="h-7 inline-flex items-center gap-1.5 px-3 rounded-lg btn-obsidian text-[11px] font-medium cursor-pointer"
+              className="h-7 inline-flex items-center gap-1.5 px-3 rounded-lg text-[11px] font-bold cursor-pointer"
+              style={{
+                background: 'linear-gradient(135deg, #818CF8, #A78BFA)',
+                color: '#FFFFFF',
+              }}
             >
               <span>Review PRD #{stageInfo.active_prd_id.slice(-6)}</span>
               <ArrowRight className="w-3 h-3" />
@@ -120,7 +119,11 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
             <button
               type="button"
               onClick={() => onNavigateTab('proposals', stageInfo.active_pixel_proposal_id || undefined)}
-              className="h-7 inline-flex items-center gap-1.5 px-3 rounded-lg btn-obsidian text-[11px] font-medium cursor-pointer"
+              className="h-7 inline-flex items-center gap-1.5 px-3 rounded-lg text-[11px] font-bold cursor-pointer"
+              style={{
+                background: 'linear-gradient(135deg, #06B6D4, #22D3EE)',
+                color: '#042F2E',
+              }}
             >
               <span>Review implementation #{stageInfo.active_pixel_proposal_id.slice(-6)}</span>
               <ExternalLink className="w-3 h-3" />
@@ -130,7 +133,7 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
           <button
             type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+            className="p-1 rounded-md text-slate-400 hover:text-white transition cursor-pointer"
             title={isCollapsed ? 'Expand workflow timeline' : 'Collapse workflow timeline'}
           >
             {isCollapsed ? <ChevronDown className="w-4 h-4" /> : <ChevronUp className="w-4 h-4" />}
@@ -140,7 +143,7 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
 
       {/* 2. Horizontal 8-Stage Stepper */}
       {!isCollapsed && (
-        <div className="mt-3.5 pt-3 border-t border-slate-900/[0.06]">
+        <div className="mt-3.5 pt-3 border-t" style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}>
           <div className="grid grid-cols-4 sm:grid-cols-8 gap-2 items-center">
             {WORKFLOW_STEPS.map((step, idx) => {
               const isCompleted = idx < activeStepIndex;
@@ -149,49 +152,58 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
               return (
                 <div
                   key={step.id}
-                  className={`flex flex-col items-center text-center p-2 rounded-xl transition border ${
-                    isCurrent
-                      ? 'bg-[#0F172A]/[0.04] border-slate-900/[0.14]'
+                  className="flex flex-col items-center text-center p-2 rounded-xl transition border"
+                  style={{
+                    background: isCurrent
+                      ? 'rgba(129, 140, 248, 0.15)'
                       : isCompleted
-                      ? 'bg-emerald-50/60 border-emerald-200/70'
-                      : 'bg-slate-50/70 border-transparent text-slate-400'
-                  }`}
+                      ? 'rgba(52, 211, 153, 0.08)'
+                      : 'rgba(0, 0, 0, 0.2)',
+                    borderColor: isCurrent
+                      ? 'rgba(129, 140, 248, 0.4)'
+                      : isCompleted
+                      ? 'rgba(52, 211, 153, 0.25)'
+                      : 'rgba(255, 255, 255, 0.04)',
+                    boxShadow: isCurrent
+                      ? '0 0 10px rgba(129, 140, 248, 0.2)'
+                      : 'none',
+                  }}
                 >
                   <div className="flex items-center justify-center mb-1">
                     {isCompleted ? (
-                      <div className="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center">
                         <Check className="w-3 h-3 stroke-[2.5]" />
                       </div>
                     ) : isCurrent ? (
-                      <div className="w-5 h-5 rounded-full bg-[#0F172A] text-white font-mono font-semibold text-[10px] flex items-center justify-center">
+                      <div
+                        className="w-5 h-5 rounded-full text-white font-mono font-bold text-[10px] flex items-center justify-center"
+                        style={{ background: '#818CF8' }}
+                      >
                         {step.number}
                       </div>
                     ) : (
-                      <div className="w-5 h-5 rounded-full bg-slate-200/80 text-slate-500 font-mono font-medium text-[10px] flex items-center justify-center">
+                      <div className="w-5 h-5 rounded-full bg-slate-800 text-slate-500 font-mono font-medium text-[10px] flex items-center justify-center">
                         {step.number}
                       </div>
                     )}
                   </div>
 
                   <span
-                    className={`text-[11px] font-medium truncate w-full ${
-                      isCurrent
-                        ? 'text-slate-900 font-semibold'
-                        : isCompleted
-                        ? 'text-emerald-800'
-                        : 'text-slate-400'
-                    }`}
+                    className="text-[11px] font-semibold truncate w-full"
+                    style={{
+                      color: isCurrent ? '#FFFFFF' : isCompleted ? '#34D399' : '#64748B',
+                    }}
                   >
                     {step.label}
                   </span>
 
                   <span className="text-[10px] font-mono mt-0.5">
                     {isCurrent ? (
-                      <span className="text-[#2563EB] font-medium">active</span>
+                      <span className="text-indigo-400 font-semibold">active</span>
                     ) : isCompleted ? (
-                      <span className="text-emerald-600">done</span>
+                      <span className="text-emerald-400">done</span>
                     ) : (
-                      <span className="text-slate-400">wait</span>
+                      <span className="text-slate-600">wait</span>
                     )}
                   </span>
                 </div>
@@ -199,19 +211,19 @@ export const WorkflowStageBanner: React.FC<WorkflowStageBannerProps> = ({
             })}
           </div>
 
-          <div className="mt-2.5 flex flex-wrap items-center justify-between text-[11px] text-slate-500 px-0.5">
+          <div className="mt-2.5 flex flex-wrap items-center justify-between text-[11px] text-slate-400 px-0.5 font-medium">
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#6D28D9]" />
-                <span>NOVA: <strong className="font-medium text-slate-900">{stageInfo.nova_status || 'Analyzing strategy'}</strong></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_6px_#A78BFA]" />
+                <span>NOVA: <strong className="font-semibold text-purple-300">{stageInfo.nova_status || 'Analyzing strategy'}</strong></span>
               </span>
-              <span className="text-slate-300">·</span>
+              <span className="text-slate-600">·</span>
               <span className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0F766E]" />
-                <span>PIXEL: <strong className="font-medium text-slate-900">{stageInfo.pixel_status || 'Waiting for confirmed requirements'}</strong></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#22D3EE]" />
+                <span>PIXEL: <strong className="font-semibold text-cyan-300">{stageInfo.pixel_status || 'Waiting for confirmed requirements'}</strong></span>
               </span>
             </div>
-            <span className="text-[11px] text-slate-400 font-mono">Sequential boundary active</span>
+            <span className="text-[11px] text-slate-500 font-mono">Sequential boundary active</span>
           </div>
         </div>
       )}

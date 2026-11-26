@@ -262,18 +262,25 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           <div>
             <div className="flex items-center gap-2 text-xs text-slate-500 mb-1.5">
               <span>Workspace</span>
-              <span className="text-slate-300">/</span>
-              <span className="text-slate-700 font-medium">Proposals</span>
+              <span className="text-slate-700">/</span>
+              <span className="text-slate-400 font-medium">Proposals</span>
             </div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-[26px] font-semibold text-slate-900 tracking-[-0.025em] leading-tight">
+              <h1 className="text-[26px] font-bold text-white tracking-[-0.025em] leading-tight">
                 Proposals & Specifications
               </h1>
-              <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-900/[0.06]">
+              <span
+                className="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-full border"
+                style={{
+                  background: 'rgba(129, 140, 248, 0.1)',
+                  color: '#A78BFA',
+                  borderColor: 'rgba(129, 140, 248, 0.25)',
+                }}
+              >
                 {proposals.length}
               </span>
             </div>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-400 mt-1">
               Review NOVA requirements, PIXEL implementation plans, and section updates.
             </p>
           </div>
@@ -281,123 +288,141 @@ export const ProposalList: React.FC<ProposalListProps> = ({
           <button
             type="button"
             onClick={() => setShowCreateHumanModal(true)}
-            className="h-9 px-4 rounded-lg btn-obsidian text-xs font-medium flex items-center gap-1.5 cursor-pointer self-start sm:self-auto"
+            className="h-9 px-4 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer self-start sm:self-auto transition-all"
+            style={{
+              background: 'linear-gradient(135deg, #818CF8, #A78BFA)',
+              color: '#FFFFFF',
+              boxShadow: '0 0 15px rgba(129, 140, 248, 0.35)',
+            }}
           >
             <PlusCircle className="w-3.5 h-3.5" />
             <span>Add contribution</span>
           </button>
         </div>
 
-        {/* 5 Clean Stripe Stat Cards */}
+        {/* 5 Clean Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           <div
             onClick={() => setActiveFilter('nova_prds')}
-            className={`p-3.5 rounded-xl border transition cursor-pointer ${
-              activeFilter === 'nova_prds'
-                ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-sm'
-                : 'coframe-card'
-            }`}
+            className="p-3.5 rounded-xl border transition cursor-pointer"
+            style={{
+              background: activeFilter === 'nova_prds' ? 'rgba(167, 139, 250, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+              borderColor: activeFilter === 'nova_prds' ? 'rgba(167, 139, 250, 0.4)' : 'rgba(255, 255, 255, 0.06)',
+              boxShadow: activeFilter === 'nova_prds' ? '0 0 15px rgba(167, 139, 250, 0.2)' : 'none',
+            }}
           >
             <div className="flex items-center justify-between">
-              <span className={`text-xs font-medium ${activeFilter === 'nova_prds' ? 'text-slate-300' : 'text-slate-500'}`}>
+              <span className="text-xs font-medium text-slate-400">
                 Awaiting PRD
               </span>
-              <Brain className={`w-3.5 h-3.5 ${activeFilter === 'nova_prds' ? 'text-violet-300' : 'text-[#6D28D9]'}`} strokeWidth={1.75} />
+              <Brain className="w-3.5 h-3.5 text-purple-400" strokeWidth={1.75} />
             </div>
             <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-medium font-mono tracking-tight">{awaitingCount}</span>
-              <span className={`text-[11px] ${activeFilter === 'nova_prds' ? 'text-slate-400' : 'text-slate-400'}`}>specs</span>
+              <span className="text-2xl font-bold font-mono tracking-tight text-white">{awaitingCount}</span>
+              <span className="text-[11px] text-slate-500">specs</span>
             </div>
           </div>
 
           <div
             onClick={() => setActiveFilter('pixel_implementations')}
-            className={`p-3.5 rounded-xl border transition cursor-pointer ${
-              activeFilter === 'pixel_implementations'
-                ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-sm'
-                : 'coframe-card'
-            }`}
+            className="p-3.5 rounded-xl border transition cursor-pointer"
+            style={{
+              background: activeFilter === 'pixel_implementations' ? 'rgba(34, 211, 238, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+              borderColor: activeFilter === 'pixel_implementations' ? 'rgba(34, 211, 238, 0.4)' : 'rgba(255, 255, 255, 0.06)',
+              boxShadow: activeFilter === 'pixel_implementations' ? '0 0 15px rgba(34, 211, 238, 0.2)' : 'none',
+            }}
           >
             <div className="flex items-center justify-between">
-              <span className={`text-xs font-medium ${activeFilter === 'pixel_implementations' ? 'text-slate-300' : 'text-slate-500'}`}>
+              <span className="text-xs font-medium text-slate-400">
                 In progress
               </span>
-              <RefreshCw className={`w-3.5 h-3.5 ${activeFilter === 'pixel_implementations' ? 'text-teal-300' : 'text-[#0F766E]'}`} strokeWidth={1.75} />
+              <RefreshCw className="w-3.5 h-3.5 text-cyan-400" strokeWidth={1.75} />
             </div>
             <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-medium font-mono tracking-tight">{inProgressCount}</span>
-              <span className="text-[11px] text-slate-400">tasks</span>
+              <span className="text-2xl font-bold font-mono tracking-tight text-white">{inProgressCount}</span>
+              <span className="text-[11px] text-slate-500">tasks</span>
             </div>
           </div>
 
           <div
             onClick={() => setActiveFilter('needs_attention')}
-            className={`p-3.5 rounded-xl border transition cursor-pointer ${
-              activeFilter === 'needs_attention'
-                ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-sm'
-                : 'coframe-card'
-            }`}
+            className="p-3.5 rounded-xl border transition cursor-pointer"
+            style={{
+              background: activeFilter === 'needs_attention' ? 'rgba(129, 140, 248, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+              borderColor: activeFilter === 'needs_attention' ? 'rgba(129, 140, 248, 0.4)' : 'rgba(255, 255, 255, 0.06)',
+              boxShadow: activeFilter === 'needs_attention' ? '0 0 15px rgba(129, 140, 248, 0.2)' : 'none',
+            }}
           >
             <div className="flex items-center justify-between">
-              <span className={`text-xs font-medium ${activeFilter === 'needs_attention' ? 'text-slate-300' : 'text-slate-500'}`}>
+              <span className="text-xs font-medium text-slate-400">
                 Needs review
               </span>
-              <Code2 className={`w-3.5 h-3.5 ${activeFilter === 'needs_attention' ? 'text-blue-300' : 'text-[#2563EB]'}`} strokeWidth={1.75} />
+              <Code2 className="w-3.5 h-3.5 text-indigo-400" strokeWidth={1.75} />
             </div>
             <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-medium font-mono tracking-tight">{readyForReviewCount}</span>
-              <span className="text-[11px] text-slate-400">pending</span>
+              <span className="text-2xl font-bold font-mono tracking-tight text-white">{readyForReviewCount}</span>
+              <span className="text-[11px] text-slate-500">pending</span>
             </div>
           </div>
 
           <div
             onClick={() => setActiveFilter('conflicts')}
-            className={`p-3.5 rounded-xl border transition cursor-pointer ${
-              activeFilter === 'conflicts'
-                ? 'bg-rose-950 text-white border-rose-950 shadow-sm'
+            className="p-3.5 rounded-xl border transition cursor-pointer"
+            style={{
+              background: activeFilter === 'conflicts'
+                ? 'rgba(244, 63, 94, 0.2)'
                 : conflictTotalCount > 0
-                ? 'bg-rose-50/70 border-rose-200'
-                : 'coframe-card'
-            }`}
+                ? 'rgba(244, 63, 94, 0.08)'
+                : 'rgba(255, 255, 255, 0.03)',
+              borderColor: conflictTotalCount > 0 ? 'rgba(244, 63, 94, 0.3)' : 'rgba(255, 255, 255, 0.06)',
+              boxShadow: conflictTotalCount > 0 ? '0 0 15px rgba(244, 63, 94, 0.15)' : 'none',
+            }}
           >
             <div className="flex items-center justify-between">
-              <span className={`text-xs font-medium ${activeFilter === 'conflicts' ? 'text-rose-200' : 'text-slate-500'}`}>
+              <span className="text-xs font-medium text-slate-400">
                 Conflicts
               </span>
-              <ShieldAlert className={`w-3.5 h-3.5 ${activeFilter === 'conflicts' ? 'text-rose-200' : 'text-rose-600'}`} strokeWidth={1.75} />
+              <ShieldAlert className="w-3.5 h-3.5 text-rose-400" strokeWidth={1.75} />
             </div>
             <div className="mt-2 flex items-baseline gap-1.5">
-              <span className={`text-2xl font-medium font-mono tracking-tight ${conflictTotalCount > 0 && activeFilter !== 'conflicts' ? 'text-rose-600' : ''}`}>
+              <span className={`text-2xl font-bold font-mono tracking-tight ${conflictTotalCount > 0 ? 'text-rose-400' : 'text-white'}`}>
                 {conflictTotalCount}
               </span>
-              <span className={`text-[11px] ${activeFilter === 'conflicts' ? 'text-rose-200/70' : 'text-slate-400'}`}>blocked</span>
+              <span className="text-[11px] text-slate-500">blocked</span>
             </div>
           </div>
 
           <div
             onClick={() => setActiveFilter('applied')}
-            className={`p-3.5 rounded-xl border transition cursor-pointer ${
-              activeFilter === 'applied'
-                ? 'bg-[#0F172A] text-white border-[#0F172A] shadow-sm'
-                : 'coframe-card'
-            }`}
+            className="p-3.5 rounded-xl border transition cursor-pointer"
+            style={{
+              background: activeFilter === 'applied' ? 'rgba(52, 211, 153, 0.15)' : 'rgba(255, 255, 255, 0.03)',
+              borderColor: activeFilter === 'applied' ? 'rgba(52, 211, 153, 0.4)' : 'rgba(255, 255, 255, 0.06)',
+              boxShadow: activeFilter === 'applied' ? '0 0 15px rgba(52, 211, 153, 0.2)' : 'none',
+            }}
           >
             <div className="flex items-center justify-between">
-              <span className={`text-xs font-medium ${activeFilter === 'applied' ? 'text-slate-300' : 'text-slate-500'}`}>
+              <span className="text-xs font-medium text-slate-400">
                 Applied
               </span>
-              <CheckCircle2 className={`w-3.5 h-3.5 ${activeFilter === 'applied' ? 'text-emerald-300' : 'text-emerald-600'}`} strokeWidth={1.75} />
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" strokeWidth={1.75} />
             </div>
             <div className="mt-2 flex items-baseline gap-1.5">
-              <span className="text-2xl font-medium font-mono tracking-tight">{appliedTotalCount}</span>
-              <span className="text-[11px] text-slate-400">merged</span>
+              <span className="text-2xl font-bold font-mono tracking-tight text-white">{appliedTotalCount}</span>
+              <span className="text-[11px] text-slate-500">merged</span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 2. Apple Segmented Filter Bar */}
-      <div className="flex flex-wrap items-center gap-1 p-1 bg-[#F1F4F8] border border-slate-900/[0.06] rounded-xl">
+      {/* 2. Filter Bar */}
+      <div
+        className="flex flex-wrap items-center gap-1 p-1 rounded-xl border"
+        style={{
+          background: 'rgba(0, 0, 0, 0.4)',
+          borderColor: 'rgba(255, 255, 255, 0.08)',
+        }}
+      >
         <button
           type="button"
           onClick={() => setActiveFilter('all')}
@@ -520,15 +545,22 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
-                  <Brain className="w-4 h-4 text-[#6D28D9]" strokeWidth={1.75} />
-                  <h2 className="text-sm font-semibold text-slate-900">
+                  <Brain className="w-4 h-4 text-purple-400" strokeWidth={1.75} />
+                  <h2 className="text-sm font-bold text-white">
                     Requirements queue
                   </h2>
-                  <span className="text-[11px] font-mono font-medium px-2 py-0.2 rounded-full bg-slate-100 text-slate-600 border border-slate-900/[0.06]">
+                  <span
+                    className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full border"
+                    style={{
+                      background: 'rgba(167, 139, 250, 0.15)',
+                      borderColor: 'rgba(167, 139, 250, 0.3)',
+                      color: '#A78BFA',
+                    }}
+                  >
                     {novaProposals.length}
                   </span>
                 </div>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-400">
                   Confirmed PRDs delegate automatically to PIXEL
                 </span>
               </div>
@@ -560,15 +592,22 @@ export const ProposalList: React.FC<ProposalListProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between px-1">
                 <div className="flex items-center gap-2">
-                  <Code2 className="w-4 h-4 text-[#0F766E]" strokeWidth={1.75} />
-                  <h2 className="text-sm font-semibold text-slate-900">
+                  <Code2 className="w-4 h-4 text-cyan-400" strokeWidth={1.75} />
+                  <h2 className="text-sm font-bold text-white">
                     Engineering queue
                   </h2>
-                  <span className="text-[11px] font-mono font-medium px-2 py-0.2 rounded-full bg-slate-100 text-slate-600 border border-slate-900/[0.06]">
+                  <span
+                    className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded-full border"
+                    style={{
+                      background: 'rgba(34, 211, 238, 0.15)',
+                      borderColor: 'rgba(34, 211, 238, 0.3)',
+                      color: '#22D3EE',
+                    }}
+                  >
                     {pixelProposals.length}
                   </span>
                 </div>
-                <span className="text-xs text-slate-500">
+                <span className="text-xs text-slate-400">
                   Reviewed implementations awaiting final sign-off
                 </span>
               </div>

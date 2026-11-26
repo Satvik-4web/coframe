@@ -53,36 +53,65 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
   return (
     <div className="space-y-5 max-w-6xl mx-auto pb-8">
       {/* Subheader Navigation Controls */}
-      <div className="coframe-card p-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-        <div className="flex items-center gap-1 p-1 bg-[#F1F4F8] border border-slate-900/[0.06] rounded-xl self-start lg:self-auto shrink-0">
+      <div
+        className="p-3 rounded-2xl border flex flex-col lg:flex-row lg:items-center justify-between gap-3"
+        style={{
+          background: 'rgba(255, 255, 255, 0.03)',
+          borderColor: 'rgba(255, 255, 255, 0.08)',
+        }}
+      >
+        <div
+          className="flex items-center gap-1 p-1 rounded-xl self-start lg:self-auto shrink-0 border"
+          style={{
+            background: 'rgba(0, 0, 0, 0.35)',
+            borderColor: 'rgba(255, 255, 255, 0.06)',
+          }}
+        >
           <button
             type="button"
             onClick={() => setActiveTab('prototype')}
-            className={`px-3 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+            className="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+            style={
               activeTab === 'prototype'
-                ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+                ? {
+                    background: 'rgba(34, 211, 238, 0.2)',
+                    color: '#22D3EE',
+                    boxShadow: '0 0 10px rgba(34, 211, 238, 0.25)',
+                  }
+                : { color: '#64748B' }
+            }
           >
-            <Palette className="w-3.5 h-3.5 text-[#0F766E] shrink-0" strokeWidth={1.75} />
+            <Palette className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} />
             <span>Prototype preview</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('brief')}
-            className={`px-3 py-1.5 rounded-lg text-xs transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap ${
+            className="px-3.5 py-1.5 rounded-lg text-xs font-semibold transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+            style={
               activeTab === 'brief'
-                ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
-                : 'text-slate-600 hover:text-slate-900'
-            }`}
+                ? {
+                    background: 'rgba(167, 139, 250, 0.2)',
+                    color: '#A78BFA',
+                    boxShadow: '0 0 10px rgba(167, 139, 250, 0.25)',
+                  }
+                : { color: '#64748B' }
+            }
           >
-            <Target className="w-3.5 h-3.5 text-[#6D28D9] shrink-0" strokeWidth={1.75} />
+            <Target className="w-3.5 h-3.5 shrink-0" strokeWidth={1.75} />
             <span>Product brief</span>
           </button>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 shrink-0">
-          <span className="text-[11px] font-mono text-slate-600 bg-slate-100/80 px-2.5 py-1.5 rounded-lg border border-slate-900/[0.06] whitespace-nowrap">
+          <span
+            className="text-[11px] font-mono px-2.5 py-1 rounded-lg border whitespace-nowrap font-bold"
+            style={{
+              background: 'rgba(255, 255, 255, 0.04)',
+              borderColor: 'rgba(255, 255, 255, 0.08)',
+              color: '#34D399',
+            }}
+          >
             Artifact v{artifactVersion}
           </span>
 
@@ -91,17 +120,27 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
               <button
                 type="button"
                 onClick={() => setIsEditModalOpen(true)}
-                className="h-8 px-3 rounded-lg btn-apple-secondary text-xs font-medium flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                className="h-8 px-3 rounded-xl border text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.04)',
+                  borderColor: 'rgba(255, 255, 255, 0.08)',
+                  color: '#F1F5F9',
+                }}
                 title="Edit hero section manually to simulate concurrent changes"
               >
-                <Edit3 className="w-3.5 h-3.5 text-slate-500 shrink-0" strokeWidth={1.75} />
+                <Edit3 className="w-3.5 h-3.5 text-slate-400 shrink-0" strokeWidth={1.75} />
                 <span>Manual edit hero</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setIsExpenseModalOpen(true)}
-                className="h-8 px-3.5 rounded-lg btn-obsidian text-xs font-medium flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
+                className="h-8 px-4 rounded-xl text-xs font-semibold flex items-center gap-1.5 cursor-pointer whitespace-nowrap transition-all"
+                style={{
+                  background: 'linear-gradient(135deg, #06B6D4, #22D3EE)',
+                  color: '#042F2E',
+                  boxShadow: '0 0 15px rgba(34, 211, 238, 0.4)',
+                }}
                 title="Submit a live employee expense into LedgerFlow"
               >
                 <Plus className="w-3.5 h-3.5 shrink-0" />
@@ -114,24 +153,56 @@ export const LedgerFlowCanvas: React.FC<LedgerFlowCanvasProps> = ({
 
       {/* Tab 1: Live React Prototype Preview */}
       {activeTab === 'prototype' && (
-        <div className="rounded-2xl border border-slate-900/[0.09] shadow-[0_4px_20px_-4px_rgba(15,23,42,0.06)] overflow-hidden bg-[#F4F6F9] p-4 sm:p-6 space-y-6">
+        <div
+          className="rounded-2xl border overflow-hidden p-4 sm:p-6 space-y-6"
+          style={{
+            background: 'rgba(0, 0, 0, 0.4)',
+            borderColor: 'rgba(255, 255, 255, 0.08)',
+          }}
+        >
           {/* App Chrome Header */}
-          <div className="bg-white border border-slate-900/[0.08] rounded-xl px-5 py-3 flex items-center justify-between shadow-2xs">
+          <div
+            className="rounded-xl px-5 py-3 flex items-center justify-between border"
+            style={{
+              background: 'rgba(255, 255, 255, 0.03)',
+              borderColor: 'rgba(255, 255, 255, 0.06)',
+            }}
+          >
             <div className="flex items-center space-x-3">
-              <div className="w-7 h-7 rounded-lg bg-[#0F766E] flex items-center justify-center text-white font-semibold text-xs">
+              <div
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xs"
+                style={{
+                  background: 'linear-gradient(135deg, #06B6D4, #22D3EE)',
+                  boxShadow: '0 0 10px rgba(34, 211, 238, 0.4)',
+                  color: '#042F2E',
+                }}
+              >
                 LF
               </div>
               <div className="flex items-center gap-2">
-                <span className="font-semibold text-slate-900 text-xs tracking-tight">LedgerFlow</span>
-                <span className="text-[11px] px-2 py-0.2 rounded-md bg-teal-50 text-[#0F766E] font-medium border border-teal-200/60">
+                <span className="font-bold text-white text-xs tracking-tight">LedgerFlow</span>
+                <span
+                  className="text-[10px] px-2 py-0.5 rounded-md font-mono font-bold border"
+                  style={{
+                    background: 'rgba(34, 211, 238, 0.12)',
+                    borderColor: 'rgba(34, 211, 238, 0.25)',
+                    color: '#22D3EE',
+                  }}
+                >
                   Live sandbox
                 </span>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 text-xs text-slate-600">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span className="text-[11px] font-medium">Interactive preview</span>
+            <div className="flex items-center space-x-2 text-xs">
+              <span
+                className="w-1.5 h-1.5 rounded-full"
+                style={{
+                  background: '#34D399',
+                  boxShadow: '0 0 6px rgba(52, 211, 153, 0.8)',
+                }}
+              />
+              <span className="text-[11px] font-semibold text-emerald-400">Interactive preview</span>
             </div>
           </div>
 

@@ -112,8 +112,8 @@ export function App() {
 
   if (loading && !state) {
     return (
-      <div className="min-h-screen bg-[#F6F8FB] flex flex-col items-center justify-center gap-3 text-slate-600 font-medium text-xs">
-        <span className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-[#2563EB]" />
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 font-medium text-xs" style={{ background: 'var(--bg-base)', color: '#94A3B8' }}>
+        <span className="h-6 w-6 animate-spin rounded-full border-2" style={{ borderColor: 'rgba(129,140,248,0.2)', borderTopColor: '#818CF8' }} />
         <span>Loading LedgerFlow workspace...</span>
       </div>
     );
@@ -126,7 +126,7 @@ export function App() {
   ).length;
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden bg-[#F6F8FB] text-[#0F172A] font-sans antialiased selection:bg-[#2563EB] selection:text-white">
+    <div className="h-screen flex flex-col overflow-hidden font-sans antialiased" style={{ background: 'var(--bg-base)', color: 'var(--text-primary)' }}>
       {/* 1. Global Top Navigation */}
       <TopBar
         project={state?.project}

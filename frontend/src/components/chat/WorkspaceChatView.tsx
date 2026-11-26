@@ -277,21 +277,34 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
   );
 
   return (
-    <div className="flex h-full w-full bg-[#F6F8FB] overflow-hidden select-text">
+    <div className="flex h-full w-full overflow-hidden select-text" style={{ background: 'var(--bg-base)' }}>
       {/* 1. LEFT COLUMN: Conversations Sidebar */}
-      <div className="w-72 border-r border-slate-900/[0.075] bg-white/80 backdrop-blur-md flex flex-col h-full shrink-0">
+      <div
+        className="w-72 border-r flex flex-col h-full shrink-0"
+        style={{
+          background: 'rgba(10, 13, 22, 0.95)',
+          borderColor: 'rgba(255, 255, 255, 0.06)',
+        }}
+      >
         {/* Header */}
-        <div className="h-14 px-4 border-b border-slate-900/[0.06] flex items-center justify-between">
+        <div
+          className="h-14 px-4 border-b flex items-center justify-between"
+          style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}
+        >
           <div className="flex items-center gap-2">
-            <MessageSquare className="w-4 h-4 text-[#2563EB]" strokeWidth={1.75} />
-            <h2 className="text-xs font-semibold text-slate-900">
+            <MessageSquare className="w-4 h-4 text-indigo-400" strokeWidth={1.75} />
+            <h2 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
               Conversations
             </h2>
           </div>
           <button
             type="button"
             onClick={() => setShowNewModal(true)}
-            className="w-7 h-7 rounded-lg btn-apple-secondary flex items-center justify-center text-slate-600 cursor-pointer"
+            className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-white border transition cursor-pointer"
+            style={{
+              background: 'rgba(255, 255, 255, 0.04)',
+              borderColor: 'rgba(255, 255, 255, 0.08)',
+            }}
             title="Create new room"
           >
             <Plus className="w-3.5 h-3.5" />
@@ -299,15 +312,19 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
         </div>
 
         {/* Search */}
-        <div className="p-3 border-b border-slate-900/[0.05]">
+        <div className="p-3 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.05)' }}>
           <div className="relative">
-            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-400" />
+            <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-500" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search conversations..."
-              className="w-full pl-8 pr-3 py-1.5 bg-[#F8FAFC] border border-slate-900/[0.08] rounded-lg text-xs text-slate-900 placeholder-slate-400 focus:bg-white focus:border-[#2563EB]/40 focus:ring-2 focus:ring-[#2563EB]/10 outline-hidden transition"
+              className="w-full pl-8 pr-3 py-1.5 rounded-lg text-xs text-white placeholder-slate-500 outline-none border transition"
+              style={{
+                background: 'rgba(0, 0, 0, 0.3)',
+                borderColor: 'rgba(255, 255, 255, 0.08)',
+              }}
             />
           </div>
         </div>
@@ -326,30 +343,39 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 type="button"
                 key={conv.id}
                 onClick={() => setActiveConversationId(conv.id)}
-                className={`w-full text-left p-3 rounded-xl transition cursor-pointer flex flex-col gap-1 border ${
+                className="w-full text-left p-3 rounded-xl transition cursor-pointer flex flex-col gap-1 border"
+                style={
                   isActive
-                    ? 'bg-white border-slate-900/[0.09] text-slate-900 shadow-[0_1px_2px_rgba(15,23,42,0.05)]'
-                    : 'bg-transparent border-transparent hover:bg-white/60 text-slate-600'
-                }`}
+                    ? {
+                        background: 'rgba(129, 140, 248, 0.12)',
+                        borderColor: 'rgba(129, 140, 248, 0.3)',
+                        boxShadow: '0 0 15px rgba(129, 140, 248, 0.15)',
+                      }
+                    : {
+                        background: 'transparent',
+                        borderColor: 'transparent',
+                        color: '#94A3B8',
+                      }
+                }
               >
                 <div className="flex items-center justify-between w-full">
                   <span
                     className={`text-xs truncate ${
-                      isActive ? 'text-slate-900 font-semibold' : 'text-slate-800 font-medium'
+                      isActive ? 'text-white font-bold' : 'text-slate-300 font-medium'
                     }`}
                   >
                     {conv.title}
                   </span>
                   {timeStr && (
-                    <span className="text-[10px] text-slate-400 font-mono shrink-0 ml-1">
+                    <span className="text-[10px] text-slate-500 font-mono shrink-0 ml-1">
                       {timeStr}
                     </span>
                   )}
                 </div>
 
                 {lastMsg && (
-                  <p className="text-[11px] text-slate-500 line-clamp-1 break-words">
-                    <span className="font-medium text-slate-700">
+                  <p className="text-[11px] text-slate-400 line-clamp-1 break-words">
+                    <span className="font-semibold text-slate-300">
                       {lastMsg.sender_name}:
                     </span>{' '}
                     {lastMsg.message_content || lastMsg.content}
@@ -357,11 +383,25 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                 )}
 
                 <div className="flex items-center gap-1.5 mt-1">
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600">
+                  <span
+                    className="text-[10px] font-mono px-1.5 py-0.5 rounded border"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.05)',
+                      borderColor: 'rgba(255, 255, 255, 0.08)',
+                      color: '#94A3B8',
+                    }}
+                  >
                     {conv.message_count} msgs
                   </span>
                   {conv.conversation_type === 'team_shared' && (
-                    <span className="text-[10px] px-1.5 py-0.2 rounded bg-blue-50 text-[#2563EB] font-medium border border-blue-200/60">
+                    <span
+                      className="text-[10px] px-1.5 py-0.5 rounded font-mono font-semibold border"
+                      style={{
+                        background: 'rgba(129, 140, 248, 0.12)',
+                        borderColor: 'rgba(129, 140, 248, 0.25)',
+                        color: '#A78BFA',
+                      }}
+                    >
                       Team room
                     </span>
                   )}
@@ -371,7 +411,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
           })}
 
           {filteredConversations.length === 0 && (
-            <div className="p-6 text-center text-xs text-slate-400">
+            <div className="p-6 text-center text-xs text-slate-500">
               No conversations found.
             </div>
           )}
@@ -379,19 +419,33 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
       </div>
 
       {/* 2. CENTRE COLUMN: Active Chat Stream */}
-      <div className="flex-1 flex flex-col h-full bg-[#F6F8FB] overflow-hidden">
+      <div className="flex-1 flex flex-col h-full overflow-hidden" style={{ background: 'var(--bg-base)' }}>
         {/* Stream Top Header */}
-        <div className="h-14 px-6 border-b border-slate-900/[0.075] bg-white/85 backdrop-blur-md flex items-center justify-between shrink-0">
+        <div
+          className="h-14 px-6 border-b flex items-center justify-between shrink-0"
+          style={{
+            background: 'rgba(8, 11, 20, 0.85)',
+            borderColor: 'rgba(255, 255, 255, 0.06)',
+            backdropFilter: 'blur(20px)',
+          }}
+        >
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-sm font-semibold text-slate-900 tracking-tight">
+              <h1 className="text-sm font-bold text-white tracking-tight">
                 {activeConv?.title || 'LedgerFlow Workspace Chat'}
               </h1>
-              <span className="text-[11px] font-medium px-2 py-0.2 rounded-full bg-slate-100 text-slate-600 border border-slate-900/[0.06]">
+              <span
+                className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border"
+                style={{
+                  background: 'rgba(52, 211, 153, 0.1)',
+                  borderColor: 'rgba(52, 211, 153, 0.25)',
+                  color: '#34D399',
+                }}
+              >
                 Shared space
               </span>
             </div>
-            <p className="text-[11px] text-slate-500 mt-0.5">
+            <p className="text-[11px] text-slate-400 mt-0.5">
               Alex, Maya, NOVA & PIXEL
             </p>
           </div>
@@ -399,37 +453,32 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
           <div className="flex items-center gap-3">
             {/* Active Participant Avatars */}
             <div className="flex items-center -space-x-1.5">
-              <div
-                className="w-6 h-6 rounded-full bg-blue-50 border border-blue-200 text-[#2563EB] flex items-center justify-center font-semibold text-[10px] ring-2 ring-white"
-                title="Alex (Decision Owner)"
-              >
-                A
-              </div>
-              <div
-                className="w-6 h-6 rounded-full bg-pink-50 border border-pink-200 text-[#BE185D] flex items-center justify-center font-semibold text-[10px] ring-2 ring-white"
-                title="Maya (Product Designer)"
-              >
-                M
-              </div>
-              <div
-                className="w-6 h-6 rounded-full bg-violet-50 border border-violet-200 text-[#6D28D9] flex items-center justify-center font-semibold text-[10px] ring-2 ring-white"
-                title="NOVA (AI Strategist)"
-              >
-                N
-              </div>
-              <div
-                className="w-6 h-6 rounded-full bg-teal-50 border border-teal-200 text-[#0F766E] flex items-center justify-center font-semibold text-[10px] ring-2 ring-white"
-                title="PIXEL (AI Engineer)"
-              >
-                P
-              </div>
+              {[
+                { label: 'A', title: 'Alex', bg: 'rgba(96,165,250,0.2)', color: '#60A5FA', ring: '#60A5FA' },
+                { label: 'M', title: 'Maya', bg: 'rgba(244,114,182,0.2)', color: '#F472B6', ring: '#F472B6' },
+                { label: 'N', title: 'NOVA', bg: 'rgba(167,139,250,0.2)', color: '#A78BFA', ring: '#A78BFA' },
+                { label: 'P', title: 'PIXEL', bg: 'rgba(34,211,238,0.2)', color: '#22D3EE', ring: '#22D3EE' },
+              ].map(({ label, title, bg, color, ring }) => (
+                <div
+                  key={label}
+                  className="w-6 h-6 rounded-full font-bold text-[10px] flex items-center justify-center border"
+                  title={title}
+                  style={{ background: bg, color, borderColor: ring }}
+                >
+                  {label}
+                </div>
+              ))}
             </div>
 
             {/* Context Panel Toggle */}
             <button
               type="button"
               onClick={() => setShowRightPanel(!showRightPanel)}
-              className="w-8 h-8 rounded-lg btn-apple-secondary flex items-center justify-center text-slate-500 cursor-pointer"
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white border transition cursor-pointer"
+              style={{
+                background: 'rgba(255, 255, 255, 0.04)',
+                borderColor: 'rgba(255, 255, 255, 0.08)',
+              }}
               title={showRightPanel ? 'Hide context panel' : 'Show context panel'}
             >
               {showRightPanel ? (
@@ -492,12 +541,20 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                   : 'Product Designer');
 
               const cardBorder = isNova
-                ? 'border-violet-200/90 bg-white ring-1 ring-violet-100/50'
+                ? 'rgba(167, 139, 250, 0.25)'
                 : isPixel
-                ? 'border-teal-200/90 bg-white ring-1 ring-teal-100/50'
+                ? 'rgba(34, 211, 238, 0.25)'
                 : msg.sender_id === 'maya'
-                ? 'border-pink-200/90 bg-white ring-1 ring-pink-100/50'
-                : 'border-blue-200/90 bg-white ring-1 ring-blue-100/50';
+                ? 'rgba(244, 114, 182, 0.25)'
+                : 'rgba(96, 165, 250, 0.25)';
+
+              const cardBg = isNova
+                ? 'rgba(167, 139, 250, 0.05)'
+                : isPixel
+                ? 'rgba(34, 211, 238, 0.05)'
+                : msg.sender_id === 'maya'
+                ? 'rgba(244, 114, 182, 0.05)'
+                : 'rgba(96, 165, 250, 0.05)';
 
               const timeStr = msg.created_at
                 ? new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -520,30 +577,36 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
                   {/* Message Bubble Card */}
                   <div
-                    className={`flex-1 border ${cardBorder} rounded-2xl p-4 shadow-xs space-y-2`}
+                    className="flex-1 rounded-2xl p-4 space-y-2 border"
+                    style={{
+                      background: cardBg,
+                      borderColor: cardBorder,
+                      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.2)',
+                    }}
                   >
                     {/* Header */}
-                    <div className="flex items-center justify-between pb-1.5 border-b border-[#F0F3F7]">
+                    <div className="flex items-center justify-between pb-1.5 border-b" style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[#172033]">
+                        <span className="text-xs font-bold text-white">
                           {msg.sender_name}
                         </span>
-                        <span className="text-[10px] text-[#657189] font-medium">
+                        <span className="text-[10px] text-slate-400 font-medium">
                           {roleLabel}
                         </span>
                         {!isHuman && (
                           <span
-                            className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider ${
+                            className="text-[9px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wider font-mono border"
+                            style={
                               isNova
-                                ? 'bg-violet-50 text-violet-700 border border-violet-200'
-                                : 'bg-teal-50 text-teal-700 border border-teal-200'
-                            }`}
+                                ? { background: 'rgba(167, 139, 250, 0.15)', color: '#A78BFA', borderColor: 'rgba(167, 139, 250, 0.3)' }
+                                : { background: 'rgba(34, 211, 238, 0.15)', color: '#22D3EE', borderColor: 'rgba(34, 211, 238, 0.3)' }
+                            }
                           >
                             AI Agent
                           </span>
                         )}
                       </div>
-                      <span className="text-[10px] text-[#94A3B8] font-mono">{timeStr}</span>
+                      <span className="text-[10px] text-slate-500 font-mono">{timeStr}</span>
                     </div>
 
                     {/* Markdown Body */}
@@ -551,7 +614,7 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
                     {/* Delivery Status & Retry */}
                     {msg.status === 'failed' && (
-                      <div className="mt-2 p-2.5 rounded-xl bg-rose-50 border border-rose-200 flex items-center justify-between text-xs text-rose-700">
+                      <div className="mt-2 p-2.5 rounded-xl bg-rose-950/40 border border-rose-500/30 flex items-center justify-between text-xs text-rose-300">
                         <span className="font-medium">
                           Failed to deliver message to agent. Check network or model quota.
                         </span>
@@ -566,45 +629,63 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                     )}
 
                     {msg.status === 'sending' && (
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-medium italic pt-1">
-                        <span className="w-2.5 h-2.5 rounded-full border border-slate-400 border-t-transparent animate-spin" />
+                      <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium italic pt-1">
+                        <span className="w-2.5 h-2.5 rounded-full border border-slate-500 border-t-transparent animate-spin" />
                         <span>Sending message...</span>
                       </div>
                     )}
 
                     {/* Embedded Linked Proposal Card if attached */}
                     {(msg.related_proposal_id || msg.related_proposal) && (
-                      <div className="mt-3 p-4 rounded-2xl bg-gradient-to-r from-violet-50/70 via-white to-teal-50/50 border border-violet-200/90 shadow-xs space-y-2.5">
+                      <div
+                        className="mt-3 p-4 rounded-2xl border space-y-2.5"
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(167, 139, 250, 0.1), rgba(34, 211, 238, 0.08))',
+                          borderColor: 'rgba(167, 139, 250, 0.3)',
+                          boxShadow: '0 0 20px rgba(167, 139, 250, 0.15)',
+                        }}
+                      >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <span className="p-1 rounded-lg bg-violet-100 text-violet-700">
+                            <span className="p-1 rounded-lg bg-violet-500/20 text-violet-300">
                               <Sparkles className="w-3.5 h-3.5" />
                             </span>
-                            <span className="text-xs font-bold text-[#172033] tracking-wide uppercase">
+                            <span className="text-xs font-bold text-white tracking-wide uppercase font-mono">
                               {msg.related_proposal?.proposal_type === 'prd_requirement'
                                 ? 'Formal Product Requirements Document (PRD)'
                                 : 'Actionable Engineering Proposal'}
                             </span>
                           </div>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300">
+                          <span
+                            className="text-[10px] font-bold px-2 py-0.5 rounded-full border font-mono"
+                            style={{
+                              background: 'rgba(251, 191, 36, 0.15)',
+                              borderColor: 'rgba(251, 191, 36, 0.3)',
+                              color: '#FBBF24',
+                            }}
+                          >
                             {msg.related_proposal?.status ? msg.related_proposal.status.toUpperCase() : 'AWAITING CONFIRMATION'}
                           </span>
                         </div>
 
-                        <p className="text-xs text-[#172033] font-semibold leading-relaxed">
+                        <p className="text-xs text-white font-semibold leading-relaxed">
                           {msg.related_proposal?.summary ||
                             `Proposal #${(msg.related_proposal_id || '').slice(-6)}`}
                         </p>
 
-                        <div className="flex items-center justify-between pt-2 border-t border-[#E8EAF2]">
-                          <span className="text-[11px] text-[#657189]">
-                            Author: <strong className="text-[#172033]">{msg.related_proposal?.author || msg.sender_name}</strong>
+                        <div className="flex items-center justify-between pt-2 border-t" style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}>
+                          <span className="text-[11px] text-slate-400">
+                            Author: <strong className="text-slate-200">{msg.related_proposal?.author || msg.sender_name}</strong>
                           </span>
                           <button
                             onClick={() =>
                               onNavigateTab('proposals', msg.related_proposal_id || msg.related_proposal?.id)
                             }
-                            className="px-3.5 py-1.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-xs cursor-pointer"
+                            className="px-3.5 py-1.5 rounded-xl text-white font-bold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                            style={{
+                              background: 'linear-gradient(135deg, #818CF8, #A78BFA)',
+                              boxShadow: '0 0 15px rgba(129, 140, 248, 0.4)',
+                            }}
                           >
                             <span>View PRD in Proposals</span>
                             <ArrowRight className="w-3.5 h-3.5" />
@@ -620,8 +701,8 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
 
           {/* Typing Indicator */}
           {isTyping && (
-            <div className="flex items-center gap-3 text-xs text-[#657189] italic pl-2 py-2">
-              <span className="w-2 h-2 rounded-full bg-teal-600 animate-ping" />
+            <div className="flex items-center gap-3 text-xs text-slate-400 italic pl-2 py-2">
+              <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping" />
               <span>{isTyping}</span>
             </div>
           )}
@@ -630,58 +711,92 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
         </div>
 
         {/* Message Composer Area */}
-        <div className="p-4 bg-white/90 backdrop-blur-md border-t border-slate-900/[0.075] shrink-0 space-y-3">
+        <div
+          className="p-4 shrink-0 space-y-3 border-t"
+          style={{
+            background: 'rgba(8, 11, 20, 0.95)',
+            borderColor: 'rgba(255, 255, 255, 0.08)',
+            backdropFilter: 'blur(20px)',
+          }}
+        >
           {/* Recipient Selector Toggle */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-0.5 p-1 bg-[#F1F4F8] border border-slate-900/[0.06] rounded-xl">
-              <span className="text-[11px] font-medium text-slate-500 px-2.5">
+            <div
+              className="flex items-center gap-0.5 p-1 rounded-xl border"
+              style={{
+                background: 'rgba(0, 0, 0, 0.4)',
+                borderColor: 'rgba(255, 255, 255, 0.08)',
+              }}
+            >
+              <span className="text-[11px] font-medium text-slate-400 px-2.5">
                 To:
               </span>
               <button
                 type="button"
                 onClick={() => setRecipient('team')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs transition cursor-pointer ${
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer"
+                style={
                   recipient === 'team'
-                    ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                    ? {
+                        background: 'rgba(96, 165, 250, 0.2)',
+                        color: '#60A5FA',
+                        boxShadow: '0 0 10px rgba(96, 165, 250, 0.25)',
+                      }
+                    : { color: '#64748B' }
+                }
               >
-                <Users className="w-3.5 h-3.5 text-[#2563EB]" strokeWidth={1.75} />
+                <Users className="w-3.5 h-3.5" strokeWidth={1.75} />
                 <span>Entire Team</span>
               </button>
               <button
                 type="button"
                 onClick={() => setRecipient('nova')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs transition cursor-pointer ${
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer"
+                style={
                   recipient === 'nova'
-                    ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                    ? {
+                        background: 'rgba(167, 139, 250, 0.2)',
+                        color: '#A78BFA',
+                        boxShadow: '0 0 10px rgba(167, 139, 250, 0.25)',
+                      }
+                    : { color: '#64748B' }
+                }
               >
-                <Bot className="w-3.5 h-3.5 text-[#6D28D9]" strokeWidth={1.75} />
+                <Bot className="w-3.5 h-3.5" strokeWidth={1.75} />
                 <span>NOVA</span>
               </button>
               <button
                 type="button"
                 onClick={() => setRecipient('pixel')}
-                className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs transition cursor-pointer ${
+                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer"
+                style={
                   recipient === 'pixel'
-                    ? 'bg-white text-slate-900 font-medium shadow-[0_1px_2px_rgba(15,23,42,0.06)]'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
+                    ? {
+                        background: 'rgba(34, 211, 238, 0.2)',
+                        color: '#22D3EE',
+                        boxShadow: '0 0 10px rgba(34, 211, 238, 0.25)',
+                      }
+                    : { color: '#64748B' }
+                }
               >
-                <Code className="w-3.5 h-3.5 text-[#0F766E]" strokeWidth={1.75} />
+                <Code className="w-3.5 h-3.5" strokeWidth={1.75} />
                 <span>PIXEL</span>
               </button>
             </div>
 
-            <div className="text-[11px] text-slate-500 hidden sm:block">
-              Posting as <strong className="font-medium text-slate-900">{identity === 'alex' ? 'Alex' : 'Maya'}</strong>
+            <div className="text-[11px] text-slate-400 hidden sm:block">
+              Posting as <strong className="font-semibold text-white">{identity === 'alex' ? 'Alex' : 'Maya'}</strong>
             </div>
           </div>
 
           {/* Textarea Composer */}
-          <div className="relative bg-[#F8FAFC] border border-slate-900/[0.08] focus-within:border-[#2563EB]/40 focus-within:bg-white focus-within:ring-4 focus-within:ring-[#2563EB]/[0.07] rounded-xl transition p-3.5">
+          <div
+            className="relative rounded-xl p-3.5 border transition focus-within:border-indigo-400/50"
+            style={{
+              background: 'rgba(0, 0, 0, 0.35)',
+              borderColor: 'rgba(255, 255, 255, 0.08)',
+            }}
+          >
             <textarea
               ref={textareaRef}
               rows={2}
@@ -695,23 +810,27 @@ export const WorkspaceChatView: React.FC<WorkspaceChatViewProps> = ({
                   ? 'Message PIXEL: "Please update the hero headline and add spend trends to dashboard"'
                   : 'Message entire team: "How should we adjust manager approval thresholds?"'
               }
-              className="w-full text-[13px] text-slate-900 placeholder-slate-400 resize-none outline-hidden bg-transparent leading-relaxed"
+              className="w-full text-[13px] text-white placeholder-slate-500 resize-none outline-none bg-transparent leading-relaxed"
             />
 
-            <div className="flex items-center justify-between pt-2.5 border-t border-slate-900/[0.06] mt-2">
+            <div
+              className="flex items-center justify-between pt-2.5 mt-2 border-t"
+              style={{ borderColor: 'rgba(255, 255, 255, 0.06)' }}
+            >
               <span className="text-[11px] text-slate-500">
-                Press <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-900/[0.08] text-[10px] font-mono shadow-2xs">Enter</kbd> to send · <kbd className="px-1.5 py-0.5 rounded bg-white border border-slate-900/[0.08] text-[10px] font-mono shadow-2xs">Shift+Enter</kbd> for newline
+                Press <kbd className="px-1.5 py-0.5 rounded text-[10px] font-mono border" style={{ background: 'rgba(255, 255, 255, 0.05)', borderColor: 'rgba(255, 255, 255, 0.1)', color: '#94A3B8' }}>Enter</kbd> to send
               </span>
 
               <button
                 type="button"
                 disabled={!inputText.trim() || isSending}
                 onClick={() => handleSendMessage()}
-                className={`flex items-center gap-1.5 h-8 px-4 rounded-lg text-xs font-medium transition cursor-pointer ${
-                  !inputText.trim() || isSending
-                    ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                    : 'btn-obsidian'
-                }`}
+                className="flex items-center gap-1.5 h-8 px-4 rounded-xl text-xs font-semibold transition cursor-pointer disabled:opacity-40"
+                style={{
+                  background: 'linear-gradient(135deg, #818CF8, #A78BFA)',
+                  color: '#FFFFFF',
+                  boxShadow: '0 0 15px rgba(129, 140, 248, 0.4)',
+                }}
               >
                 {isSending ? (
                   <>
